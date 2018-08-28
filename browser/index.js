@@ -56,7 +56,7 @@ module.exports = module.exports = {
 
 
         var parent = this,
-            layerNames = ["v:public.boreholes_time_series"];
+            layerNames = ["v:geus.boreholes_time_series"];
 
         // Disable automatic creation of layer tree. We need to set "On" functions first
         //layerTree.setAutomatic(true);
