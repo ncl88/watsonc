@@ -66,15 +66,22 @@ module.exports = module.exports = {
             layerTree.setOnEachFeature(layerName, function (feature, layer) {
                 layer.on("click", function () {
                     console.log(feature.properties.boreholeno);
-                    ReactDOM.render(<Borehole
-                        boreholeno={feature.properties.boreholeno}
-                        timeofmeas={feature.properties.timeofmeas}
-                        watlevmsl={feature.properties.watlevmsl}
-                        maksoftop={feature.properties.maksoftop}
-                        minofbottom={feature.properties.minofbottom}
-                        drilldepth={feature.properties.drilldepth}
-                        zdvr90={feature.properties.zdvr90}
-                    />, document.getElementById(exId));
+
+                    let html = "Bore hole no: " + feature.properties.boreholeno + "<br>"+
+                        "Water level: " + feature.properties.watlevmsl;
+
+                    layer.bindPopup(html, {
+                        className: "custom-popup",
+                        autoPan: true,
+                        closeButton: true
+                    }).openPopup();
+
+                    setTimeout(function(){
+                        $(".leaflet-popup-content").css("width", "200px");
+
+                    }, 200);
+
+
 
                 });
             });
