@@ -5,8 +5,7 @@
 
 'use strict';
 
-import Plot from 'react-plotly.js';
-import moment from 'moment';
+import BoreholePlotsComponent from './BoreholePlotsComponent';
 
 /**
  *
@@ -42,6 +41,8 @@ let exId = "watsonc";
 
 let componentInstance = false;
 
+let _self = false;
+
 /**
  *
  * @type {{set: module.exports.set, init: module.exports.init}}
@@ -53,6 +54,8 @@ module.exports = module.exports = {
         backboneEvents = o.backboneEvents;
         layerTree = o.layerTree;
         utils = o.utils;
+
+        _self = this;
         return this;
     },
     init: function () {
@@ -64,23 +67,96 @@ module.exports = module.exports = {
         // Disable automatic creation of layer tree. We need to set "On" functions first
         layerTree.setAutomatic(false);
 
+        const constructExistingPlotsPanel = (plots = false) => {
+            let plotsRawMarkup = `<p>${__(`No plots were created yet`)}</p>`;
+
+            let existingPlots = [];
+            let plotsToProcess = ((plots) ? plots : _self.getExistingPlots());
+            plotsToProcess.map(plot => {
+                let removeYAxisButtons = ``;
+                plot.yAxes.map(yAxis => {
+                    removeYAxisButtons = removeYAxisButtons + `<button
+                        type="button"
+                        class="btn btn-xs btn-primary js-delete-y-axis"
+                        data-plot-id="${plot.id}"
+                        data-axis="${yAxis}"
+                        style="padding: 4px; margin: 1px;">
+                        <i class="fa fa-remove"></i> ${yAxis}
+                    </button>`;
+                });
+
+                existingPlots.push(`<div
+                    class="well well-sm js-plot"
+                    data-id="${plot.id}"
+                    style="margin-bottom: 4px;">
+                    <span>${plot.title}</span>
+                    <span>${removeYAxisButtons}</span>
+                </div>`);
+            });
+
+            if (existingPlots.length > 0) {
+                plotsRawMarkup = existingPlots.join(``);
+            }
+
+console.log(`### plotsRawMarkup`, $(`.watsonc-custom-popup`).find(`.js-existing-plots-container`).length);
+
+            $(`.watsonc-custom-popup`).find(`.js-existing-plots-container`).empty();
+            setTimeout(() => {
+                $(`.watsonc-custom-popup`).find(`.js-existing-plots-container`).append(plotsRawMarkup);
+                $(`.watsonc-custom-popup`).find(`.js-plot`).droppable({
+                    drop: function(event, ui) {
+                        componentInstance.addYAxis($(this).data(`id`), $(ui.draggable[0]).data(`key`));
+                    }
+                });
+
+                $(`.watsonc-custom-popup`).find(`.js-delete-y-axis`).click((event) => {
+                    componentInstance.deleteYAxis($(event.currentTarget).data(`plot-id`), $(event.currentTarget).data(`axis`));
+                });
+            }, 100);
+        };
+
         layerNames.map(function (layerName) {
             layerTree.setOnEachFeature(layerName, function (feature, layer) {
                 layer.on("click", function () {
-                    console.log(feature.properties.boreholeno);
+                    let plottedProperties = [`drilldepth`, `maksoftop`, `minofbottom`, `watlevmsl`, `zdvr90`];
 
-                    let html = "Bore hole no: " + feature.properties.boreholeno + "<br>"+
-                        "Water level: " + feature.properties.watlevmsl;
+                    let plottedPropertiesControls = [];
+                    for (let key in feature.properties) {
+                        if (plottedProperties.indexOf(key) !== -1) {
+                            plottedPropertiesControls.push(`<span
+                                class="btn btn-xs btn-primary js-plotted-property"
+                                data-gid="${feature.properties.gid}"
+                                data-key="${key}"
+                                style="padding: 4px; margin: 1px;">
+                                <i class="fa fa-arrows-alt"></i> ${key}
+                            </span>`);
+                        }
+                    }
+
+                    let html = `<div>
+                        <div>
+                            <h5>${__(`Borehole`)} no. ${feature.properties.boreholeno}</h5>
+                        </div>
+                        <div>${__(`Data series`)}:</div>
+                        <div>${plottedPropertiesControls.join(``)}</div>
+                        <div>${__(`Available plots`)}:</div>
+                        <div class="js-existing-plots-container"></div>
+                    </div>`;
 
                     layer.bindPopup(html, {
-                        className: "custom-popup",
+                        className: `watsonc-custom-popup`,
                         autoPan: true,
+                        maxHeight: 300,
                         closeButton: true
                     }).openPopup();
 
-                    setTimeout(function(){
-                        $(".leaflet-popup-content").css("width", "200px");
-                    }, 200);
+                    $(`.watsonc-custom-popup`).find(`.js-plotted-property`).draggable({
+                        containment: `.watsonc-custom-popup`,
+                        revert: true,
+                        revertDuration: 0
+                    });
+
+                    constructExistingPlotsPanel();
 
                     if (componentInstance) {
                         componentInstance.setMeasurement(feature.properties);
@@ -110,109 +186,27 @@ module.exports = module.exports = {
 
         layerTree.create(false, true);
 
-
-
-
-
-        class Borehole extends React.Component {
-            constructor(props) {
-                super(props);
-
-                this.state = {
-                    measurement: false
-                };
-            }
-        
-            componentDidMount() {}
-
-            setMeasurement(measurement) {
-                console.log(`### setMeasurement`, measurement);
-                this.setState({ measurement });
-            }
-
-            render() {
-                let measurement = (<p>### Please select the measurement ###</p>);
-                if (this.state.measurement) {
-                    console.log(this.state.measurement.timeofmeas);
-
-                    let formattedDateAxisData = [];
-                    
-                    
-                    let parsedTimeOfMeasurements = JSON.parse(this.state.measurement.timeofmeas);
-                    let parsedWaterLevels = JSON.parse(this.state.measurement.watlevmsl);
-                    
-                    parsedTimeOfMeasurements.map(item => {
-                        formattedDateAxisData.push(moment(item).format('YYYY-MM-DD HH:mm:ss'));
-                    });
-
-                    measurement = (<div>
-                        <div>
-                            <div>boreholeno: {this.state.measurement.boreholeno}</div>
-                            <div>timeofmeas: {parsedTimeOfMeasurements.length} ### total ###</div>
-                            <div>watlevmsl: {parsedWaterLevels.length} ### total ###</div>
-                            <div>maksoftop: {JSON.parse(this.state.measurement.maksoftop).length} ### total ###</div>
-                            <div>minofbottom: {JSON.parse(this.state.measurement.minofbottom).length} ### total ###</div>
-                            <div>drilldepth: {JSON.parse(this.state.measurement.drilldepth).length}</div>
-                            <div>zdvr90: {JSON.parse(this.state.measurement.zdvr90).length}</div>
-                        </div>
-                        <div>
-                            <Plot
-                                data={[{
-                                    x: formattedDateAxisData,
-                                    y: parsedWaterLevels,
-                                    type: 'scatter',
-                                    mode: 'markers',
-                                    marker: {color: 'green'},
-                                }]}
-                                layout={{
-                                    xaxis: {
-                                        autorange: true,
-                                        rangeselector: {buttons: [
-                                            {
-                                              count: 1,
-                                              label: '1m',
-                                              step: 'month',
-                                              stepmode: 'backward'
-                                            },
-                                            {
-                                              count: 6,
-                                              label: '6m',
-                                              step: 'month',
-                                              stepmode: 'backward'
-                                            },
-                                            {step: 'all'}
-                                        ]},
-                                        rangeslider: {
-                                            range: [
-                                                moment(parsedTimeOfMeasurements[0]).format('YYYY-MM-DD'),
-                                                moment(parsedTimeOfMeasurements[parsedTimeOfMeasurements.length - 1]).format('YYYY-MM-DD')    
-                                            ]
-                                        },
-                                        type: 'date'
-                                    },
-                                    width: 490,
-                                    height: 490,
-                                    title: 'Bore hole no. ' + this.state.measurement.boreholeno
-                                }}
-                            />
-
-                        </div>
-                    </div>);
-                }
-
-                return (<div>{measurement}</div>);
-            }
-        }
-
+        const onPlotsChangeHandler = (plots) => {
+            constructExistingPlotsPanel(plots);
+        };
 
         if (document.getElementById(exId)) {
             try {
-                componentInstance = ReactDOM.render(<Borehole />, document.getElementById(exId));
+                componentInstance = ReactDOM.render(<BoreholePlotsComponent
+                    onPlotsChange={onPlotsChangeHandler}/>, document.getElementById(exId));
             } catch (e) {
                 console.log(e);
             }
         } else {
             console.warn(`Unable to find the container for watsonc extension (element id: ${exId})`);
+        }
+    },
+
+    getExistingPlots: () => {
+        if (componentInstance) {
+            return componentInstance.getPlots();
+        } else {
+            throw new Error(`Unable to find the component instance`);
         }
     }
 
