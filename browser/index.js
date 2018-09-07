@@ -54,18 +54,13 @@ module.exports = module.exports = {
         backboneEvents = o.backboneEvents;
         layerTree = o.layerTree;
         utils = o.utils;
-
         _self = this;
         return this;
     },
     init: function () {
         utils.createMainTab(exId, __("Boreholes"), __("Info"), require('./../../../browser/modules/height')().max);
 
-        var parent = this,
-            layerNames = ["v:public.boreholes_time_series"];
-
-        // Disable automatic creation of layer tree. We need to set "On" functions first
-        layerTree.setAutomatic(false);
+        var parent = this, layerNames = ["v:public.boreholes_time_series"];
 
         const constructExistingPlotsPanel = (plots = false) => {
             let plotsRawMarkup = `<p>${__(`No plots were created yet`)}</p>`;
@@ -97,8 +92,6 @@ module.exports = module.exports = {
             if (existingPlots.length > 0) {
                 plotsRawMarkup = existingPlots.join(``);
             }
-
-console.log(`### plotsRawMarkup`, $(`.watsonc-custom-popup`).find(`.js-existing-plots-container`).length);
 
             $(`.watsonc-custom-popup`).find(`.js-existing-plots-container`).empty();
             setTimeout(() => {
@@ -167,9 +160,7 @@ console.log(`### plotsRawMarkup`, $(`.watsonc-custom-popup`).find(`.js-existing-
             });
 
             layerTree.setOnSelect(layerName, function (id, layer) {
-
                 console.log(layer.feature.properties.boreholeno);
-
             });
 
             layerTree.setStyle(layerName, {
@@ -186,14 +177,10 @@ console.log(`### plotsRawMarkup`, $(`.watsonc-custom-popup`).find(`.js-existing-
 
         layerTree.create(false, true);
 
-        const onPlotsChangeHandler = (plots) => {
-            constructExistingPlotsPanel(plots);
-        };
-
         if (document.getElementById(exId)) {
             try {
                 componentInstance = ReactDOM.render(<BoreholePlotsComponent
-                    onPlotsChange={onPlotsChangeHandler}/>, document.getElementById(exId));
+                    onPlotsChange={constructExistingPlotsPanel}/>, document.getElementById(exId));
             } catch (e) {
                 console.log(e);
             }
