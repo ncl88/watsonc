@@ -110,7 +110,7 @@ module.exports = module.exports = {
 
         layerNames.map(function (layerName) {
             layerTree.setOnEachFeature(layerName, function (feature, layer) {
-                layer.on("click", function () {
+                layer.on("click", function (e) {
                     let plottedProperties = [`drilldepth`, `maksoftop`, `minofbottom`, `watlevmsl`, `zdvr90`];
 
                     let plottedPropertiesControls = [];
@@ -136,12 +136,12 @@ module.exports = module.exports = {
                         <div class="js-existing-plots-container"></div>
                     </div>`;
 
-                    layer.bindPopup(html, {
+                    let managePopup = L.popup({
                         className: `watsonc-custom-popup`,
-                        autoPan: true,
+                        autoPan: false,
                         maxHeight: 300,
                         closeButton: true
-                    }).openPopup();
+                    }).setLatLng(e.latlng).setContent(html).openOn(cloud.get().map);
 
                     $(`.watsonc-custom-popup`).find(`.js-plotted-property`).draggable({
                         containment: `.watsonc-custom-popup`,
