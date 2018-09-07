@@ -39,6 +39,10 @@ var ReactDOM = require('react-dom');
 
 let exId = "watsonc";
 
+const LAYER_NAMES = [`v:public.boreholes_time_series`];
+
+const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
+
 let componentInstance = false;
 
 let _self = false;
@@ -59,8 +63,6 @@ module.exports = module.exports = {
     },
     init: function () {
         utils.createMainTab(exId, __("Boreholes"), __("Info"), require('./../../../browser/modules/height')().max);
-
-        var parent = this, layerNames = ["v:public.boreholes_time_series"];
 
         const constructExistingPlotsPanel = (plots = false) => {
             let plotsRawMarkup = `<p>${__(`No plots were created yet`)}</p>`;
@@ -108,10 +110,26 @@ module.exports = module.exports = {
             }, 100);
         };
 
-        layerNames.map(function (layerName) {
+        LAYER_NAMES.map(function (layerName) {
             layerTree.setOnEachFeature(layerName, function (feature, layer) {
                 layer.on("click", function (e) {
-                    let plottedProperties = [`drilldepth`, `maksoftop`, `minofbottom`, `watlevmsl`, `zdvr90`];
+                    let plottedProperties = [];
+                    // Get the number of time measurements
+                    let numberOfTimeMeasurements = JSON.parse(feature.properties[TIME_MEASUREMENTS_FIELD]).length;
+                    // Getting all properties that are parsable JSON arrays with the length of number of time mesurements
+                    for (let key in feature.properties) {
+                        let isPlottableProperty = false;
+                        try {
+                            let data = JSON.parse(feature.properties[key]);
+                            if (data.length === numberOfTimeMeasurements && key !== TIME_MEASUREMENTS_FIELD) {
+                                isPlottableProperty = true;
+                            }
+                        } catch (e) {}
+
+                        if (isPlottableProperty) {
+                            plottedProperties.push(key);
+                        }
+                    }
 
                     let plottedPropertiesControls = [];
                     for (let key in feature.properties) {
