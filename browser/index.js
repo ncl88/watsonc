@@ -5,6 +5,8 @@
 
 'use strict';
 
+import BoreholePlotsComponent from './BoreholePlotsComponent';
+
 /**
  *
  * @type {*|exports|module.exports}
@@ -35,7 +37,15 @@ var React = require('react');
 
 var ReactDOM = require('react-dom');
 
-var exId = "watsonc";
+let exId = "watsonc";
+
+const LAYER_NAMES = [`v:public.boreholes_time_series`];
+
+const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
+
+let componentInstance = false;
+
+let _self = false;
 
 /**
  *
@@ -48,93 +58,164 @@ module.exports = module.exports = {
         backboneEvents = o.backboneEvents;
         layerTree = o.layerTree;
         utils = o.utils;
+        _self = this;
         return this;
     },
     init: function () {
-
         utils.createMainTab(exId, __("Boreholes"), __("Info"), require('./../../../browser/modules/height')().max);
 
+        const constructExistingPlotsPanel = (plots = false) => {
+            let plotsRawMarkup = `<p>${__(`No plots were created yet`)}</p>`;
 
-        var parent = this,
-            layerNames = ["v:geus.boreholes_time_series"];
+            let existingPlots = [];
+            let plotsToProcess = ((plots) ? plots : _self.getExistingPlots());
+            plotsToProcess.map(plot => {
+                let removeYAxisButtons = ``;
+                plot.yAxes.map(yAxis => {
+                    removeYAxisButtons = removeYAxisButtons + `<button
+                        type="button"
+                        class="btn btn-xs btn-primary js-delete-y-axis"
+                        data-plot-id="${plot.id}"
+                        data-axis="${yAxis}"
+                        style="padding: 4px; margin: 1px;">
+                        <i class="fa fa-remove"></i> ${yAxis}
+                    </button>`;
+                });
 
-        // Disable automatic creation of layer tree. We need to set "On" functions first
-        //layerTree.setAutomatic(true);
+                existingPlots.push(`<div
+                    class="well well-sm js-plot"
+                    data-id="${plot.id}"
+                    style="margin-bottom: 4px;">
+                    <span>${plot.title}</span>
+                    <span>${removeYAxisButtons}</span>
+                </div>`);
+            });
 
-        layerNames.map(function (layerName) {
+            if (existingPlots.length > 0) {
+                plotsRawMarkup = existingPlots.join(``);
+            }
 
+            $(`.watsonc-custom-popup`).find(`.js-existing-plots-container`).empty();
+            setTimeout(() => {
+                $(`.watsonc-custom-popup`).find(`.js-existing-plots-container`).append(plotsRawMarkup);
+                $(`.watsonc-custom-popup`).find(`.js-plot`).droppable({
+                    drop: function(event, ui) {
+                        componentInstance.addYAxis($(this).data(`id`), $(ui.draggable[0]).data(`key`));
+                    }
+                });
+
+                $(`.watsonc-custom-popup`).find(`.js-delete-y-axis`).click((event) => {
+                    componentInstance.deleteYAxis($(event.currentTarget).data(`plot-id`), $(event.currentTarget).data(`axis`));
+                });
+            }, 100);
+        };
+
+        LAYER_NAMES.map(function (layerName) {
             layerTree.setOnEachFeature(layerName, function (feature, layer) {
-                layer.on("click", function () {
-                    console.log(feature.properties.boreholeno);
+                layer.on("click", function (e) {
+                    let plottedProperties = [];
+                    // Get the number of time measurements
+                    let numberOfTimeMeasurements = JSON.parse(feature.properties[TIME_MEASUREMENTS_FIELD]).length;
+                    // Getting all properties that are parsable JSON arrays with the length of number of time mesurements
+                    for (let key in feature.properties) {
+                        let isPlottableProperty = false;
+                        try {
+                            let data = JSON.parse(feature.properties[key]);
+                            if (data.length === numberOfTimeMeasurements && key !== TIME_MEASUREMENTS_FIELD) {
+                                isPlottableProperty = true;
+                            }
+                        } catch (e) {}
 
-                    let html = "Bore hole no: " + feature.properties.boreholeno + "<br>"+
-                        "Water level: " + feature.properties.watlevmsl;
+                        if (isPlottableProperty) {
+                            plottedProperties.push(key);
+                        }
+                    }
 
-                    layer.bindPopup(html, {
-                        className: "custom-popup",
-                        autoPan: true,
+                    let plottedPropertiesControls = [];
+                    for (let key in feature.properties) {
+                        if (plottedProperties.indexOf(key) !== -1) {
+                            plottedPropertiesControls.push(`<span
+                                class="btn btn-xs btn-primary js-plotted-property"
+                                data-gid="${feature.properties.gid}"
+                                data-key="${key}"
+                                style="padding: 4px; margin: 1px;">
+                                <i class="fa fa-arrows-alt"></i> ${key}
+                            </span>`);
+                        }
+                    }
+
+                    let html = `<div>
+                        <div>
+                            <h5>${__(`Borehole`)} no. ${feature.properties.boreholeno}</h5>
+                        </div>
+                        <div>${__(`Data series`)}:</div>
+                        <div>${plottedPropertiesControls.join(``)}</div>
+                        <div>${__(`Available plots`)}:</div>
+                        <div class="js-existing-plots-container"></div>
+                    </div>`;
+
+                    let managePopup = L.popup({
+                        className: `watsonc-custom-popup`,
+                        autoPan: false,
+                        maxHeight: 300,
                         closeButton: true
-                    }).openPopup();
+                    }).setLatLng(e.latlng).setContent(html).openOn(cloud.get().map);
 
-                    setTimeout(function(){
-                        $(".leaflet-popup-content").css("width", "200px");
+                    $(`.watsonc-custom-popup`).find(`.js-plotted-property`).draggable({
+                        containment: `.watsonc-custom-popup`,
+                        revert: true,
+                        revertDuration: 0
+                    });
 
-                    }, 200);
+                    constructExistingPlotsPanel();
 
-
-
+                    if (componentInstance) {
+                        componentInstance.setMeasurement(feature.properties);
+                    } else {
+                        throw new Error(`Unable to find the component instance`);
+                    }
                 });
             });
 
             layerTree.setOnSelect(layerName, function (id, layer) {
-
                 console.log(layer.feature.properties.boreholeno);
             });
 
-            layerTree.setStyle(layerName,
-                {
-                    weight: 5,
-                    color: '#ff0000',
-                    dashArray: '',
-                    fillOpacity: 0.2
-                }
-            );
+            layerTree.setStyle(layerName, {
+                weight: 5,
+                color: '#ff0000',
+                dashArray: '',
+                fillOpacity: 0.2
+            });
 
-            layerTree.setPointToLayer(layerName, function (feature, latlng) {
-                    return L.circleMarker(latlng);
-
-                }
-            );
+            layerTree.setPointToLayer(layerName, (feature, latlng) => {
+                return L.circleMarker(latlng);
+            });
         });
 
-        //layerTree.createLayerTree();
+        layerTree.create(false, true);
 
+        if (document.getElementById(exId)) {
+            try {
+                componentInstance = ReactDOM.render(<BoreholePlotsComponent
+                    onPlotsChange={constructExistingPlotsPanel}/>, document.getElementById(exId));
+            } catch (e) {
+                console.log(e);
+            }
+        } else {
+            console.warn(`Unable to find the container for watsonc extension (element id: ${exId})`);
+        }
+    },
 
+    getExistingPlots: () => {
+        if (componentInstance) {
+            return componentInstance.getPlots();
+        } else {
+            throw new Error(`Unable to find the component instance`);
+        }
     }
 
 };
 
-class Borehole extends React.Component {
-    constructor(props) {
-        super(props);
-    }
 
-    componentDidMount() {
-    }
-
-
-    render() {
-        return (
-            <div>
-                <div>boreholeno: {this.props.boreholeno}</div>
-                <div>timeofmeas: {this.props.timeofmeas}</div>
-                <div>watlevmsl: {this.props.watlevmsl}</div>
-                <div>maksoftop: {this.props.maksoftop}</div>
-                <div>minofbottom: {this.props.minofbottom}</div>
-                <div>drilldepth: {this.props.drilldepth}</div>
-                <div>zdvr90: {this.props.zdvr90}</div>
-            </div>
-        );
-    }
-}
 
