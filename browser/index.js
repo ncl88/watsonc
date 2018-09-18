@@ -39,7 +39,7 @@ var ReactDOM = require('react-dom');
 
 let exId = "watsonc";
 
-const LAYER_NAMES = [`v:public.boreholes_time_series`];
+const LAYER_NAMES = [`v:geus.boreholes_time_series_with_chemicals`];
 
 const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
 
