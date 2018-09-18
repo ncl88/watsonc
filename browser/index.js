@@ -39,7 +39,7 @@ var ReactDOM = require('react-dom');
 
 let exId = "watsonc";
 
-const LAYER_NAMES = [`v:public.boreholes_time_series`];
+const LAYER_NAMES = [`v:geus.boreholes_time_series_with_chemicals`];
 
 const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
 
@@ -114,13 +114,22 @@ module.exports = module.exports = {
             layerTree.setOnEachFeature(layerName, function (feature, layer) {
                 layer.on("click", function (e) {
                     let plottedProperties = [];
+
                     // Get the number of time measurements
                     let numberOfTimeMeasurements = JSON.parse(feature.properties[TIME_MEASUREMENTS_FIELD]).length;
+
                     // Getting all properties that are parsable JSON arrays with the length of number of time mesurements
                     for (let key in feature.properties) {
+
+                        console.log(`### processing the`, key);
+
                         let isPlottableProperty = false;
                         try {
                             let data = JSON.parse(feature.properties[key]);
+                            if (`unit` in data && `title` in data && `measurements` in data && `timeOfMeasurement` in data) {
+                                console.log(data);
+                            }
+
                             if (data.length === numberOfTimeMeasurements && key !== TIME_MEASUREMENTS_FIELD) {
                                 isPlottableProperty = true;
                             }
