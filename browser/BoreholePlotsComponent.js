@@ -4,8 +4,6 @@ import PropTypes from 'prop-types';
 import TitleFieldComponent from './../../../browser/modules/shared/TitleFieldComponent';
 import PlotComponent from './PlotComponent';
 
-const DEFAULT_X_AXIS = `timeofmeas`;
-
 const uuidv4 = require('uuid/v4');
 
 class BoreholePlotsComponent extends React.Component {
@@ -14,32 +12,52 @@ class BoreholePlotsComponent extends React.Component {
 
         this.state = {
             newPlotName: ``,
-            plots: []
+            plots: this.props.initialPlots,
+            dataSource: []
         };
 
-        this.handleCreatePlotHandler = this.handleCreatePlotHandler.bind(this);
+        this.handleCreatePlot = this.handleCreatePlot.bind(this);
+        this.handleDeletePlot = this.handleDeletePlot.bind(this);
+        this.getFeatureByGidFromDataSource = this.getFeatureByGidFromDataSource.bind(this);
         this.handleNewPlotNameChange = this.handleNewPlotNameChange.bind(this);
     }
 
     componentDidMount() {}
 
     getPlots() {
-        console.log(`### plots`, JSON.parse(JSON.stringify(this.state.plots)));
         return JSON.parse(JSON.stringify(this.state.plots));
     }
 
-    setMeasurement(measurement) {
-        this.setState({ measurement });
+    setPlots(plots) {
+        this.setState({ plots });
     }
 
-    handleCreatePlotHandler(title) {
+    handleCreatePlot(title) {
         let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
         plotsCopy.push({
             id: uuidv4(),
             title,
-            xAxis: DEFAULT_X_AXIS,
-            yAxes: []
+            measurements: [],
         });
+
+        this.setState({ plots: plotsCopy });
+        this.props.onPlotsChange(plotsCopy);
+    }
+
+    handleDeletePlot(id) {
+        let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
+        let plotWasDeleted = false;
+        plotsCopy.map((plot, index) => {
+            if (plot.id === id) {
+                plotsCopy.splice(index, 1);
+                plotWasDeleted = true;
+                return false;
+            }
+        });
+
+        if (plotWasDeleted === false) {
+            throw new Error(`Unable to delete plot with id ${id}`);
+        }
 
         this.setState({ plots: plotsCopy });
         this.props.onPlotsChange(plotsCopy);
@@ -49,8 +67,9 @@ class BoreholePlotsComponent extends React.Component {
         this.setState({ newPlotName: event.target.value});
     }
 
-    _changeYAxes(plotId, measurementKey, action) {
+    _modifyAxes(plotId, gid, measurementKey, measurementIntakeIndex, action) {
         if (!plotId) throw new Error(`Invalid plot identifier`);
+        if ((!gid && gid !== 0) || !measurementKey || (!measurementIntakeIndex && measurementIntakeIndex !== 0)) throw new Error(`Invalid measurement location parameters`);
 
         let plots = JSON.parse(JSON.stringify(this.state.plots));
         let correspondingPlot = false;
@@ -63,15 +82,16 @@ class BoreholePlotsComponent extends React.Component {
         });
 
         if (correspondingPlot === false) throw new Error(`Plot with id ${plotId} does not exist`);
+        let measurementIndex = gid + ':' + measurementKey + ':' + measurementIntakeIndex;
         if (action === `add`) {
-            if (correspondingPlot.yAxes.indexOf(measurementKey) === -1) {
-                correspondingPlot.yAxes.push(measurementKey);
+            if (correspondingPlot.measurements.indexOf(measurementIndex) === -1) {
+                correspondingPlot.measurements.push(measurementIndex);
             }
         } else if (action === `delete`) {
-            if (correspondingPlot.yAxes.indexOf(measurementKey) === -1) {
-                throw new Error(`Unable to find y axis for ${plotId} plot`);
+            if (correspondingPlot.measurements.indexOf(measurementIndex) === -1) {
+                throw new Error(`Unable to find measurement ${measurementIndex} for ${plotId} plot`);
             } else {
-                correspondingPlot.yAxes.splice(correspondingPlot.yAxes.indexOf(measurementKey), 1);
+                correspondingPlot.measurements.splice(correspondingPlot.measurements.indexOf(measurementIndex), 1);
             }
         } else {
             throw new Error(`Unrecognized action ${action}`);
@@ -82,36 +102,41 @@ class BoreholePlotsComponent extends React.Component {
         this.props.onPlotsChange(plots);
     }
 
-
-    addYAxis(plotId, measurementKey) {
-        this._changeYAxes(plotId, measurementKey, `add`);
+    setDataSource(dataSource) {
+        this.setState({ dataSource });
     }
 
-    deleteYAxis(plotId, measurementKey) {
-        this._changeYAxes(plotId, measurementKey, `delete`);
+    getFeatureByGidFromDataSource(gid) {
+        let featureWasFound = false;
+        this.state.dataSource.map(item => {
+            if (item.properties.gid === gid) {
+                featureWasFound = item;
+                return false;
+            }
+        });
+
+        return featureWasFound;
+    }
+
+    addMeasurement(plotId, gid, measurementKey, measurementIntakeIndex) {
+        this._modifyAxes(plotId, gid, measurementKey, measurementIntakeIndex, `add`);
+    }
+
+    deleteMeasurement(plotId, gid, measurementKey, measurementIntakeIndex) {
+        this._modifyAxes(plotId, gid, measurementKey, measurementIntakeIndex, `delete`);
     }
 
     render() {
-        let plotsControls = false;
-        let measurementDescription = (<div><p>{__(`Please select the measurement`)}</p></div>);
-        let createPlotControl = false;
-        if (this.state.measurement) {
-            measurementDescription = (<div>{__(`Borehole`)} no. {this.state.measurement.boreholeno}</div>);
-            plotsControls = (<p>{__(`No plots were created yet`)}</p>);
+        let plotsControls = (<p>{__(`No plots were created yet`)}</p>);
 
-            createPlotControl = (<div>
-                <h4>
-                    {__(`Plots`)} 
-                    <TitleFieldComponent onAdd={(title) => { this.handleCreatePlotHandler(title) }} type="userOwned"/>
-                </h4>
-            </div>);
-
+        if (this.state.dataSource.length > 0) {
             let localPlotsControls = [];
             this.state.plots.map((plot, index) => {
                 localPlotsControls.push(<li key={`borehole_plot_${index}`} className="list-group-item">
                     <div>
                         <PlotComponent
-                            measurement={this.state.measurement}
+                            getFeatureByGid={(gid) => { return this.getFeatureByGidFromDataSource(gid)}}
+                            onDelete={(id) => { this.handleDeletePlot(id)}}
                             plotMeta={plot}/>
                     </div>
                 </li>);
@@ -123,15 +148,19 @@ class BoreholePlotsComponent extends React.Component {
         }
 
         return (<div>
-            {measurementDescription}
-            <hr/>
-            {createPlotControl}
+            <div>
+                <h4>
+                    {__(`Plots`)} 
+                    <TitleFieldComponent onAdd={(title) => { this.handleCreatePlot(title) }} type="userOwned"/>
+                </h4>
+            </div>
             <div>{plotsControls}</div>
         </div>);
     }
 }
 
 BoreholePlotsComponent.propTypes = {
+    initialPlots: PropTypes.array.isRequired,
     onPlotsChange: PropTypes.func.isRequired,
 };
 
