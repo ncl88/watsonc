@@ -39,7 +39,7 @@ var ReactDOM = require('react-dom');
 
 let exId = "watsonc";
 
-const LAYER_NAMES = [`v:geus.boreholes_time_series_with_chemicals`];
+const LAYER_NAMES = [`v:geus.boreholes_time_series_test`];
 
 let componentInstance = false;
 
@@ -219,26 +219,67 @@ module.exports = module.exports = {
                             throw new Error(`Unable to find the component instance`);
                         }
                     });
-                });
+
+                },"watsonc");
 
                 layerTree.setOnSelect(layerName, function (id, layer) {
                     console.log(layer.feature.properties.boreholeno);
                 });
 
                 layerTree.setStyle(layerName, {
-                    weight: 5,
-                    color: '#ff0000',
-                    dashArray: '',
-                    fillOpacity: 0.2
+                    // weight: 5,
+                    // color: '#ff0000',
+                    // dashArray: '',
+                    // fillOpacity: 0.2
                 });
 
                 layerTree.setPointToLayer(layerName, (feature, latlng) => {
-                    return L.circleMarker(latlng);
+                    var path1 = "m 104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.671133,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.671133,-21.172093 l 0,42.344173 z";
+                    var path2 = "m -104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.67113,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.67113,-21.172093 l 0,42.344173 z";
+
+                    var svg = `<svg
+                                   xmlns:dc="http://purl.org/dc/elements/1.1/"
+                                   xmlns:cc="http://creativecommons.org/ns#"
+                                   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                                   xmlns:svg="http://www.w3.org/2000/svg"
+                                   xmlns="http://www.w3.org/2000/svg"
+                                   id="svg8"
+                                   version="1.1"
+                                   viewBox="0 0 84.688354 84.688354"
+                                   height="84.688354"
+                                   width="84.688354">
+                                  <defs
+                                     id="defs2" />
+                                  <g
+                                     transform="translate(-61.786713,-90.408127)"
+                                     id="layer1">
+                                    <path
+                                       style="fill:#ff2a2a;stroke-width:0.26458332"
+                                       d="m 104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.671133,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.671133,-21.172093 l 0,42.344173 z"
+                                       id="path3729" />
+                                    <path
+                                       transform="scale(-1,1)"
+                                       style="fill:#00ff00;stroke-width:0.26458332"
+                                       d="m -104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.67113,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.67113,-21.172093 l 0,42.344173 z"
+                                       id="path3729-3" />
+                                  </g>
+                            </svg>`;
+
+                    var iconUrl = 'data:image/svg+xml;base64,' + btoa(svg);
+
+
+                    var icon = L.icon( {
+                        iconUrl: iconUrl,
+                        iconSize: [50, 50],
+                        iconAnchor: [25, 25],
+                        popupAnchor: [25, 25],
+                    } );
+                    return L.marker(latlng, {icon: icon});
+                    //return L.divIcon({ html: $(icon)[0].outerHTML,iconSize: [24, 38], iconAnchor: [12, 38] })
                 });
             });
 
             layerTree.create(false, true);
-
             if (document.getElementById(exId)) {
                 let initialPlots = [];
                 if (applicationState && `modules` in applicationState && MODULE_NAME in applicationState.modules && `plots` in applicationState.modules[MODULE_NAME]) {
