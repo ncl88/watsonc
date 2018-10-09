@@ -37,6 +37,8 @@ let exId = "watsonc";
 
 const LAYER_NAMES = [`v:geus.boreholes_time_series_with_chemicals`];
 
+const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
+
 let componentInstance = false;
 
 let _self = false;
