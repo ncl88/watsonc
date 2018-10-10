@@ -1,6 +1,6 @@
 var layerTree, utils;
 
-var exId = "watsonc_test"
+var exId = "watsonc_test";
 
 
 module.exports = {

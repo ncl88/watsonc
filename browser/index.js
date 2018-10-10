@@ -31,7 +31,6 @@ var utils, layerTree, layers, state;
 var React = require('react');
 
 var ReactDOM = require('react-dom');
-var moment = require('moment');
 
 let exId = "watsonc";
 
