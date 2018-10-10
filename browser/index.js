@@ -64,7 +64,7 @@ module.exports = module.exports = {
         state.listenTo(MODULE_NAME, _self);
         state.listen(MODULE_NAME, `plotsUpdate`);
 
-        utils.createMainTab(exId, __("Boreholes"), __("Info"), require('./../../../browser/modules/height')().max);
+        utils.createMainTab(exId, __("Grafer"), __("Info"), require('./../../../browser/modules/height')().max);
 
         const constructExistingPlotsPanel = (plots = false) => {
             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
@@ -226,10 +226,10 @@ module.exports = module.exports = {
                 });
 
                 layerTree.setStyle(layerName, {
-                    // weight: 5,
-                    // color: '#ff0000',
-                    // dashArray: '',
-                    // fillOpacity: 0.2
+                    weight: 5,
+                    color: '#ff0000',
+                    dashArray: '',
+                    fillOpacity: 0.2
                 });
 
                 layerTree.setOnLoad(layerName, function (store) {
@@ -239,6 +239,7 @@ module.exports = module.exports = {
                 });
 
                 // layerTree.setPointToLayer(layerName, (feature, latlng) => {
+                //     return L.circleMarker(latlng);
                 // });
             });
 

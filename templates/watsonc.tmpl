@@ -1,0 +1,1082 @@
+<style>
+    .dropdown-submenu {
+        position: relative;
+        margin-right: 6px;
+    }
+
+    .navbar-default {
+        height: 48px;
+    }
+
+    .navbar .navbar-nav > li > a {
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
+
+    #myNavmenu .navbar-default {
+        background-color: white;
+    }
+
+    .navbar-header .navbar-toggle {
+        margin-top: 12px;
+        padding: 6px 10px;
+    }
+
+    .dropdown-submenu > .dropdown-menu {
+        top: 0;
+        left: 100%;
+        margin-top: -6px;
+        margin-left: -1px;
+        -webkit-border-radius: 0 6px 6px 6px;
+        -moz-border-radius: 0 6px 6px;
+        border-radius: 0 6px 6px 6px;
+    }
+
+    .dropdown-submenu:hover > .dropdown-menu {
+        display: block;
+    }
+
+    .dropdown-menu li {
+        overflow: inherit;
+    }
+
+    .dropdown-submenu > a:after {
+        display: block;
+        content: " ";
+        float: right;
+        width: 0;
+        height: 0;
+        border-color: transparent;
+        border-style: solid;
+        border-width: 5px 0 5px 5px;
+        border-left-color: #ccc;
+        margin-top: 5px;
+        margin-right: -10px;
+    }
+
+    .dropdown-submenu:hover > a:after {
+        border-left-color: #fff;
+    }
+
+    .dropdown-submenu.pull-left {
+        float: none;
+    }
+
+    .dropdown-submenu.pull-left > .dropdown-menu {
+        left: -100%;
+        margin-left: 10px;
+        -webkit-border-radius: 6px 0 6px 6px;
+        -moz-border-radius: 6px 0 6px 6px;
+        border-radius: 6px 0 6px 6px;
+    }
+</style>
+<!-- map -->
+<style>
+
+    #pane {
+        right: 0;
+    }
+
+    #list {
+        position: absolute;
+        height: 100%;
+        right: 0;
+        left: 0;
+        z-index: 1;
+        background-color: #ffffff;
+        display: none;
+    }
+
+    #switcher, #switcher-list {
+        height: 50px;
+        top: 5px;
+        z-index: 2;
+        display: block;
+        margin: auto;
+        position: absolute;
+        left: 0;
+        right: 0;
+    }
+
+    #switcher {
+        width: 200px;
+
+    }
+
+    #switcher-list {
+        top: 50px;
+        width: 150px;
+
+    }
+
+    #inner-list {
+        display: block;
+        top: 90px;
+        margin: auto;
+        position: relative;
+        left: 0;
+        right: 0;
+        max-width: 400px;
+        height: calc(100% - 150px);
+        overflow: auto;
+    }
+
+    #inner-list img {
+        width: 40px;
+        float: left;
+        margin-right: 15px;
+    }
+
+    #btn-kort, #btn-list-dis {
+        float: left;
+        -webkit-border-bottom-left-radius: 5px;
+        -webkit-border-top-left-radius: 5px;
+        -moz-border-radius-bottomleft: 5px;
+        -moz-border-radius-topleft: 5px;
+        border-bottom-left-radius: 5px;
+        border-top-left-radius: 5px;
+    }
+
+    #btn-list, #btn-list-alpha {
+        float: right;
+        -webkit-border-bottom-right-radius: 5px;
+        -webkit-border-top-right-radius: 5px;
+        -moz-border-radius-bottomright: 5px;
+        -moz-border-radius-topright: 5px;
+        border-bottom-right-radius: 5px;
+        border-top-right-radius: 5px;
+    }
+
+    #btn-kort, #btn-list {
+        width: 50%;
+        text-align: center;
+        background-color: rgba(224, 241, 251, 0.9);
+
+    }
+
+    #btn-list-dis, #btn-list-alpha {
+        width: 50%;
+        text-align: center;
+        background-color: rgba(241, 241, 241, 0.9);
+
+    }
+
+    .nav > li {
+        float: left !important;
+    }
+
+    #switcher .active {
+        background-color: #008ECF;
+        color: white;
+    }
+
+    #switcher-list .active {
+        background-color: #9e9e9e;
+        color: white;
+    }
+
+    #switcher-list .disabled {
+        color: white;
+        cursor: not-allowed;
+    }
+
+    #btn-list h3, #btn-kort h3 {
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding: 5px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    #btn-list-dis h3, #btn-list-alpha h3 {
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding: 3px;
+        font-size: 12px;
+        font-weight: 300;
+        cursor: pointer;
+    }
+
+    .naturpark-list-item {
+        font-weight: 300;
+        cursor: pointer;
+        text-align: left;
+        width: 100%;
+        margin: 2px 0 0 0;
+        background-color: rgba(248, 248, 248, 1);
+    }
+
+    .naturpark-list-item div {
+        white-space: nowrap;
+    }
+
+    .navbar {
+        left: 0 !important;
+    }
+
+    .leaflet-control-locate {
+        margin-top: 0;
+        margin-bottom: 0;
+        box-shadow: none;
+        z-index: 0;
+    }
+
+    .btn-share {
+        margin: 5px !important;
+    }
+
+    .leaflet-top.leaflet-right {
+        display: none !important;
+    }
+
+    .distance {
+        font-size: 80%;
+        vertical-align: middle;
+        line-height: 0;
+        margin-right: 10px;
+        color: #9e9e9e;
+    }
+
+    .btn-text {
+        margin-bottom: 7px;
+    }
+
+    .btn-text-dis {
+        margin-top: 7px;
+    }
+
+    .btn-text-alpha {
+        margin-top: 12px;
+    }
+
+    .carousel-caption {
+        padding: 0;
+        top: 10px;
+    }
+
+    .embed-responsive {
+        margin-top: 18px;
+    }
+
+    #main {
+        margin: 0 auto;
+        text-align: left;
+    }
+
+    ul {
+        list-style: none;
+    }
+
+    #start-modal ul {
+        padding-left: 5px;
+    }
+
+    #start-modal li {
+        margin-bottom: 7px;
+    }
+
+    .form-inline .form-control {
+        width: 50%;
+        margin-left: 80px;
+    }
+
+    .done {
+        color: #00ff33;
+        text-decoration: line-through;
+    }
+
+    .undone {
+        color: #ff0033;
+    }
+
+    .icon {
+        margin: 6px 10px 6px 0;
+    }
+
+    .list-group-item {
+        padding: 9px 3px;
+
+        border: none;
+    }
+
+    .inherit-size {
+        font-size: inherit;
+    }
+
+    #floating-container-primary {
+        position: absolute;
+        top: 68px;
+        right: 8px;
+        width: 40px;
+    }
+
+    #floating-container-secondary {
+        position: absolute;
+        top: 235px;
+        right: 8px;
+        width: 40px;
+    }
+
+    #floating-container-secondary a {
+        margin-bottom: 8px;
+    }
+
+    #floating-container-primary a {
+        margin-bottom: 8px;
+    }
+
+    .leaflet-control-locate a, .leaflet-control-locate a:hover {
+        border-radius: 50% !important;
+        font-size: 24px;
+        height: 40px;
+        margin: auto;
+        min-width: 40px;
+        width: 40px;
+        padding: 0;
+        overflow: hidden;
+        -webkit-box-shadow: 0 1px 1.5px 0 rgba(0, 0, 0, 0.12), 0 1px 1px 0 rgba(0, 0, 0, 0.24);
+        box-shadow: 0 1px 1.5px 0 rgba(0, 0, 0, 0.12), 0 1px 1px 0 rgba(0, 0, 0, 0.24);
+        position: relative;
+        line-height: 40px
+    }
+
+    .leaflet-bar {
+
+        box-shadow: none !important;
+        /* border-radius: 4px !important; */
+    }
+
+    .btn.btn-fab btn-fab-mini, .btn.btn-fab btn-fab-mini.btn-primary, .btn:not(.btn-raised):not(.btn-link):hover {
+
+    }
+
+    .dialog-bottom {
+        padding: 14px 15px;
+        margin-bottom: 20px;
+        height: auto;
+
+        clear: both;
+        min-width: 288px;
+        max-width: 568px;
+
+        position: fixed;
+        left: auto;
+        right: 56px;
+        bottom: -100%;
+
+        box-shadow: 0 27px 24px 0 rgba(0, 0, 0, .2), 0 15px 77px 0 rgba(0, 0, 0, .22);
+        background-color: #fff;
+
+        border-radius: 2px;
+        max-height: 80%;
+
+    }
+
+    .dialog-bottom .modal-body {
+        max-height: 60vh;
+
+    }
+
+    .expand-more {
+        display: none;
+    }
+
+    .fixed-table-container {
+        height: 100% !important;
+    }
+
+    .list-group .list-group-item {
+        padding: 3px 16px;
+    }
+
+    .modal-dialog br {
+        line-height: 28px;
+    }
+
+    .carousel {
+        margin-top: 5px;
+    }
+
+    .vmus-text {
+        margin-top: 28px;
+    }
+
+    #share-buttons {
+        margin-top: 10px;
+        margin-buttom: 10px;
+    }
+
+    /*img.center, div.center {*/
+    /*display: block;*/
+    /*margin: 0 auto;*/
+    /*width: 230px;*/
+    /*margin-bottom: 20px;*/
+    /*}*/
+
+    .start-list-icon {
+        margin-left: -17px;
+        width: 35px;
+        height: 45px;
+        transform: none;
+        z-index: 121;
+        position: relative;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .start-list-text {
+        position: relative;
+        margin-left: 14px;
+        max-width: 85%;
+        display: inline-block;
+        vertical-align: middle;
+
+    }
+
+    .start-list-text p {
+        margin: 0;
+    }
+
+    .nav .checkbox {
+        width: 140px;
+        display: inline-block;
+        height: 50px;
+        padding-top: 12px;
+    }
+
+    .nav .overlay-label {
+        width: 130px;
+        font-size: 18px;
+        font-weight: 300;
+    }
+
+    #burger-btn {
+        display: inline;
+    }
+
+    #layer-slide {
+        display: inline;
+    }
+
+    #vectorlayers .panel:first-child {
+        display: none;
+    }
+
+    #count-badge {
+
+        position: absolute;
+        right: 16px;
+        top: -2px;
+        font-size: 10pt;
+    }
+
+    #layer-slide, #info-modal-top {
+        position: fixed;
+        max-width: 650px;
+        z-index: 3000;
+        min-width: 350px;
+        width: 30%;
+        height: 100%;
+        background-color: white;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        display: block;
+    }
+
+    @media (max-width: 450px) {
+        .navmenu,
+        .navbar-offcanvas,
+        #layer-slide, #info-modal-top {
+            width: 75%;
+            min-width: 240px;
+        }
+
+        #layer-slide, #info-modal-top {
+            right: -75%;
+        }
+
+        .export {
+            display: none !important;
+        }
+    }
+
+    .dialog-bottom-wide {
+        min-width: 568px;
+        max-width: 768px;
+    }
+
+    @media (max-width: 767px) {
+        .dialog-bottom {
+            min-width: 100%;
+            border-radius: 0;
+            margin-bottom: 0;
+            right: 0;
+            left: 0;
+        }
+
+        .dialog-bottom .modal-body {
+            max-height: 60vh;
+
+        }
+
+        .navbar-brand.navbar-brand-text {
+            display: none;
+        }
+
+        .nav .checkbox {
+            display: none;
+        }
+
+        .dialog-bottom-wide {
+            min-width: 288px;
+            max-width: 568px;
+        }
+
+    }
+
+    @media (min-width: 1200px) {
+        .navbar-toggle {
+            margin-top: 14px;
+        }
+
+        .nav .checkbox {
+            padding-top: 17px;
+        }
+
+    }
+
+    @media (max-width: 1200px) {
+
+        #floating-container-primary {
+            top: 58px;
+
+        }
+
+        #floating-container-secondary {
+            top: 225px;
+
+        }
+
+        .navbar-brand {
+            height: 50px;
+            padding: 10px 0px;
+        }
+    }
+
+    .btn:not(.btn-raised):not(.btn-link):focus, .btn:not(.btn-raised):not(.btn-link):hover, .input-group-btn .btn:not(.btn-raised):not(.btn-link):focus, .input-group-btn .btn:not(.btn-raised):not(.btn-link):hover {
+        background-color: #EEEEEE;
+    }
+
+    .container {
+        width: 100%;
+        margin: 0;
+    }
+
+    .nav .checkbox input[type=checkbox]:checked + .checkbox-material .check, label.checkbox-inline input[type=checkbox]:checked + .checkbox-material .check {
+        color: #fff;
+        border-color: #fff;
+        background-color: #fff;
+
+    }
+
+    .nav .checkbox .checkbox-material .check, label.checkbox-inline .checkbox-material .check {
+        border: 2px solid #bdbdbd;
+    }
+
+    .form-group.is-focused .checkbox label, .form-group.is-focused label.checkbox-inline {
+        color: #bdbdbd !important;
+    }
+
+    .panel-heading a, .panel-heading a:focus, .panel-heading a:hover {
+
+        text-decoration: none;
+    }
+
+    #btn-start {
+        font-size: 18px;
+        margin-right: 30px;
+    }
+
+    .refresh-vector-layer {
+        display: none !important;
+    }
+
+    .tab-content > .tab-pane {
+        height: auto !important;
+    }
+
+</style>
+<!-- map -->
+<div id="pane">
+
+    <div id="container">
+        <div id="map"></div>
+
+        <div id="floating-container-primary">
+            <a href="javascript:void(0)" id="zoom-in-btn" class="btn btn-default btn-fab btn-fab-mini"><i
+                    class="material-icons">add</i></a>
+            <a href="javascript:void(0)" id="zoom-default-btn" class="btn btn-default btn-fab btn-fab-mini"><i
+                    class="material-icons">home</i></a>
+            <a href="javascript:void(0)" id="zoom-out-btn" class="btn btn-default btn-fab btn-fab-mini"><i
+                    class="material-icons">remove</i></a>
+        </div>
+
+        <div id="floating-container-secondary">
+            <div id="locale-btn"></div>
+            <a href="#base-layers-dialog" id="base-layers-btn"
+               class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
+                    class="material-icons">layers</i></a>
+            <a href="#info-dialog" id="info-dialog-btn" data-module="info"
+               class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
+                    class="material-icons">info</i></a>
+            <a href="#print-dialog" id="print-dialog-btn" data-module="print"
+               class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
+                    class="material-icons">print</i></a>
+            <a href="#offline-map-dialog" id="offline-map-btn" data-module="offline-map"
+               class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
+                    class="material-icons">save_alt</i></a>
+            <a href="#state-snapshots-dialog" id="state-snapshots-dialog-btn" data-module="state-snapshots"
+               class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
+                    class="material-icons">camera</i></a>
+        </div>
+
+    </div>
+
+    <!-- Nav bar -->
+    <nav class="navbar navbar-default navbar-fixed-top fade-then-dragging">
+        <div class="container">
+            <div class="navbar-header">
+
+                <button type="button" class="navbar-toggle" id="burger-btn">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <!--<img class="navbar-brand" src="">--><a class="navbar-brand navbar-brand-text"
+                                                           href="#">{{brandName}}</a>
+            </div>
+
+            <div class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown-top">
+                        <a href="#" class="dropdown-toggle">Vandstand<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <div class="radio radio-primary">
+                                    <label><input data-chem="watlevmsl" name="chem"
+                                                  type="radio"/>&nbsp;DGU boringer</label>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <!--<li>-->
+                        <!--<a href="#" class="dropdown-toggle">Indvinding<b class="caret"></b></a>-->
+                        <!--<ul class="dropdown-menu"></ul>-->
+                    <!--</li>-->
+                    <li class="dropdown-top">
+                        <a href="#" class="dropdown-toggle">Kemi<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-submenu">
+                                <a href="#" class="dropdown-toggle">Tilstandsparametre</a>
+                                <ul class="dropdown-menu"></ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a href="#" class="dropdown-toggle">Kemiske Hovedbestanddele</a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <div class="radio radio-primary">
+                                            <label><input data-chem="nitrat" name="chem"
+                                                          type="radio"/>&nbsp;Nitrat</label>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="radio radio-primary">
+                                            <label><input data-chem="sulfat" name="chem"
+                                                          type="radio"/>&nbsp;Sulfat</label>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="radio radio-primary">
+                                            <label><input data-chem="jern" name="chem" type="radio"/>&nbsp;jern</label>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="radio radio-primary">
+                                            <label><input data-chem="chlorid" name="chem"
+                                                          type="radio"/>&nbsp;Sulfat</label>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a href="#" class="dropdown-toggle">Uorganiske sporstoffer</a>
+                                <ul class="dropdown-menu"></ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a href="#" class="dropdown-toggle">Organisk mikroforurening</a>
+                                <ul class="dropdown-menu"></ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a href="#" class="dropdown-toggle">Pesticider mm</a>
+                                <ul class="dropdown-menu"></ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a href="#" class="dropdown-toggle">Mikrobiologiske Parametre</a>
+                                <ul class="dropdown-menu"></ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    <div id="base-layers-dialog" class="dialog-bottom fade-then-dragging">
+        <div class="modal-header">
+            <button type="button" class="close close-hide" aria-hidden="true"><i class="material-icons">close</i>
+            </button>
+            <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
+            </button>
+            <button type="button" class="close expand-less" aria-hidden="true"><i class="material-icons">expand_more</i>
+            </button>
+            <h3 class="modal-title">Korttype</h3>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" id="base-layer-list"></div>
+        </div>
+    </div>
+
+    <div id="state-snapshots-dialog" class="dialog-bottom fade-then-dragging">
+        <div class="modal-header">
+            <button type="button" class="close close-hide" aria-hidden="true"><i class="material-icons">close</i>
+            </button>
+            <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
+            </button>
+            <button type="button" class="close expand-less" aria-hidden="true"><i class="material-icons">expand_more</i>
+            </button>
+            <h3 class="modal-title">State snapshots</h3>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" id="state-snapshots"></div>
+        </div>
+    </div>
+
+    <div id="editor-attr-dialog" class="dialog-bottom fade-then-dragging">
+        <div class="modal-header">
+            <button type="button" class="close editor-attr-dialog__close-hide" data-module="editor" aria-hidden="true">
+                <i class="material-icons">close</i>
+            </button>
+            <button type="button" class="close editor-attr-dialog__expand-more" aria-hidden="true"><i
+                    class="material-icons">expand_less</i>
+            </button>
+            <button type="button" class="close editor-attr-dialog__expand-less" aria-hidden="true"><i
+                    class="material-icons">expand_more</i>
+            </button>
+            <h3 class="modal-title">Attributes</h3>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" id="editor-attr-form"></div>
+        </div>
+    </div>
+
+    <div id="offline-map-dialog" class="dialog-bottom fade-then-dragging">
+        <div class="modal-header">
+            <button type="button" class="close close-hide" data-module="editor" aria-hidden="true"><i
+                    class="material-icons">close</i>
+            </button>
+            <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
+            </button>
+            <button type="button" class="close expand-less" aria-hidden="true"><i class="material-icons">expand_more</i>
+            </button>
+            <h3 class="modal-title">Offline base layer</h3>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" id="offline-map-form"></div>
+        </div>
+    </div>
+
+    <div id="print-dialog" class="dialog-bottom fade-then-dragging">
+        <div class="modal-header">
+            <button type="button" class="close close-hide" data-module="print" aria-hidden="true"><i
+                    class="material-icons">close</i>
+            </button>
+            <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
+            </button>
+            <button type="button" class="close expand-less" aria-hidden="true"><i class="material-icons">expand_more</i>
+            </button>
+            <h3 class="modal-title">Print</h3>
+        </div>
+        <div class="modal-body">
+            <div class="togglebutton" style="display:none">
+                <label>
+                    <input id="print-btn" type="checkbox"> {{Activate print tools}}
+                </label>
+            </div>
+            <div class="btn-toolbar bs-component" style="margin: 0;">
+                <div class="btn-group">
+                    <button id="start-print-btn" class="btn btn-raised" style="width: 130px"
+                            data-loading-text="<i class='fa fa-cog fa-spin fa-lg'></i> {{Make PDF}}
+                                                " disabled><i class='fa fa-cog fa-lg'></i> {{Make PDF}}
+                    </button>
+                </div>
+                <fieldset disabled id="get-print-fieldset">
+                    <div class="btn-group" style="display: none">
+                        <a target="_blank" href="javascript:void(0)" class="btn btn-primary btn-raised"
+                           id="open-pdf">{{Open PDF}}</a>
+                        <a href="bootstrap-elements.html" data-target="#"
+                           class="btn btn-primary btn-raised dropdown-toggle" data-toggle="dropdown"><span
+                                class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="javascript:void(0)" id="download-pdf">{{Download}}</a></li>
+                            <li><a target="_blank" href="javascript:void(0)" id="open-html">{{Open HTML page}}</a>
+                            </li>
+                        </ul>
+                    </div>
+                </fieldset>
+            </div>
+            <div>
+                <form class="form-horizontal" id="print-form" role="form" data-toggle="validator">
+                    <fieldset>
+                        <div class="form-group">
+                            <label for="select-scale" class="col-md-2 control-label">{{Scale}}</label>
+                            <div class="col-md-10">
+                                <div class="input-group">
+                                    <div class="input-group-btn">
+                                        <button type="button" class="btn btn-default dropdown-toggle"
+                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                                disabled>1: <span class="caret"></span></button>
+                                        <ul id="ul-scale" class="dropdown-menu dropdown-menu-right"></ul>
+                                    </div>
+                                    <input type="number" min="200" id="select-scale" class="form-control" disabled>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="display: none">
+                            <label class="col-md-2 control-label">{{Template}}</label>
+                            <div class="col-md-10" id="print-tmpl"></div>
+                        </div>
+
+                        <div class="form-group" style="display: none">
+                            <label class="col-md-2 control-label">{{Page size}}</label>
+                            <div class="col-md-10" id="print-size"></div>
+                        </div>
+
+                        <div class="form-group" style="display: none">
+                            <label class="col-md-2 control-label">{{Orientation}}</label>
+                            <div class="col-md-10" id="print-orientation"></div>
+                        </div>
+
+                        <div class="form-group" style="display: none">
+                            <label for="print-title" class="col-md-2 control-label">{{Title}}</label>
+
+                            <div class="col-md-10" style="display: none">
+                                <input type="text" class="form-control" id="print-title" disabled>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="display: none">
+                            <label for="print-comment" class="col-md-2 control-label">{{Comment}}</label>
+                            <div class="col-md-10">
+                                <textarea class="form-control" rows="3" id="print-comment" disabled></textarea>
+                                <span class="help-block">{{The comment will be placed on the PDF}}</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="togglebutton">
+                                <label>
+                                    <input id="add-legend-btn" type="checkbox" checked disabled> {{Show legend on
+                                                                                                        print}}
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="info-dialog" class="dialog-bottom fade-then-dragging dialog-bottom-wide">
+        <div class="modal-header">
+            <button type="button" class="close close-hide" data-module="editor" aria-hidden="true"><i
+                    class="material-icons">close</i>
+            </button>
+            <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
+            </button>
+            <button type="button" class="close expand-less" aria-hidden="true"><i class="material-icons">expand_more</i>
+            </button>
+            <h3 class="modal-title">Info</h3>
+        </div>
+        <div class="modal-body">
+            <div id="info-box">
+                <div id="modal-info-body">
+                    <ul class="nav nav-tabs" id="info-tab"></ul>
+                    <div class="tab-content" id="info-pane"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="layer-slide" class="slide-left fade-then-dragging">
+        <div class="modal-header">
+            <button type="button" class="close" aria-hidden="true">×</button>
+            <h3 class="modal-title"></h3>
+        </div>
+        <div id="layer-slide-body-wrapper">
+            <div class="modal-body">
+                <div class="form-group" id="layers"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="info-modal-top" class="slide-left fade-then-dragging">
+        <div class="modal-header">
+            <button type="button" class="close" aria-hidden="true">×</button>
+            <h3 class="modal-title">Liste</h3>
+        </div>
+        <div id="info-modal-top-body-wrapper">
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+<!-- About Modal -->
+<div class="modal fade" id="about-modal" tabindex="-1" role="dialog" aria-labelledby="about-modalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="about-modalLabel">{{About}}</h4>
+            </div>
+            <div class="modal-body">
+                {{{aboutBox}}}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{{Close}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Info Modal -->
+<div class="modal fade" id="click-modal" tabindex="-1" role="dialog" aria-labelledby="click-modalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h3 class="modal-title" id="click-modalLabel"></h3>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{{Close}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="click-modalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h3 class="modal-title" id="login-modalLabel"></h3>
+            </div>
+            <div class="modal-body" id="login-modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{{Close}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="search-ribbon">
+    <div id="search-border"><i class="floatRight cursorPointer fa fa-reorder"></i></div>
+    <div id="search-container">
+        <nav id="myNavmenu" class="navmenu navmenu-default navmenu-fixed-right offcanvas" role="navigation"
+             data-autohide="false" data-recalc="true" style="overflow: hidden">
+
+            <div id="info-modal" class="slide-right">
+                <div class="modal-header">
+                    <button type="button" class="close" aria-hidden="true">×</button>
+                    <h2 class="modal-title"></h2>
+                </div>
+                <div id="info-modal-body-wrapper">
+                    <div class="modal-body" id="info-modal-body"></div>
+                </div>
+            </div>
+
+            <div id="module-container" class="slide-right">
+                <div class="modal-header">
+                    <button type="button" class="close" aria-hidden="true">×</button>
+                    <h2 class="modal-title"></h2>
+                </div>
+                <div id="module-container-wrapper">
+                    <div class="modal-body" id="module-container-body">
+                        <!-- Tab panes -->
+                        <div class="tab-content main-content">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="javascript:void(0)"><i class="material-icons brand-icon">fullscreen</i>{{brandName}}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="side-panel">
+                <div role="tabpanel">
+                    <!-- Nav tabs -->
+                    <ul class="" role="tablist" id="main-tabs">
+
+                    </ul>
+                    <ul role="tablist">
+                        <hr>
+                        <li><a href="#" id="btn-reset"><i class="material-icons">replay</i>{{Reset}}</a></li>
+                        <li><a href="#" data-toggle="modal" data-target="#about-model"><i class="material-icons">question_answer</i>{{About}}
+                        </a></li>
+                        <li>
+                            <a id="session" href="#" data-toggle="modal" data-target="#login-modal">
+                                <i class="material-icons gc2-session-lock" aria-hidden="true"
+                                   style="display: none">lock</i>
+                                <i class="material-icons gc2-session-unlock" aria-hidden="true">lock_open</i>
+                                <span class="module-title">Log in</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
+
+
+
+

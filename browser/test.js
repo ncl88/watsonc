@@ -12,24 +12,46 @@ module.exports = {
     },
 
     init: function () {
-        utils.createMainTab(exId, __("watsonc_test"), __("Info"), require('./../../../browser/modules/height')().max);
-        var dom = "<button id='watsonc_test_btn'>Klorid</button>";
-        $("#watsonc_test").append(dom);
 
-        $("#watsonc_test_btn").click(
-            function () {
+        let dd = $('li .dropdown-toggle');
+        let navLi = $(".dropdown-top");
+
+        dd.on('click', function (event) {
+            $('.dropdown-submenu').removeClass('open')
+            $(this).parent().toggleClass('open');
+        });
+
+        navLi.on('click', function () {
+            navLi.removeClass('open');
+            $(this).addClass('open');
+        });
+
+        // utils.createMainTab(exId, __("watsonc_test"), __("Info"), require('./../../../browser/modules/height')().max);
+        // var dom = `<button data-chem='chlorid'>Klorid</button>
+        //            <button data-chem='nitrat'>Nitrat</button>
+        //            <button data-chem='sulfat'>Sulfat</button>
+        //            <button data-chem='jern'>Jern</button>`;
+
+        //$("#watsonc_test").append(dom);
+
+        $("[data-chem]").change(
+            function (e) {
+                let chem = $(e.target).data("chem");
                 let store = layerTree.getStores()["v:geus.boreholes_time_series_with_chemicals"];
 
                 store.layer.eachLayer(function (layer) {
                     let feature = layer.feature;
-
-                    let chem = "chlorid";
                     let limits = {};
                     let maxColor;
                     let latestColor;
                     let iconSize;
                     let iconAnchor;
-                    limits[chem] = [50, 100];
+                    let maxMeasurement = 0;
+                    let latestMeasurement = 0;
+                    limits["chlorid"] = [25, 50];
+                    limits["nitrat"] = [125, 250];
+                    limits["sulfat"] = [125, 250];
+                    limits["jern"] = [0.1, 0.2];
 
                     let json;
 
@@ -37,9 +59,7 @@ module.exports = {
                         json = JSON.parse(feature.properties[chem]);
                     } catch (e) {
                         return L.circleMarker(layer.getLatLng());
-
                     }
-
 
                     if (feature.properties[chem] !== null) {
 
@@ -50,7 +70,7 @@ module.exports = {
                         let currentValue;
                         let latestValue = moment("0001-01-01T00:00:00+00:00", "YYYY-MM-DDTHH:mm:ssZZ");
                         let latestPosition = {};
-                        let latestMeasurement;
+
 
                         for (let i = 0; i < intakes; i++) {
                             let length = json.timeOfMeasurement[i].length - 1;
@@ -67,7 +87,7 @@ module.exports = {
 
                         // Find Highest value
                         intakes = json.measurements.length;
-                        let maxMeasurement = 0;
+                        maxMeasurement = 0;
 
                         for (let i = 0; i < intakes; i++) {
                             let length = json.measurements[i].length;
@@ -80,28 +100,29 @@ module.exports = {
 
                         }
 
-                        // console.log("-----------------------");
-                        // console.log(latestMeasurement);
-                        // console.log(latestPosition);
-                        // console.log(maxMeasurement);
-                        // console.log(json);
-
-
                         layer.bindTooltip(`
                             <p>${chem} (${unit})</p>
                             <p>Max: ${maxMeasurement}</p>
                             <p>Seneste: ${latestMeasurement}</p>
-                        `).openTooltip();
+                        `);
 
-                        maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= limits[chem][0] ? "#00ff00" : maxMeasurement > limits[chem][0] && maxMeasurement <= limits[chem][1] ? "#ffff00" : "#ff0000";
-                        latestColor = latestMeasurement <= limits[chem][0] ? "#00ff00" : latestMeasurement > limits[chem][0] && latestMeasurement <= limits[chem][1] ? "#ffff00" : "#ff0000";
+                        if (chem === "watlevmsl") {
+                            maxColor = maxMeasurement === 0 ? "#ffffff" : "#00aaff";
+                            latestColor = "#00aaff";
+                        } else {
+                            maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= limits[chem][0] ? "#00ff00" : maxMeasurement > limits[chem][0] && maxMeasurement <= limits[chem][1] ? "#ffff00" : "#ff0000";
+                            latestColor = latestMeasurement <= limits[chem][0] ? "#00ff00" : latestMeasurement > limits[chem][0] && latestMeasurement <= limits[chem][1] ? "#ffff00" : "#ff0000";
+                        }
                         iconSize = [30, 30];
                         iconAnchor = [15, 15];
+                        layer.setZIndexOffset(10000);
 
                     } else {
-                        maxColor = latestColor ="#cccccc";
+                        maxColor = latestColor = "#cccccc";
                         iconSize = [20, 20];
                         iconAnchor = [10, 10];
+                        layer.setZIndexOffset(1);
+
                     }
 
                     var svg = `<svg
@@ -144,11 +165,8 @@ module.exports = {
 
 
                 })
+
             }
         )
-
-
-
-
     }
 };
