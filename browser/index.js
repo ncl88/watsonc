@@ -64,7 +64,7 @@ module.exports = module.exports = {
         state.listenTo(MODULE_NAME, _self);
         state.listen(MODULE_NAME, `plotsUpdate`);
 
-        utils.createMainTab(exId, __("Grafer"), __("Info"), require('./../../../browser/modules/height')().max);
+        utils.createMainTab(exId, __("Plot"), __("Info"), require('./../../../browser/modules/height')().max, "scatter_plot");
 
         const constructExistingPlotsPanel = (plots = false) => {
             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
