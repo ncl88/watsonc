@@ -48,8 +48,8 @@ module.exports = {
                     let iconAnchor;
                     let maxMeasurement = 0;
                     let latestMeasurement = 0;
-                    limits["chlorid"] = [25, 50];
-                    limits["nitrat"] = [125, 250];
+                    limits["chlorid"] = [125, 250];
+                    limits["nitrat"] = [25, 50];
                     limits["sulfat"] = [125, 250];
                     limits["jern"] = [0.1, 0.2];
 
