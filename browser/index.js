@@ -34,7 +34,7 @@ var ReactDOM = require('react-dom');
 
 let exId = "watsonc";
 
-const LAYER_NAMES = [`v:geus.boreholes_time_series_with_chemicals`];
+const LAYER_NAMES = [`v:chemicals.boreholes_time_series_with_chemicals`];
 
 const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
 
@@ -61,10 +61,26 @@ module.exports = module.exports = {
         return this;
     },
     init: function () {
+
+        // Setup menu
+        let dd = $('li .dropdown-toggle');
+        let navLi = $(".dropdown-top");
+
+        dd.on('click', function (event) {
+            $(".dropdown-top").not($(this).parent()).removeClass('open');
+            $('.dropdown-submenu').removeClass('open');
+            $(this).parent().toggleClass('open');
+        });
+        //
+        // navLi.on('click', function () {
+        //     navLi.removeClass('open');
+        //     $(this).addClass('open');
+        // });
+
         state.listenTo(MODULE_NAME, _self);
         state.listen(MODULE_NAME, `plotsUpdate`);
 
-        utils.createMainTab(exId, __("Plot"), __("Info"), require('./../../../browser/modules/height')().max, "scatter_plot");
+        utils.createMainTab(exId, __("Plot"), __("Info"), require('./../../../browser/modules/height')().max, "check_circle");
 
         const constructExistingPlotsPanel = (plots = false) => {
             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);

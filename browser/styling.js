@@ -13,31 +13,10 @@ module.exports = {
 
     init: function () {
 
-        let dd = $('li .dropdown-toggle');
-        let navLi = $(".dropdown-top");
-
-        dd.on('click', function (event) {
-            $('.dropdown-submenu').removeClass('open')
-            $(this).parent().toggleClass('open');
-        });
-
-        navLi.on('click', function () {
-            navLi.removeClass('open');
-            $(this).addClass('open');
-        });
-
-        // utils.createMainTab(exId, __("watsonc_test"), __("Info"), require('./../../../browser/modules/height')().max);
-        // var dom = `<button data-chem='chlorid'>Klorid</button>
-        //            <button data-chem='nitrat'>Nitrat</button>
-        //            <button data-chem='sulfat'>Sulfat</button>
-        //            <button data-chem='jern'>Jern</button>`;
-
-        //$("#watsonc_test").append(dom);
-
         $("[data-chem]").change(
             function (e) {
-                let chem = $(e.target).data("chem");
-                let store = layerTree.getStores()["v:geus.boreholes_time_series_with_chemicals"];
+                let chem = "_" + $(e.target).data("chem");
+                let store = layerTree.getStores()["v:chemicals.boreholes_time_series_with_chemicals"];
 
                 store.layer.eachLayer(function (layer) {
                     let feature = layer.feature;
@@ -48,10 +27,10 @@ module.exports = {
                     let iconAnchor;
                     let maxMeasurement = 0;
                     let latestMeasurement = 0;
-                    limits["chlorid"] = [125, 250];
-                    limits["nitrat"] = [25, 50];
-                    limits["sulfat"] = [125, 250];
-                    limits["jern"] = [0.1, 0.2];
+                    limits["_1591"] = [125, 250];
+                    limits["_1176"] = [25, 50];
+                    limits["_2142"] = [125, 250];
+                    limits["_2041"] = [0.1, 0.2];
 
                     let json;
 
@@ -106,7 +85,7 @@ module.exports = {
                             <p>Seneste: ${latestMeasurement}</p>
                         `);
 
-                        if (chem === "watlevmsl") {
+                        if (chem === "_watlevmsl") {
                             maxColor = maxMeasurement === 0 ? "#ffffff" : "#00aaff";
                             latestColor = "#00aaff";
                         } else {
