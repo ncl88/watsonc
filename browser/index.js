@@ -248,15 +248,9 @@ module.exports = module.exports = {
                     fillOpacity: 0.2
                 });
 
-                layerTree.setOnLoad(layerName, function (store) {
-                    setTimeout(()=>{
-
-                    }, 5000)
+                layerTree.setPointToLayer(layerName, (feature, latlng) => {
+                    return L.circleMarker(latlng);
                 });
-
-                // layerTree.setPointToLayer(layerName, (feature, latlng) => {
-                //     return L.circleMarker(latlng);
-                // });
             });
 
             layerTree.create(false, true);
