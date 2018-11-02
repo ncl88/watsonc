@@ -154,7 +154,6 @@ module.exports = module.exports = {
         });
 
         state.getState().then(applicationState => {
-
             LAYER_NAMES.map(function (layerName) {
                 layerTree.setOnEachFeature(layerName, function (feature, layer) {
                     layer.on("click", function (e) {
@@ -234,12 +233,7 @@ module.exports = module.exports = {
                             throw new Error(`Unable to find the component instance`);
                         }
                     });
-
                 }, "watsonc");
-
-                layerTree.setOnSelect(layerName, function (id, layer) {
-                    console.log(layer.feature.properties.boreholeno);
-                });
 
                 layerTree.setStyle(layerName, {
                     weight: 5,
@@ -253,7 +247,13 @@ module.exports = module.exports = {
                 });
             });
 
-            layerTree.create(false, true);
+            // Renewing the already created store by rebuilding the layer tree
+            layerTree.create(false, true).then(() => {
+                // Reloading (applying updated store settings) layer
+                layerTree.getActiveLayers().map(activeLayerKey => {
+                    layerTree.reloadLayer(activeLayerKey);
+                });
+            });
 
             if (document.getElementById(exId)) {
                 let initialPlots = [];
