@@ -73,6 +73,13 @@
         -moz-border-radius: 6px 0 6px 6px;
         border-radius: 6px 0 6px 6px;
     }
+
+    .dropdown-menu label {
+        white-space: nowrap;
+    }
+    .dropdown-menu {
+        padding-right: 9px;
+    }
 </style>
 <!-- map -->
 <style>
@@ -686,56 +693,8 @@
                     <!--</li>-->
                     <li class="dropdown-top">
                         <a href="#" class="dropdown-toggle">Kemi<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li class="dropdown-submenu">
-                                <a href="#" class="dropdown-toggle">Tilstandsparametre</a>
-                                <ul class="dropdown-menu"></ul>
-                            </li>
-                            <li class="dropdown-submenu">
-                                <a href="#" class="dropdown-toggle">Kemiske Hovedbestanddele</a>
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <div class="radio radio-primary">
-                                            <label><input data-chem="1176" name="chem"
-                                                          type="radio"/>&nbsp;Nitrat</label>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="radio radio-primary">
-                                            <label><input data-chem="2142" name="chem"
-                                                          type="radio"/>&nbsp;Sulfat</label>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="radio radio-primary">
-                                            <label><input data-chem="2041" name="chem"
-                                                          type="radio"/>&nbsp;jern</label>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="radio radio-primary">
-                                            <label><input data-chem="1591" name="chem"
-                                                          type="radio"/>&nbsp;Chlorid</label>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="dropdown-submenu">
-                                <a href="#" class="dropdown-toggle">Uorganiske sporstoffer</a>
-                                <ul class="dropdown-menu"></ul>
-                            </li>
-                            <li class="dropdown-submenu">
-                                <a href="#" class="dropdown-toggle">Organisk mikroforurening</a>
-                                <ul class="dropdown-menu"></ul>
-                            </li>
-                            <li class="dropdown-submenu">
-                                <a href="#" class="dropdown-toggle">Pesticider mm</a>
-                                <ul class="dropdown-menu"></ul>
-                            </li>
-                            <li class="dropdown-submenu">
-                                <a href="#" class="dropdown-toggle">Mikrobiologiske Parametre</a>
-                                <ul class="dropdown-menu"></ul>
-                            </li>
+                        <ul class="dropdown-menu" id="watsonc-chems">
+
                         </ul>
                     </li>
                 </ul>
