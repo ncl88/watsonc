@@ -34,7 +34,7 @@ var ReactDOM = require('react-dom');
 
 let exId = "watsonc";
 
-const LAYER_NAMES = [`v:chemicals.boreholes_time_series_with_chemicals`];
+const LAYER_NAMES = [`v:chemicals.boreholes_time_series_with_chemicals`, `v:chemicals.boreholes_time_series_without_chemicals`];
 
 const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
 
@@ -249,9 +249,12 @@ module.exports = module.exports = {
 
             // Renewing the already created store by rebuilding the layer tree
             layerTree.create(false, true).then(() => {
-                // Reloading (applying updated store settings) layer
+                // Reloading (applying updated store settings) layers that need it
                 layerTree.getActiveLayers().map(activeLayerKey => {
-                    layerTree.reloadLayer(activeLayerKey);
+                    console.log(`###`, activeLayerKey);
+                    if (LAYER_NAMES.indexOf(activeLayerKey) !== -1) {
+                        layerTree.reloadLayer(activeLayerKey);
+                    }
                 });
             });
 
