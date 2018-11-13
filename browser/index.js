@@ -251,7 +251,6 @@ module.exports = module.exports = {
             layerTree.create(false, true).then(() => {
                 // Reloading (applying updated store settings) layers that need it
                 layerTree.getActiveLayers().map(activeLayerKey => {
-                    console.log(`###`, activeLayerKey);
                     if (LAYER_NAMES.indexOf(activeLayerKey) !== -1) {
                         layerTree.reloadLayer(activeLayerKey);
                     }
