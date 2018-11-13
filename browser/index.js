@@ -46,6 +46,9 @@ let dataSource = [];
 
 let store;
 
+var jquery = require('jquery');
+require('snackbarjs');
+
 /**
  *
  * @type {{set: module.exports.set, init: module.exports.init}}
@@ -82,11 +85,20 @@ module.exports = module.exports = {
             console.log(layerTree.getActiveLayers())
             if (cloud.get().getZoom() < 15) {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
+                jquery.snackbar({
+                    id: "snackbar-watsonc",
+                    content: "<span id='conflict-progress'>" + __("Zoom tættere på for at aktivere data-funktionerne.") + "</span>",
+                    htmlAllowed: true,
+                    timeout: 1000000
+                });
 
             } else {
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) === -1) {
                     switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
                 }
+                setTimeout(function () {
+                    jquery("#snackbar-watsonc").snackbar("hide");
+                }, 200);
             }
 
         });
