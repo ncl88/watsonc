@@ -63,6 +63,34 @@ module.exports = module.exports = {
         return this;
     },
     init: function () {
+
+        switchLayer.init("chemicals.boreholes_time_series_without_chemicals", true, true, false);
+
+        backboneEvents.get().on(`startLoading:layers`, layerKey => {
+            if (cloud.get().getZoom() < 15 && layerKey === "v:chemicals.boreholes_time_series_with_chemicals") {
+                switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
+
+                setTimeout(()=>{
+                    let applicationWideControls = $(`*[data-gc2-id="chemicals.boreholes_time_series_with_chemicals"]`);
+                    applicationWideControls.prop('checked', false);
+                }, 200);
+            }
+
+        });
+
+        cloud.get().on(`moveend`, () => {
+            console.log(layerTree.getActiveLayers())
+            if (cloud.get().getZoom() < 15) {
+                switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
+
+            } else {
+                if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) === -1) {
+                    switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
+                }
+            }
+
+        });
+
         $.ajax({
             url: '/api/sql/jupiter?q=SELECT * FROM codes.compunds',
             scriptCharset: "utf-8",
@@ -264,18 +292,7 @@ module.exports = module.exports = {
                 //     $(this).addClass('open');
                 // });
 
-                cloud.get().on(`moveend`, () => {
-                    console.log(cloud.get().getZoom())
-                    if (cloud.get().getZoom() < 15) {
-                        switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
 
-                    } else {
-                        if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) === -1) {
-                            switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
-                        }
-                    }
-
-                });
             },
             error: function (response) {
             }
