@@ -1,11 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import TitleFieldComponent from './../../../browser/modules/shared/TitleFieldComponent';
+import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 import PlotComponent from './PlotComponent';
 
 const uuidv4 = require('uuid/v4');
 
+/**
+ * Component creates plots management form and is the source of truth for plots overall
+ */
 class BoreholePlotsComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -26,6 +29,10 @@ class BoreholePlotsComponent extends React.Component {
 
     getPlots() {
         return JSON.parse(JSON.stringify(this.state.plots));
+    }
+
+    addPlot(newPlotName) {
+        this.handleCreatePlot(newPlotName);
     }
 
     setPlots(plots) {
