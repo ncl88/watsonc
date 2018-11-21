@@ -4,7 +4,7 @@ import { DropTarget } from 'react-dnd';
 /**
  * Plot component
  */
-class PanelPlotComponent extends React.Component {
+class ModalPlotComponent extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -67,4 +67,4 @@ function collect(connect, monitor) {
 }
   
 
-export default DropTarget(`MEASUREMENT`, plotTarget, collect)(PanelPlotComponent);
+export default DropTarget(`MEASUREMENT`, plotTarget, collect)(ModalPlotComponent);

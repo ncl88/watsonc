@@ -1,7 +1,7 @@
 'use strict';
 
-import BoreholePanelComponent from './components/BoreholePanelComponent';
-import BoreholePlotsComponent from './components/BoreholePlotsComponent';
+import ModalComponent from './components/ModalComponent';
+import MenuPanelComponent from './components/MenuPanelComponent';
 
 const MODULE_NAME = `watsonc`;
 
@@ -45,9 +45,9 @@ const LAYER_NAMES = [`v:chemicals.boreholes_time_series_with_chemicals`, `v:chem
 
 const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
 
-let boreholePlotsComponentInstance = false;
+let menuPanelComponentInstance = false;
 
-let boreholePanelComponentInstance = false;
+let modalComponentInstance = false;
 
 let _self = false;
 
@@ -333,82 +333,20 @@ module.exports = module.exports = {
             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
 
             if (plots) {
-                // Plots were updated from the BoreholePlotsComponent component
-
-                if (boreholePanelComponentInstance) {
+                // Plots were updated from the MenuPanelComponent component
+                if (modalComponentInstance) {
                     console.log(`### setting new plots`, plots);
 
-                    boreholePanelComponentInstance.setPlots(plots);
+                    modalComponentInstance.setPlots(plots);
                 }
             }
-
-
-
-            /*
-
-            let existingPlots = [];
-            let plotsToProcess = ((plots) ? plots : _self.getExistingPlots());
-            plotsToProcess.map(plot => {
-                let removeButtons = ``;
-                plot.measurements.map(measurement => {
-                    let measurementDisplayTitle = measurement;
-                    let splitMeasurementId = measurement.split(':');
-                    let gid = parseInt(splitMeasurementId[0]);
-                    if (dataSource.length > 0) {
-                        dataSource.map(item => {
-                            if (item.properties.gid === gid) {
-                                measurementDisplayTitle = (`${item.properties.boreholeno}, ${JSON.parse(item.properties[splitMeasurementId[1]]).title} (#${ (parseInt(splitMeasurementId[2]) + 1) })`);
-                                return false;
-                            }
-                        });
-                    }
-
-                    removeButtons = removeButtons + `<button
-                        type="button"
-                        class="btn btn-xs btn-primary js-delete-measurement"
-                        data-plot-id="${plot.id}"
-                        data-gid="${gid}"
-                        data-key="${splitMeasurementId[1]}"
-                        data-intake-index="${splitMeasurementId[2]}"
-                        style="padding: 4px; margin: 1px;">
-                        <i class="fa fa-remove"></i> ${measurementDisplayTitle}
-                    </button>`;
-                });
-
-                existingPlots.push(`<div
-                    class="well well-sm js-plot"
-                    data-id="${plot.id}"
-                    style="margin-bottom: 4px;">
-                    <span>${plot.title}</span>
-                    <span>${removeButtons}</span>
-                </div>`);
-            });
-
-            $(`.watsonc-custom-popup`).find(`.js-existing-plots-container`).empty();
-            setTimeout(() => {
-                $(`.watsonc-custom-popup`).find(`.js-plot`).droppable({
-                    drop: function (event, ui) {
-                        boreholePlotsComponentInstance.addMeasurement($(this).data(`id`),
-                            $(ui.draggable[0]).data(`gid`), $(ui.draggable[0]).data(`key`), $(ui.draggable[0]).data(`intake-index`));
-                    }
-                });
-
-                $(`.watsonc-custom-popup`).find(`.js-delete-measurement`).click((event) => {
-                    boreholePlotsComponentInstance.deleteMeasurement($(event.currentTarget).data(`plot-id`),
-                        $(event.currentTarget).data(`gid`), $(event.currentTarget).data(`key`), $(event.currentTarget).data(`intake-index`));
-                });
-            }, 100);
-*/
-            
         };
-
-
 
         backboneEvents.get().on("doneLoading:layers", e => {
             if (e === LAYER_NAMES[0]) {
                 dataSource = layers.getMapLayers(false, LAYER_NAMES[0])[0].toGeoJSON().features;
-                if (boreholePlotsComponentInstance) {
-                    boreholePlotsComponentInstance.setDataSource(dataSource);
+                if (menuPanelComponentInstance) {
+                    menuPanelComponentInstance.setDataSource(dataSource);
                 }
             }
         });
@@ -427,17 +365,17 @@ module.exports = module.exports = {
                         $("#" + CONTAINER_ID).find(`.modal-title`).html(`${__(`Borehole`)} no. ${feature.properties.boreholeno}`);
                         if (document.getElementById(FORM_CONTAINER_ID)) {
                             try {
-                                let existingPlots = boreholePlotsComponentInstance.getPlots();
+                                let existingPlots = menuPanelComponentInstance.getPlots();
 
-                                boreholePanelComponentInstance = ReactDOM.render(<BoreholePanelComponent
+                                modalComponentInstance = ReactDOM.render(<ModalComponent
                                     feature={feature}
                                     dataSource={dataSource}
                                     initialPlots={(existingPlots ? existingPlots : [])}
                                     onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
-                                        boreholePlotsComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
+                                        menuPanelComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
                                     }}
                                     onPlotAdd={((newPlotTitle) => {
-                                        boreholePlotsComponentInstance.addPlot(newPlotTitle);
+                                        menuPanelComponentInstance.addPlot(newPlotTitle);
                                     })}/>, document.getElementById(FORM_CONTAINER_ID));
                             } catch (e) {
                                 console.log(e);
@@ -446,7 +384,7 @@ module.exports = module.exports = {
                             console.warn(`Unable to find the container for borehole component (element id: ${FORM_CONTAINER_ID})`);
                         }
 
-                        if (!boreholePlotsComponentInstance) {
+                        if (!menuPanelComponentInstance) {
                             throw new Error(`Unable to find the component instance`);
                         }
                     });
@@ -481,7 +419,7 @@ module.exports = module.exports = {
                 }
 
                 try {
-                    boreholePlotsComponentInstance = ReactDOM.render(<BoreholePlotsComponent
+                    menuPanelComponentInstance = ReactDOM.render(<MenuPanelComponent
                         initialPlots={initialPlots}
                         onPlotsChange={announcePlotsChange}/>, document.getElementById(exId));
                 } catch (e) {
@@ -533,7 +471,7 @@ module.exports = module.exports = {
     applyState: (newState) => {
         return new Promise((resolve, reject) => {
             if (newState && `plots` in newState && newState.plots.length > 0) {
-                boreholePlotsComponentInstance.setPlots(newState.plots);
+                menuPanelComponentInstance.setPlots(newState.plots);
             }
 
             resolve();
@@ -541,8 +479,8 @@ module.exports = module.exports = {
     },
 
     getExistingPlots: () => {
-        if (boreholePlotsComponentInstance) {
-            return boreholePlotsComponentInstance.getPlots();
+        if (menuPanelComponentInstance) {
+            return menuPanelComponentInstance.getPlots();
         } else {
             throw new Error(`Unable to find the component instance`);
         }

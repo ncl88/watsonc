@@ -5,7 +5,7 @@ import { DragSource } from 'react-dnd';
 /**
  * Measurement component
  */
-class PanelMeasurementComponent extends React.Component {
+class ModalMeasurementComponent extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -44,11 +44,11 @@ const collect = (connect, monitor) => {
     }
 };
 
-PanelMeasurementComponent.propTypes = {
+ModalMeasurementComponent.propTypes = {
     gid: PropTypes.number.isRequired,
     itemKey: PropTypes.string.isRequired,
     intakeIndex: PropTypes.number.isRequired,
     onAddMeasurement: PropTypes.func.isRequired,
 };
 
-export default DragSource(`MEASUREMENT`, measurementSource, collect)(PanelMeasurementComponent);
+export default DragSource(`MEASUREMENT`, measurementSource, collect)(ModalMeasurementComponent);

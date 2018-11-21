@@ -6,7 +6,7 @@ import Plot from 'react-plotly.js';
 /**
  * Creates single plot with multiple measurements displayed on it
  */
-class PlotComponent extends React.Component {
+class MenuPanelPlotComponent extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -145,10 +145,10 @@ class PlotComponent extends React.Component {
     }
 }
 
-PlotComponent.propTypes = {
+MenuPanelPlotComponent.propTypes = {
     getFeatureByGid: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
     plotMeta: PropTypes.object.isRequired
 };
 
-export default PlotComponent;
+export default MenuPanelPlotComponent;

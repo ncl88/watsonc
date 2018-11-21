@@ -3,14 +3,14 @@ import PropTypes from 'prop-types';
 import { DragDropContextProvider } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
-import PanelMeasurementComponent from './PanelMeasurementComponent';
-import PanelPlotComponent from './PanelPlotComponent';
+import ModalMeasurementComponent from './ModalMeasurementComponent';
+import ModalPlotComponent from './ModalPlotComponent';
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 
 /**
  * Creates borehole parameters display and visualization panel
  */
-class BoreholePanelComponent extends React.Component {
+class ModalComponent extends React.Component {
     constructor(props) {
         super(props);
 
@@ -61,7 +61,7 @@ class BoreholePanelComponent extends React.Component {
 
         let propertiesControls = [];
         plottedProperties.map((item, index) => {
-            propertiesControls.push(<PanelMeasurementComponent
+            propertiesControls.push(<ModalMeasurementComponent
                 key={`measurement_` + index}
                 onAddMeasurement={this.props.onAddMeasurement}
                 gid={this.props.feature.properties.gid}
@@ -75,7 +75,7 @@ class BoreholePanelComponent extends React.Component {
         if (this.state.plots && this.state.plots.length > 0) {
             plotsControls = [];
             this.state.plots.map((plot, index) => {
-                plotsControls.push(<PanelPlotComponent
+                plotsControls.push(<ModalPlotComponent
                     key={`plot_container_` + plot.id}
                     plot={plot}
                     dataSource={this.props.dataSource}/>);
@@ -104,11 +104,11 @@ class BoreholePanelComponent extends React.Component {
     }
 }
 
-BoreholePanelComponent.propTypes = {
+ModalComponent.propTypes = {
     feature: PropTypes.object.isRequired,
     initialPlots: PropTypes.array.isRequired,
     onPlotAdd: PropTypes.func.isRequired,
     onAddMeasurement: PropTypes.func.isRequired
 };
 
-export default BoreholePanelComponent;
+export default ModalComponent;

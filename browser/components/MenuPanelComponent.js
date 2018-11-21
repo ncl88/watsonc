@@ -2,14 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
-import PlotComponent from './PlotComponent';
+import MenuPanelPlotComponent from './MenuPanelPlotComponent';
 
 const uuidv4 = require('uuid/v4');
 
 /**
  * Component creates plots management form and is the source of truth for plots overall
  */
-class BoreholePlotsComponent extends React.Component {
+class MenuPanelComponent extends React.Component {
     constructor(props) {
         super(props);
 
@@ -141,7 +141,7 @@ class BoreholePlotsComponent extends React.Component {
             this.state.plots.map((plot, index) => {
                 localPlotsControls.push(<li key={`borehole_plot_${index}`} className="list-group-item">
                     <div>
-                        <PlotComponent
+                        <MenuPanelPlotComponent
                             getFeatureByGid={(gid) => { return this.getFeatureByGidFromDataSource(gid)}}
                             onDelete={(id) => { this.handleDeletePlot(id)}}
                             plotMeta={plot}/>
@@ -166,9 +166,9 @@ class BoreholePlotsComponent extends React.Component {
     }
 }
 
-BoreholePlotsComponent.propTypes = {
+MenuPanelComponent.propTypes = {
     initialPlots: PropTypes.array.isRequired,
     onPlotsChange: PropTypes.func.isRequired,
 };
 
-export default BoreholePlotsComponent;
+export default MenuPanelComponent;
