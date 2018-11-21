@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { DropTarget } from 'react-dnd';
 
 /**
@@ -25,14 +26,17 @@ class ModalPlotComponent extends React.Component {
                 });
             }
 
+            const onDelete = () => { this.props.onDeleteMeasurement(this.props.plot.id, gid, splitMeasurementId[1], splitMeasurementId[2]); };
+
             removeButtons.push(<div key={`remove_measurement_` + splitMeasurementId[1] + `_` + splitMeasurementId[2]}>
                 <button
                     type="button"
-                    className="btn btn-xs btn-primary js-delete-measurement"
-                    data-plot-id="{plot.id}"
+                    className="btn btn-sm btn-primary"
+                    data-plot-id="{this.props.plot.id}"
                     data-gid="{gid}"
                     data-key="{splitMeasurementId[1]}"
                     data-intake-index="{splitMeasurementId[2]}"
+                    onClick={onDelete}
                     style={{ padding: `4px`, margin: `1px` }}>
                     <i className="fa fa-remove"></i> {measurementDisplayTitle}
                 </button>
@@ -59,13 +63,15 @@ const plotTarget = {
     }
 };
   
-
 function collect(connect, monitor) {
     return {
         connectDropTarget: connect.dropTarget(),
         isOver: monitor.isOver()
     };
 }
-  
+
+ModalPlotComponent.propTypes = {
+    onDeleteMeasurement: PropTypes.func.isRequired
+};
 
 export default DropTarget(`MEASUREMENT`, plotTarget, collect)(ModalPlotComponent);

@@ -54,6 +54,8 @@ let modalComponentInstance = false;
 
 let _self = false;
 
+let lastFeature = false;
+
 let dataSource = [];
 
 let store;
@@ -78,7 +80,6 @@ module.exports = module.exports = {
         return this;
     },
     init: function () {
-
         switchLayer.init("chemicals.boreholes_time_series_without_chemicals", true, true, false);
 
         backboneEvents.get().on(`startLoading:layers`, layerKey => {
@@ -325,17 +326,6 @@ module.exports = module.exports = {
         state.listen(MODULE_NAME, `plotsUpdate`);
 
         utils.createMainTab(exId, __("Plot"), __("Info"), require('./../../../browser/modules/height')().max, "check_circle");
-
-        const announcePlotsChange = (plots = false) => {
-            backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-            if (plots) {
-                // Plots were updated from the MenuComponent component
-                if (modalComponentInstance) {
-                    modalComponentInstance.setPlots(plots);
-                }
-            }
-        };
-
         backboneEvents.get().on("doneLoading:layers", e => {
             if (e === LAYER_NAMES[0]) {
                 dataSource = layers.getMapLayers(false, LAYER_NAMES[0])[0].toGeoJSON().features;
@@ -356,37 +346,7 @@ module.exports = module.exports = {
                             $(".expand-more").hide();
                         });
 
-                        $("#" + CONTAINER_ID).find(`.modal-title`).html(`${__(`Borehole`)} no. ${feature.properties.boreholeno}`);
-                        if (document.getElementById(FORM_CONTAINER_ID)) {
-                            try {
-                                let existingPlots = menuComponentInstance.getPlots();
-
-                                console.log(`### modalComponentInstance check`, modalComponentInstance);
-                                if (modalComponentInstance) {
-                                    console.log(`### modalComponentInstance exists`);
-                                }
-
-                                ReactDOM.unmountComponentAtNode(document.getElementById(FORM_CONTAINER_ID));
-                                modalComponentInstance = ReactDOM.render(
-                                    <ModalComponent
-                                        feature={feature}
-                                        dataSource={dataSource}
-                                        initialPlots={(existingPlots ? existingPlots : [])}
-                                        onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
-                                            menuComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
-                                        }}
-                                        onPlotAdd={((newPlotTitle) => {
-                                            menuComponentInstance.addPlot(newPlotTitle);
-                                        })}/>, document.getElementById(FORM_CONTAINER_ID), (data) => {
-                                    console.log(`### data`, data);
-                                });
-
-                            } catch (e) {
-                                console.log(e);
-                            }
-                        } else {
-                            console.warn(`Unable to find the container for borehole component (element id: ${FORM_CONTAINER_ID})`);
-                        }
+                        _self.createModal(feature);
 
                         if (!menuComponentInstance) {
                             throw new Error(`Unable to find the component instance`);
@@ -425,7 +385,16 @@ module.exports = module.exports = {
                 try {
                     menuComponentInstance = ReactDOM.render(<MenuComponent
                         initialPlots={initialPlots}
-                        onPlotsChange={announcePlotsChange}/>, document.getElementById(exId));
+                        onPlotsChange={(plots = false) => {
+                            backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
+
+                            if (plots) {
+                                // Plots were updated from the MenuComponent component
+                                if (modalComponentInstance) {
+                                    _self.createModal(false, plots);
+                                }
+                            }
+                        }}/>, document.getElementById(exId));
                 } catch (e) {
                     console.log(e);
                 }
@@ -460,6 +429,42 @@ module.exports = module.exports = {
                 $(`#` + CONTAINER_ID).find(".expand-more").hide();
             });
         });
+    },
+
+    createModal: (feature = false, plots = false) => {
+        if (!feature) {
+            if (lastFeature) {
+                feature = lastFeature;
+            }
+        }
+
+        if (feature) {
+            lastFeature = feature;
+            $("#" + CONTAINER_ID).find(`.modal-title`).html(`${__(`Borehole`)} no. ${feature.properties.boreholeno}`);
+            if (document.getElementById(FORM_CONTAINER_ID)) {
+                try {
+                    let existingPlots = (plots ? plots : menuComponentInstance.getPlots());
+                    setTimeout(() => {
+                        ReactDOM.unmountComponentAtNode(document.getElementById(FORM_CONTAINER_ID));
+                        modalComponentInstance = ReactDOM.render(<ModalComponent
+                            feature={feature}
+                            dataSource={dataSource}
+                            initialPlots={(existingPlots ? existingPlots : [])}
+                            onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
+                                menuComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
+                            }}
+                            onDeleteMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
+                                menuComponentInstance.deleteMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
+                            }}
+                            onPlotAdd={((newPlotTitle) => { menuComponentInstance.addPlot(newPlotTitle); })}/>, document.getElementById(FORM_CONTAINER_ID));
+                    }, 100);
+                } catch (e) {
+                    console.log(e);
+                }
+            } else {
+                console.warn(`Unable to find the container for borehole component (element id: ${FORM_CONTAINER_ID})`);
+            }
+        }
     },
 
     /**

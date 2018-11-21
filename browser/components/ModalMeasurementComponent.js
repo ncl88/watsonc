@@ -12,7 +12,7 @@ class ModalMeasurementComponent extends React.Component {
 
     render() {
         return this.props.connectDragSource(<div
-            className="btn btn-xs btn-primary js-plotted-property"
+            className="btn btn-sm btn-primary js-plotted-property"
             data-gid="{this.props.gid}"
             data-key="{this.props.itemKey}"
             data-intake-index="{this.props.intakeIndex}"

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { DragDropContextProvider } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
+import withDragDropContext from './withDragDropContext';
 import ModalMeasurementComponent from './ModalMeasurementComponent';
 import ModalPlotComponent from './ModalPlotComponent';
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
@@ -27,12 +28,10 @@ class ModalComponent extends React.Component {
     }
 
     setMeasurementsSearchTerm(measurementsSearchTerm) {
-        console.log(`### setMeasurementsSearchTerm`, measurementsSearchTerm);
         this.setState({ measurementsSearchTerm });
     }
 
     setPlotsSearchTerm(plotsSearchTerm) {
-        console.log(`### setPlotsSearchTerm`, plotsSearchTerm);
         this.setState({ plotsSearchTerm });
     }
 
@@ -57,11 +56,6 @@ class ModalComponent extends React.Component {
 
                     if (isPlottableProperty && [`minofbottom`, `maksoftop`].indexOf(key) === -1) {
                         for (let i = 0; i < data.measurements.length; i++) {
-
-
-                            console.log(`### data`, data);
-
-
                             plottedProperties.push({
                                 key,
                                 intakeIndex: i,
@@ -83,9 +77,6 @@ class ModalComponent extends React.Component {
 
         let propertiesControls = [];
         plottedProperties.map((item, index) => {
-
-
-
             let display = true;
             if (this.state.measurementsSearchTerm.length > 0) {
                 if (item.title.toLowerCase().indexOf(this.state.measurementsSearchTerm.toLowerCase()) === -1) {
@@ -116,7 +107,7 @@ class ModalComponent extends React.Component {
             this.state.plots.map((plot) => {
                 let display = true;
                 if (this.state.plotsSearchTerm.length > 0) {
-                    if (plot.title.toLowerCase().indexOf(his.state.plotsSearchTerm.toLowerCase()) === -1) {
+                    if (plot.title.toLowerCase().indexOf(this.state.plotsSearchTerm.toLowerCase()) === -1) {
                         display = false;
                     }
                 }
@@ -125,41 +116,41 @@ class ModalComponent extends React.Component {
                     plotsControls.push(<ModalPlotComponent
                         key={`plot_container_` + plot.id}
                         plot={plot}
+                        onDeleteMeasurement={this.props.onDeleteMeasurement}
                         dataSource={this.props.dataSource}/>);
                 }
             });
         }
 
-        return (<DragDropContextProvider backend={HTML5Backend}><div>
-            <div className="container-fluid">
-                <div className="row">
-                    <div className="col-md-6">
-                        <div>
-                            <div>{measurementsText}</div>
+        return (<div>
+                <div className="container-fluid">
+                    <div className="row">
+                        <div className="col-md-6">
                             <div>
-                                <SearchFieldComponent id="measurements-search-control" onSearch={this.setMeasurementsSearchTerm.bind(this)}/>
-                            </div>
-                        </div>
-                        <div>{propertiesControls}</div>
-                    </div>
-                    <div className="col-md-6">
-                        <div>
-                            <div>{plotsText}</div>
-                            <div style={{ display: `flex` }}>
-                                <div>
-                                    <SearchFieldComponent id="plots-search-control" onSearch={this.setPlotsSearchTerm.bind(this)}/>
-                                </div>
-                                <div>
-                                    <TitleFieldComponent id="new-plot-control" onAdd={(title) => { this.props.onPlotAdd(title) }} type="userOwned" customStyle={{ width: `100%` }}/>
+                                <div>{measurementsText}</div>
+                                <div className="form-group">
+                                    <SearchFieldComponent id="measurements-search-control" onSearch={this.setMeasurementsSearchTerm.bind(this)}/>
                                 </div>
                             </div>
+                            <div>{propertiesControls}</div>
                         </div>
-
-                        <div>{plotsControls}</div>
+                        <div className="col-md-6">
+                            <div>
+                                <div>{plotsText}</div>
+                                <div style={{ display: `flex` }}>
+                                    <div className="form-group">
+                                        <SearchFieldComponent id="plots-search-control" onSearch={this.setPlotsSearchTerm.bind(this)}/>
+                                    </div>
+                                    <div className="form-group">
+                                        <TitleFieldComponent id="new-plot-control" onAdd={(title) => { this.props.onPlotAdd(title) }} type="userOwned" customStyle={{ width: `100%` }}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>{plotsControls}</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div></DragDropContextProvider>);
+            </div>);
     }
 }
 
@@ -167,7 +158,8 @@ ModalComponent.propTypes = {
     feature: PropTypes.object.isRequired,
     initialPlots: PropTypes.array.isRequired,
     onPlotAdd: PropTypes.func.isRequired,
-    onAddMeasurement: PropTypes.func.isRequired
+    onAddMeasurement: PropTypes.func.isRequired,
+    onDeleteMeasurement: PropTypes.func.isRequired
 };
 
-export default ModalComponent;
+export default withDragDropContext(ModalComponent);
