@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
-import MenuPanelPlotComponent from './MenuPanelPlotComponent';
+import MenuPlotComponent from './MenuPlotComponent';
 
 const uuidv4 = require('uuid/v4');
 
@@ -141,7 +141,7 @@ class MenuPanelComponent extends React.Component {
             this.state.plots.map((plot, index) => {
                 localPlotsControls.push(<li key={`borehole_plot_${index}`} className="list-group-item">
                     <div>
-                        <MenuPanelPlotComponent
+                        <MenuPlotComponent
                             getFeatureByGid={(gid) => { return this.getFeatureByGidFromDataSource(gid)}}
                             onDelete={(id) => { this.handleDeletePlot(id)}}
                             plotMeta={plot}/>

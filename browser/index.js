@@ -1,7 +1,7 @@
 'use strict';
 
 import ModalComponent from './components/ModalComponent';
-import MenuPanelComponent from './components/MenuPanelComponent';
+import MenuComponent from './components/MenuComponent';
 
 const MODULE_NAME = `watsonc`;
 
@@ -45,7 +45,7 @@ const LAYER_NAMES = [`v:chemicals.boreholes_time_series_with_chemicals`, `v:chem
 
 const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
 
-let menuPanelComponentInstance = false;
+let menuComponentInstance = false;
 
 let modalComponentInstance = false;
 
@@ -333,7 +333,7 @@ module.exports = module.exports = {
             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
 
             if (plots) {
-                // Plots were updated from the MenuPanelComponent component
+                // Plots were updated from the MenuComponent component
                 if (modalComponentInstance) {
                     console.log(`### setting new plots`, plots);
 
@@ -345,8 +345,8 @@ module.exports = module.exports = {
         backboneEvents.get().on("doneLoading:layers", e => {
             if (e === LAYER_NAMES[0]) {
                 dataSource = layers.getMapLayers(false, LAYER_NAMES[0])[0].toGeoJSON().features;
-                if (menuPanelComponentInstance) {
-                    menuPanelComponentInstance.setDataSource(dataSource);
+                if (menuComponentInstance) {
+                    menuComponentInstance.setDataSource(dataSource);
                 }
             }
         });
@@ -365,17 +365,17 @@ module.exports = module.exports = {
                         $("#" + CONTAINER_ID).find(`.modal-title`).html(`${__(`Borehole`)} no. ${feature.properties.boreholeno}`);
                         if (document.getElementById(FORM_CONTAINER_ID)) {
                             try {
-                                let existingPlots = menuPanelComponentInstance.getPlots();
+                                let existingPlots = menuComponentInstance.getPlots();
 
                                 modalComponentInstance = ReactDOM.render(<ModalComponent
                                     feature={feature}
                                     dataSource={dataSource}
                                     initialPlots={(existingPlots ? existingPlots : [])}
                                     onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
-                                        menuPanelComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
+                                        menuComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
                                     }}
                                     onPlotAdd={((newPlotTitle) => {
-                                        menuPanelComponentInstance.addPlot(newPlotTitle);
+                                        menuComponentInstance.addPlot(newPlotTitle);
                                     })}/>, document.getElementById(FORM_CONTAINER_ID));
                             } catch (e) {
                                 console.log(e);
@@ -384,7 +384,7 @@ module.exports = module.exports = {
                             console.warn(`Unable to find the container for borehole component (element id: ${FORM_CONTAINER_ID})`);
                         }
 
-                        if (!menuPanelComponentInstance) {
+                        if (!menuComponentInstance) {
                             throw new Error(`Unable to find the component instance`);
                         }
                     });
@@ -419,7 +419,7 @@ module.exports = module.exports = {
                 }
 
                 try {
-                    menuPanelComponentInstance = ReactDOM.render(<MenuPanelComponent
+                    menuComponentInstance = ReactDOM.render(<MenuComponent
                         initialPlots={initialPlots}
                         onPlotsChange={announcePlotsChange}/>, document.getElementById(exId));
                 } catch (e) {
@@ -471,7 +471,7 @@ module.exports = module.exports = {
     applyState: (newState) => {
         return new Promise((resolve, reject) => {
             if (newState && `plots` in newState && newState.plots.length > 0) {
-                menuPanelComponentInstance.setPlots(newState.plots);
+                menuComponentInstance.setPlots(newState.plots);
             }
 
             resolve();
@@ -479,8 +479,8 @@ module.exports = module.exports = {
     },
 
     getExistingPlots: () => {
-        if (menuPanelComponentInstance) {
-            return menuPanelComponentInstance.getPlots();
+        if (menuComponentInstance) {
+            return menuComponentInstance.getPlots();
         } else {
             throw new Error(`Unable to find the component instance`);
         }
