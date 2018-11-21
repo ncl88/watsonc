@@ -25,17 +25,18 @@ class ModalPlotComponent extends React.Component {
                 });
             }
 
-            removeButtons.push(<button
-                key={`remove_measurement_` + splitMeasurementId[1] + `_` + splitMeasurementId[2]}
-                type="button"
-                className="btn btn-xs btn-primary js-delete-measurement"
-                data-plot-id="{plot.id}"
-                data-gid="{gid}"
-                data-key="{splitMeasurementId[1]}"
-                data-intake-index="{splitMeasurementId[2]}"
-                style={{ padding: `4px`, margin: `1px` }}>
-                <i className="fa fa-remove"></i> {measurementDisplayTitle}
-            </button>);
+            removeButtons.push(<div key={`remove_measurement_` + splitMeasurementId[1] + `_` + splitMeasurementId[2]}>
+                <button
+                    type="button"
+                    className="btn btn-xs btn-primary js-delete-measurement"
+                    data-plot-id="{plot.id}"
+                    data-gid="{gid}"
+                    data-key="{splitMeasurementId[1]}"
+                    data-intake-index="{splitMeasurementId[2]}"
+                    style={{ padding: `4px`, margin: `1px` }}>
+                    <i className="fa fa-remove"></i> {measurementDisplayTitle}
+                </button>
+            </div>);
         });
 
         return this.props.connectDropTarget(<div
@@ -45,8 +46,8 @@ class ModalPlotComponent extends React.Component {
                 marginBottom: `4px`,
                 boxShadow: `0 4px 12px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19)`
             }}>
-            <span>{this.props.plot.title}</span>
-            <span>{removeButtons}</span>
+            <div>{this.props.plot.title}</div>
+            <div>{removeButtons}</div>
         </div>);
     }
 }

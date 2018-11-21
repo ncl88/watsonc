@@ -1,5 +1,8 @@
 'use strict';
 
+import { DragDropContextProvider } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
+
 import ModalComponent from './components/ModalComponent';
 import MenuComponent from './components/MenuComponent';
 
@@ -99,7 +102,6 @@ module.exports = module.exports = {
                     htmlAllowed: true,
                     timeout: 1000000
                 });
-
             } else {
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) === -1) {
                     switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
@@ -324,19 +326,11 @@ module.exports = module.exports = {
 
         utils.createMainTab(exId, __("Plot"), __("Info"), require('./../../../browser/modules/height')().max, "check_circle");
 
-
-
-
-
-
         const announcePlotsChange = (plots = false) => {
             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-
             if (plots) {
                 // Plots were updated from the MenuComponent component
                 if (modalComponentInstance) {
-                    console.log(`### setting new plots`, plots);
-
                     modalComponentInstance.setPlots(plots);
                 }
             }
@@ -367,16 +361,26 @@ module.exports = module.exports = {
                             try {
                                 let existingPlots = menuComponentInstance.getPlots();
 
-                                modalComponentInstance = ReactDOM.render(<ModalComponent
-                                    feature={feature}
-                                    dataSource={dataSource}
-                                    initialPlots={(existingPlots ? existingPlots : [])}
-                                    onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
-                                        menuComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
-                                    }}
-                                    onPlotAdd={((newPlotTitle) => {
-                                        menuComponentInstance.addPlot(newPlotTitle);
-                                    })}/>, document.getElementById(FORM_CONTAINER_ID));
+                                console.log(`### modalComponentInstance check`, modalComponentInstance);
+                                if (modalComponentInstance) {
+                                    console.log(`### modalComponentInstance exists`);
+                                }
+
+                                ReactDOM.unmountComponentAtNode(document.getElementById(FORM_CONTAINER_ID));
+                                modalComponentInstance = ReactDOM.render(
+                                    <ModalComponent
+                                        feature={feature}
+                                        dataSource={dataSource}
+                                        initialPlots={(existingPlots ? existingPlots : [])}
+                                        onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
+                                            menuComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
+                                        }}
+                                        onPlotAdd={((newPlotTitle) => {
+                                            menuComponentInstance.addPlot(newPlotTitle);
+                                        })}/>, document.getElementById(FORM_CONTAINER_ID), (data) => {
+                                    console.log(`### data`, data);
+                                });
+
                             } catch (e) {
                                 console.log(e);
                             }

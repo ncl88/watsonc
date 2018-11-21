@@ -6,6 +6,7 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import ModalMeasurementComponent from './ModalMeasurementComponent';
 import ModalPlotComponent from './ModalPlotComponent';
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
+import SearchFieldComponent from './../../../../browser/modules/shared/SearchFieldComponent';
 
 /**
  * Creates borehole parameters display and visualization panel
@@ -15,14 +16,24 @@ class ModalComponent extends React.Component {
         super(props);
 
         this.state = {
-            plots: this.props.initialPlots
+            plots: this.props.initialPlots,
+            measurementsSearchTerm: ``,
+            plotsSearchTerm: ``
         }
     }
 
-    componentDidMount() {}
-
     setPlots(plots) {
         this.setState({ plots });
+    }
+
+    setMeasurementsSearchTerm(measurementsSearchTerm) {
+        console.log(`### setMeasurementsSearchTerm`, measurementsSearchTerm);
+        this.setState({ measurementsSearchTerm });
+    }
+
+    setPlotsSearchTerm(plotsSearchTerm) {
+        console.log(`### setPlotsSearchTerm`, plotsSearchTerm);
+        this.setState({ plotsSearchTerm });
     }
 
     render() {
@@ -46,6 +57,11 @@ class ModalComponent extends React.Component {
 
                     if (isPlottableProperty && [`minofbottom`, `maksoftop`].indexOf(key) === -1) {
                         for (let i = 0; i < data.measurements.length; i++) {
+
+
+                            console.log(`### data`, data);
+
+
                             plottedProperties.push({
                                 key,
                                 intakeIndex: i,
@@ -59,48 +75,91 @@ class ModalComponent extends React.Component {
             }
         }
 
+        // Preparing measurements
+        let measurementsText = __(`Data series`);
+        if (this.state.measurementsSearchTerm.length > 0) {
+            measurementsText = __(`Found data series`);
+        }
+
         let propertiesControls = [];
         plottedProperties.map((item, index) => {
-            propertiesControls.push(<ModalMeasurementComponent
-                key={`measurement_` + index}
-                onAddMeasurement={this.props.onAddMeasurement}
-                gid={this.props.feature.properties.gid}
-                itemKey={item.key}
-                intakeIndex={item.intakeIndex}
-                title={item.title}/>
-            )
+
+
+
+            let display = true;
+            if (this.state.measurementsSearchTerm.length > 0) {
+                if (item.title.toLowerCase().indexOf(this.state.measurementsSearchTerm.toLowerCase()) === -1) {
+                    display = false;
+                }
+            }
+
+            if (display) {
+                propertiesControls.push(<ModalMeasurementComponent
+                    key={`measurement_` + index}
+                    onAddMeasurement={this.props.onAddMeasurement}
+                    gid={this.props.feature.properties.gid}
+                    itemKey={item.key}
+                    intakeIndex={item.intakeIndex}
+                    title={item.title}/>);
+            }
         });
         
+        // Preparing plots
+        let plotsText = __(`Plots`);
+        if (this.state.plotsSearchTerm.length > 0) {
+            plotsText = __(`Found plots`);
+        }
+
         let plotsControls = (<p>{__(`No plots were created yet`)}</p>);
         if (this.state.plots && this.state.plots.length > 0) {
             plotsControls = [];
-            this.state.plots.map((plot, index) => {
-                plotsControls.push(<ModalPlotComponent
-                    key={`plot_container_` + plot.id}
-                    plot={plot}
-                    dataSource={this.props.dataSource}/>);
+            this.state.plots.map((plot) => {
+                let display = true;
+                if (this.state.plotsSearchTerm.length > 0) {
+                    if (plot.title.toLowerCase().indexOf(his.state.plotsSearchTerm.toLowerCase()) === -1) {
+                        display = false;
+                    }
+                }
+
+                if (display) {
+                    plotsControls.push(<ModalPlotComponent
+                        key={`plot_container_` + plot.id}
+                        plot={plot}
+                        dataSource={this.props.dataSource}/>);
+                }
             });
         }
 
-        return (<DragDropContextProvider backend={HTML5Backend}>
-            <div>
-                <div className="container-fluid">
-                    <div className="row">
-                        <div className="col-md-6">
-                            <div>{__(`Data series`)}</div>
-                            <div>{propertiesControls}</div>
-                        </div>
-                        <div className="col-md-6">
-                            <div>{__(`Available plots`)}</div>
+        return (<DragDropContextProvider backend={HTML5Backend}><div>
+            <div className="container-fluid">
+                <div className="row">
+                    <div className="col-md-6">
+                        <div>
+                            <div>{measurementsText}</div>
                             <div>
-                                <TitleFieldComponent onAdd={(title) => { this.props.onPlotAdd(title) }} type="userOwned"/>
+                                <SearchFieldComponent id="measurements-search-control" onSearch={this.setMeasurementsSearchTerm.bind(this)}/>
                             </div>
-                            <div>{plotsControls}</div>
                         </div>
+                        <div>{propertiesControls}</div>
+                    </div>
+                    <div className="col-md-6">
+                        <div>
+                            <div>{plotsText}</div>
+                            <div style={{ display: `flex` }}>
+                                <div>
+                                    <SearchFieldComponent id="plots-search-control" onSearch={this.setPlotsSearchTerm.bind(this)}/>
+                                </div>
+                                <div>
+                                    <TitleFieldComponent id="new-plot-control" onAdd={(title) => { this.props.onPlotAdd(title) }} type="userOwned" customStyle={{ width: `100%` }}/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>{plotsControls}</div>
                     </div>
                 </div>
             </div>
-        </DragDropContextProvider>);
+        </div></DragDropContextProvider>);
     }
 }
 
