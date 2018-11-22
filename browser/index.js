@@ -60,6 +60,8 @@ let dataSource = [];
 
 let store;
 
+let categories = {};
+
 var jquery = require('jquery');
 require('snackbarjs');
 
@@ -118,24 +120,25 @@ module.exports = module.exports = {
             scriptCharset: "utf-8",
             success: function (response) {
                 if (`features` in response) {
-                    let menuObj = {};
+                    categories = {};
                     let limits = {};
                     let count = 0;
 
                     response.features.map(function (v) {
-                        menuObj[v.properties.kategori] = {};
+                        categories[v.properties.kategori.trim()] = {};
                     });
 
-                    for (var key in menuObj) {
+                    for (var key in categories) {
                         response.features.map(function (v) {
                             if (key === v.properties.kategori) {
-                                menuObj[key][v.properties.compundno] = v.properties.navn;
+                                categories[key][v.properties.compundno] = v.properties.navn;
                                 limits["_" + v.properties.compundno] = [v.properties.attention || 0, v.properties.limit || 0];
                             }
                         });
                     }
-                    for (let key in menuObj) {
-                        if (menuObj.hasOwnProperty(key)) {
+
+                    for (let key in categories) {
+                        if (categories.hasOwnProperty(key)) {
                             let group = `<div class="panel panel-default panel-layertree" id="layer-panel-${count}">
                                             <div class="panel-heading" role="tab">
                                                 <h4 class="panel-title">
@@ -149,13 +152,13 @@ module.exports = module.exports = {
                                         </div>`;
                             $(`#watsonc-layers`).append(group);
                             $(`#group-${count}`).append(`<div id="collapse${count}" class="accordion-body collapse"></div>`);
-                            for (let key2 in menuObj[key]) {
-                                if (menuObj[key].hasOwnProperty(key2)) {
+                            for (let key2 in categories[key]) {
+                                if (categories[key].hasOwnProperty(key2)) {
 
                                     let layer = `<li class="layer-item list-group-item" style="min-height: 40px; margin-top: 10px; border-bottom: 1px solid #CCC; background-color: white;">
                                                     <div>
                                                         <div style="display: inline-block;">
-                                                            <label><input data-chem="${key2}" name="chem" type="radio"/>&nbsp;${menuObj[key][key2]}</label>
+                                                            <label><input data-chem="${key2}" name="chem" type="radio"/>&nbsp;${categories[key][key2]}</label>
                                                         </div>
                                                     </div>`;
                                     $(`#collapse${count}`).append(layer);
@@ -448,6 +451,7 @@ module.exports = module.exports = {
                         ReactDOM.unmountComponentAtNode(document.getElementById(FORM_CONTAINER_ID));
                         modalComponentInstance = ReactDOM.render(<ModalComponent
                             feature={feature}
+                            categories={categories}
                             dataSource={dataSource}
                             initialPlots={(existingPlots ? existingPlots : [])}
                             onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {

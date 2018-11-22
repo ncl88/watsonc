@@ -75,8 +75,12 @@ class ModalComponent extends React.Component {
             measurementsText = __(`Found data series`);
         }
 
-        let propertiesControls = [];
-        plottedProperties.map((item, index) => {
+        /**
+         * Creates measurement control
+         * 
+         * @returns {Boolean|Object}
+         */
+        const createMeasurementControl = (item, key) => {
             let display = true;
             if (this.state.measurementsSearchTerm.length > 0) {
                 if (item.title.toLowerCase().indexOf(this.state.measurementsSearchTerm.toLowerCase()) === -1) {
@@ -84,17 +88,74 @@ class ModalComponent extends React.Component {
                 }
             }
 
+            let control = false;
             if (display) {
-                propertiesControls.push(<ModalMeasurementComponent
-                    key={`measurement_` + index}
+                control = (<ModalMeasurementComponent
+                    key={key}
                     onAddMeasurement={this.props.onAddMeasurement}
                     gid={this.props.feature.properties.gid}
                     itemKey={item.key}
                     intakeIndex={item.intakeIndex}
                     title={item.title}/>);
             }
-        });
-        
+
+            return control;
+        };
+
+        let propertiesControls = [];
+        if (Object.keys(this.props.categories).length > 0) {
+            let numberOfDisplayedCategories = 0;
+            for (let categoryName in this.props.categories) {
+                let measurementsThatBelongToCategory = Object.values(this.props.categories[categoryName]);
+                let measurementControls = [];
+                plottedProperties.map((item, index) => {
+                    if (measurementsThatBelongToCategory.indexOf(item.title) !== -1) {
+                        // Measurement is in current category
+                        let control = createMeasurementControl(item, ('measurement_' + index));
+                        plottedProperties.splice(index, 1);
+                        if (control) {
+                            measurementControls.push(control);
+                        }
+                    }
+                });
+
+                if (measurementControls.length > 0) {
+                    // Category has at least one displayed measurement
+                    numberOfDisplayedCategories++;
+                    propertiesControls.push(<div key={`category_` + numberOfDisplayedCategories}>
+                        <div><h5>{categoryName.trim()}</h5></div>
+                        <div>{measurementControls}</div>
+                    </div>);
+                }
+            }
+
+            // lacing uncategorized measurements in separate category
+            let uncategorizedMeasurementControls = [];
+            plottedProperties.map((item, index) => {
+                let control = createMeasurementControl(item, ('measurement_' + index));
+                plottedProperties.splice(index, 1);
+                if (control) {
+                    uncategorizedMeasurementControls.push(control);
+                }
+            });
+
+            if (uncategorizedMeasurementControls.length > 0) {
+                // Category has at least one displayed measurement
+                numberOfDisplayedCategories++;
+                propertiesControls.push(<div key={`uncategorized_category_0`}>
+                    <div><h5>{__(`Uncategorized`)}</h5></div>
+                    <div>{uncategorizedMeasurementControls}</div>
+                </div>);
+            }
+        } else {
+            plottedProperties.map((item, index) => {
+                let control = createMeasurementControl(item, (`measurement_` + index));
+                if (control) {
+                    propertiesControls.push(control);
+                }
+            });
+        }
+
         // Preparing plots
         let plotsText = __(`Plots`);
         if (this.state.plotsSearchTerm.length > 0) {
@@ -155,6 +216,7 @@ class ModalComponent extends React.Component {
 }
 
 ModalComponent.propTypes = {
+    categories: PropTypes.object.isRequired,
     feature: PropTypes.object.isRequired,
     initialPlots: PropTypes.array.isRequired,
     onPlotAdd: PropTypes.func.isRequired,
