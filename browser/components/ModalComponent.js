@@ -186,7 +186,7 @@ class ModalComponent extends React.Component {
         return (<div>
                 <div className="container-fluid">
                     <div className="row">
-                        <div className="col-md-6">
+                        <div className="col-sm-6">
                             <div>
                                 <div>{measurementsText}</div>
                                 <div className="form-group">
@@ -195,7 +195,7 @@ class ModalComponent extends React.Component {
                             </div>
                             <div>{propertiesControls}</div>
                         </div>
-                        <div className="col-md-6">
+                        <div className="col-sm-6">
                             <div>
                                 <div>{plotsText}</div>
                                 <div style={{ display: `flex` }}>

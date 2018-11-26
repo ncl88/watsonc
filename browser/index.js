@@ -44,7 +44,11 @@ var ReactDOM = require('react-dom');
 
 let exId = "watsonc";
 
-const LAYER_NAMES = [`v:chemicals.boreholes_time_series_with_chemicals`, `v:chemicals.boreholes_time_series_without_chemicals`];
+const LAYER_NAMES = [
+    `v:chemicals.boreholes_time_series_with_chemicals`,
+    `chemicals.boreholes_time_series_without_chemicals`,
+    `v:sensor.sensordata_without_correction`
+];
 
 const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
 
