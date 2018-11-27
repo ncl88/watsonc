@@ -400,13 +400,6 @@ module.exports = module.exports = {
                         return L.marker(latlng, { icon });
                     });
                 }
-
-                layerTree.setStyle(layerName, {
-                    weight: 5,
-                    color: '#ff0000',
-                    dashArray: '',
-                    fillOpacity: 0.2
-                });
             });
 
             // Renewing the already created store by rebuilding the layer tree
