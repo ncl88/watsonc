@@ -317,11 +317,9 @@ module.exports = module.exports = {
                                     });
 
                                     layer.setIcon(icon);
-
-
-                                })
-
+                                });
                             };
+
                             layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", fn, "watsonc");
 
                             //store.layer.eachLayer(fn);
@@ -342,11 +340,6 @@ module.exports = module.exports = {
                         $('.dropdown-submenu').removeClass('open');
                         $(this).parent().toggleClass('open');
                     });
-                    //
-                    // navLi.on('click', function () {
-                    //     navLi.removeClass('open');
-                    //     $(this).addClass('open');
-                    // });
                 } else {
                     console.error(`Unable to request codes.compunds`);
                 }
@@ -369,8 +362,8 @@ module.exports = module.exports = {
         });
 
         state.getState().then(applicationState => {
-            LAYER_NAMES.map(function (layerName) {
-                layerTree.setOnEachFeature(layerName, function (feature, layer) {
+            LAYER_NAMES.map(layerName => {
+                layerTree.setOnEachFeature(layerName, (feature, layer) => {
                     layer.on("click", function (e) {
                         $("#" + CONTAINER_ID).animate({
                             bottom: "0"
@@ -387,16 +380,33 @@ module.exports = module.exports = {
                     });
                 }, "watsonc");
 
+                let icon = false;
+                if (layerName === `v:chemicals.boreholes_time_series_with_chemicals`) {
+                    icon = L.AwesomeMarkers.icon({
+                        icon: 'database',
+                        prefix: 'fa',
+                        markerColor: 'purple'
+                    });
+                } else if (layerName === `v:sensor.sensordata_without_correction`) {
+                    icon = L.AwesomeMarkers.icon({
+                        icon: 'tint',
+                        prefix: 'fa',
+                        markerColor: 'blue'
+                    });
+                }
+
+                if (icon) {
+                    layerTree.setPointToLayer(layerName, (feature, latlng) => {
+                        return L.marker(latlng, { icon });
+                    });
+                }
+
                 layerTree.setStyle(layerName, {
                     weight: 5,
                     color: '#ff0000',
                     dashArray: '',
                     fillOpacity: 0.2
                 });
-
-                // layerTree.setPointToLayer(layerName, (feature, latlng) => {
-                //     return L.circleMarker(latlng);
-                // });
             });
 
             // Renewing the already created store by rebuilding the layer tree
