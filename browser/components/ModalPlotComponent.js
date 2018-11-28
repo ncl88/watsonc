@@ -12,7 +12,7 @@ class ModalPlotComponent extends React.Component {
 
     render() {
         let removeButtons = [];
-        this.props.plot.measurements.map(measurement => {
+        this.props.plot.measurements.map((measurement, index) => {
             let measurementDisplayTitle = measurement;
             let splitMeasurementId = measurement.split(':');
             let gid = parseInt(splitMeasurementId[0]);
@@ -28,7 +28,7 @@ class ModalPlotComponent extends React.Component {
 
             const onDelete = () => { this.props.onDeleteMeasurement(this.props.plot.id, gid, splitMeasurementId[1], splitMeasurementId[2]); };
 
-            removeButtons.push(<div key={`remove_measurement_` + splitMeasurementId[1] + `_` + splitMeasurementId[2]}>
+            removeButtons.push(<div key={`remove_measurement_` + index + `_` + splitMeasurementId[1] + `_` + splitMeasurementId[2]}>
                 <button
                     type="button"
                     className="btn btn-sm btn-primary"
