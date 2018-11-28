@@ -62,6 +62,9 @@ let lastFeature = false;
 
 let dataSource = [];
 
+let boreholesDataSource = [];
+let waterLevelDataSource = [];
+
 let store;
 
 let categories = {};
@@ -354,7 +357,18 @@ module.exports = module.exports = {
         utils.createMainTab(exId, __("Plot"), __("Info"), require('./../../../browser/modules/height')().max, "check_circle");
         backboneEvents.get().on("doneLoading:layers", e => {
             if (e === LAYER_NAMES[0]) {
-                dataSource = layers.getMapLayers(false, LAYER_NAMES[0])[0].toGeoJSON().features;
+                dataSource = [];
+                boreholesDataSource = layers.getMapLayers(false, LAYER_NAMES[0])[0].toGeoJSON().features;
+                dataSource = dataSource.concat(waterLevelDataSource);
+                dataSource = dataSource.concat(boreholesDataSource);
+                if (menuComponentInstance) {
+                    menuComponentInstance.setDataSource(dataSource);
+                }
+            } else if (e === LAYER_NAMES[2]) {
+                dataSource = [];
+                waterLevelDataSource = layers.getMapLayers(false, LAYER_NAMES[2])[0].toGeoJSON().features;
+                dataSource = dataSource.concat(waterLevelDataSource);
+                dataSource = dataSource.concat(boreholesDataSource);
                 if (menuComponentInstance) {
                     menuComponentInstance.setDataSource(dataSource);
                 }
