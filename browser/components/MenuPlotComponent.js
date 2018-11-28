@@ -23,6 +23,7 @@ class MenuPanelPlotComponent extends React.Component {
 
             let legend = [];
             let data = [];
+            let atLeastOneMeasurementDataIsNotAvailable = false;
             this.props.plotMeta.measurements.map((measurementLocationRaw, index) => {
                 let measurementLocation = measurementLocationRaw.split(':');
                 if (measurementLocation.length !== 3) throw new Error(`Invalid key and intake notation: ${measurementLocationRaw}`);
@@ -85,7 +86,8 @@ class MenuPanelPlotComponent extends React.Component {
                         <div style={{ display: `inline-block` }}>{`${feature.properties.boreholeno} ${measurementData.title} (${measurementData.unit})`}</div>
                     </div>);
                 } else {
-                    console.warn(`Premature plot initialization for feature id ${gid}`);
+                    atLeastOneMeasurementDataIsNotAvailable = true;
+                    console.warn(`Premature plot initialization for feature id ${gid} (feature data is not loaded yet and will appear in the plot upon load)`);
                 }
             });
 
@@ -122,14 +124,16 @@ class MenuPanelPlotComponent extends React.Component {
                 }
             };
 
-            plot = (<div style={{ paddingBottom: `20px` }}>
-                <div style={{ border: `1px solid lightgray`, paddingBottom: `20px` }}>
+            let thePlotComponent = false;
+            if (atLeastOneMeasurementDataIsNotAvailable) {
+                legend = (<p>{__(`Not all measurements in plot were loaded by this moment`)}</p>);
+            } else {
+                thePlotComponent = (<div style={{ border: `1px solid lightgray`, paddingBottom: `20px` }}>
                     <Plot data={data} layout={layout}/>
-                </div>
-                <div>
-                    {legend}
-                </div>
-            </div>);
+                </div>);
+            }
+
+            plot = (<div style={{ paddingBottom: `20px` }}>{thePlotComponent}<div>{legend}</div></div>);
         }
 
         return (<div>

@@ -136,22 +136,20 @@ class MenuPanelComponent extends React.Component {
     render() {
         let plotsControls = (<p>{__(`No plots were created yet`)}</p>);
 
-        if (this.state.dataSource.length > 0) {
-            let localPlotsControls = [];
-            this.state.plots.map((plot, index) => {
-                localPlotsControls.push(<li key={`borehole_plot_${index}`} className="list-group-item">
-                    <div>
-                        <MenuPlotComponent
-                            getFeatureByGid={(gid) => { return this.getFeatureByGidFromDataSource(gid)}}
-                            onDelete={(id) => { this.handleDeletePlot(id)}}
-                            plotMeta={plot}/>
-                    </div>
-                </li>);
-            });
+        let localPlotsControls = [];
+        this.state.plots.map((plot, index) => {
+            localPlotsControls.push(<li key={`borehole_plot_${index}`} className="list-group-item">
+                <div>
+                    <MenuPlotComponent
+                        getFeatureByGid={(gid) => { return this.getFeatureByGidFromDataSource(gid)}}
+                        onDelete={(id) => { this.handleDeletePlot(id)}}
+                        plotMeta={plot}/>
+                </div>
+            </li>);
+        });
 
-            if (localPlotsControls.length > 0) {
-                plotsControls = (<ul className="list-group">{localPlotsControls}</ul>);
-            }
+        if (localPlotsControls.length > 0) {
+            plotsControls = (<ul className="list-group">{localPlotsControls}</ul>);
         }
 
         return (<div>
