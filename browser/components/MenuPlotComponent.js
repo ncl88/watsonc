@@ -11,8 +11,6 @@ class MenuPanelPlotComponent extends React.Component {
         super(props);
     }
 
-    componentDidMount() {}
-
     render() {
         let plot = (<p className="text-muted">{__(`At least one y axis has to be provided`)}</p>);
         if (this.props.plotMeta.measurements && this.props.plotMeta.measurements.length > 0) {
@@ -23,18 +21,23 @@ class MenuPanelPlotComponent extends React.Component {
 
             let legend = [];
             let data = [];
-            let atLeastOneMeasurementDataIsNotAvailable = false;
             this.props.plotMeta.measurements.map((measurementLocationRaw, index) => {
-                let measurementLocation = measurementLocationRaw.split(':');
-                if (measurementLocation.length !== 3) throw new Error(`Invalid key and intake notation: ${measurementLocationRaw}`);
+                if (measurementLocationRaw in this.props.plotMeta.measurementsCachedData &&
+                    this.props.plotMeta.measurementsCachedData[measurementLocationRaw]) {
 
-                let gid = parseInt(measurementLocation[0]);
-                let key = measurementLocation[1];
-                let intakeIndex = parseInt(measurementLocation[2]);
+                    // @todo Actualize data
+                    //let feature = this.props.getFeatureByGid(gid);
 
-                // Selecting the corresponding measurement (layer feature)
-                let feature = this.props.getFeatureByGid(gid);
-                if (feature) {
+                   let measurementLocation = measurementLocationRaw.split(':');
+                   if (measurementLocation.length !== 3) throw new Error(`Invalid key and intake notation: ${measurementLocationRaw}`);
+
+                   let gid = parseInt(measurementLocation[0]);
+                   let key = measurementLocation[1];
+                   let intakeIndex = parseInt(measurementLocation[2]);
+
+                    let feature = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].data;
+                    let createdAt = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].created_at;
+
                     let measurementData = JSON.parse(feature.properties[key]);
                     if (Array.isArray(measurementData.measurements) === false) {
                         measurementData.measurements = JSON.parse(measurementData.measurements);
@@ -83,11 +86,10 @@ class MenuPanelPlotComponent extends React.Component {
                             display: `inline-block`,
                             marginRight: `6px`
                         }}></div>
-                        <div style={{ display: `inline-block` }}>{`${feature.properties.boreholeno} ${measurementData.title} (${measurementData.unit})`}</div>
+                        <div style={{ display: `inline-block` }}>{`${feature.properties.boreholeno} ${measurementData.title} (${__(`units`)}: ${measurementData.unit}, ${__(`updated at`)}: ${createdAt})`}</div>
                     </div>);
                 } else {
-                    atLeastOneMeasurementDataIsNotAvailable = true;
-                    console.warn(`Premature plot initialization for feature id ${gid} (feature data is not loaded yet and will appear in the plot upon load)`);
+                    console.error(`Plot does not contain measurement ${measurementLocationRaw}`);
                 }
             });
 
@@ -124,16 +126,12 @@ class MenuPanelPlotComponent extends React.Component {
                 }
             };
 
-            let thePlotComponent = false;
-            if (atLeastOneMeasurementDataIsNotAvailable) {
-                legend = (<p>{__(`Not all measurements in plot were loaded by this moment`)}</p>);
-            } else {
-                thePlotComponent = (<div style={{ border: `1px solid lightgray`, paddingBottom: `20px` }}>
+            plot = (<div style={{ paddingBottom: `20px` }}>
+                <div style={{ border: `1px solid lightgray`, paddingBottom: `20px` }}>
                     <Plot data={data} layout={layout}/>
-                </div>);
-            }
-
-            plot = (<div style={{ paddingBottom: `20px` }}>{thePlotComponent}<div>{legend}</div></div>);
+                </div>
+                <div>{legend}</div>
+            </div>);
         }
 
         return (<div>

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 import MenuPlotComponent from './MenuPlotComponent';
+import { isNumber } from 'util';
 
 const uuidv4 = require('uuid/v4');
 
@@ -45,6 +46,7 @@ class MenuPanelComponent extends React.Component {
             id: uuidv4(),
             title,
             measurements: [],
+            measurementsCachedData: {}
         });
 
         this.setState({ plots: plotsCopy });
@@ -78,6 +80,13 @@ class MenuPanelComponent extends React.Component {
         if (!plotId) throw new Error(`Invalid plot identifier`);
         if ((!gid && gid !== 0) || !measurementKey || (!measurementIntakeIndex && measurementIntakeIndex !== 0)) throw new Error(`Invalid measurement location parameters`);
 
+        /*
+        @todo
+        Add not only measurement key, but also its cached data, so plot will just iterate over its property "measurementsCachedData"
+        Use the "measurementsCachedData" only if outer dataSource does not contain requested measurement - if it contains the measurement,
+        then use it (as it is probably the latest one) and update the data in cache (so when plot is saved, it will have the most recent data)
+        */
+
         let plots = JSON.parse(JSON.stringify(this.state.plots));
         let correspondingPlot = false;
         let correspondingPlotIndex = false;
@@ -92,13 +101,28 @@ class MenuPanelComponent extends React.Component {
         let measurementIndex = gid + ':' + measurementKey + ':' + measurementIntakeIndex;
         if (action === `add`) {
             if (correspondingPlot.measurements.indexOf(measurementIndex) === -1) {
-                correspondingPlot.measurements.push(measurementIndex);
+                let measurementData = this.getFeatureByGidFromDataSource(gid);
+                if (measurementData) {
+                    var currentTime = new Date();
+                    correspondingPlot.measurements.push(measurementIndex);
+                    correspondingPlot.measurementsCachedData[measurementIndex] = {
+                        data: measurementData,
+                        created_at: currentTime.toISOString() 
+                    }
+                } else {
+                    throw new Error(`Unable to find data for measurement index ${measurementIndex}`);
+                }
             }
         } else if (action === `delete`) {
             if (correspondingPlot.measurements.indexOf(measurementIndex) === -1) {
                 throw new Error(`Unable to find measurement ${measurementIndex} for ${plotId} plot`);
             } else {
-                correspondingPlot.measurements.splice(correspondingPlot.measurements.indexOf(measurementIndex), 1);
+                if (measurementIndex in correspondingPlot.measurementsCachedData) {
+                    correspondingPlot.measurements.splice(correspondingPlot.measurements.indexOf(measurementIndex), 1);
+                    delete correspondingPlot.measurementsCachedData[measurementIndex];
+                } else {
+                    throw new Error(`Data integrity violation: plot ${plotId} does not contain cached data for measurement ${measurementIndex}`);
+                }
             }
         } else {
             throw new Error(`Unrecognized action ${action}`);
@@ -114,6 +138,10 @@ class MenuPanelComponent extends React.Component {
     }
 
     getFeatureByGidFromDataSource(gid) {
+        if (isNumber(gid) === false) {
+            throw new Error(`Invalid gid ${gid} was provided`);
+        }
+
         let featureWasFound = false;
         this.state.dataSource.map(item => {
             if (item.properties.gid === gid) {
