@@ -65,26 +65,26 @@ class MenuPanelPlotComponent extends React.Component {
                         name: (`${measurementData.title} (${measurementData.unit})`),
                         x: measurementData.timeOfMeasurement[intakeIndex],
                         y: measurementData.measurements[intakeIndex],
-                        type: 'scatter',
-                        mode: 'markers',
+                        //type: 'scatter',
+                        mode: 'lines+markers',
                         marker: {
                             color: colors[index]
-                        },
+                        }
                     });
 
                     legend.push(<div key={index} style={{
                         display: `inline-block`,
                         border: `1px solid lightgray`,
                         borderRadius: `4px`,
-                        padding: `4px`,
-                        marginRight: `4px`
+                        padding: `0px`,
+                        marginRight: `0px`
                     }}>
                         <div style={{
                             width: '10px',
                             height: '10px',
                             backgroundColor: colors[index],
                             display: `inline-block`,
-                            marginRight: `6px`
+                            marginRight: `0px`
                         }}></div>
                         <div style={{ display: `inline-block` }}>{`${feature.properties.boreholeno} ${measurementData.title} (${__(`units`)}: ${measurementData.unit}, ${__(`updated at`)}: ${createdAt})`}</div>
                     </div>);
@@ -95,30 +95,33 @@ class MenuPanelPlotComponent extends React.Component {
 
             let layout = {
                 displayModeBar: false,
-                width: 420,
+                width: 520,
                 height: 420,
+                margin: 0,
                 showlegend: false,
                 xaxis: {
                     autorange: true,
-                    rangeselector: {buttons: [{
-                          count: 1,
-                          label: '1m',
-                          step: 'month',
-                          stepmode: 'backward'
-                        }, {
-                          count: 6,
-                          label: '6m',
-                          step: 'month',
-                          stepmode: 'backward'
-                        },
-                        {step: 'all'}
-                    ]},
-                    rangeslider: {
-                        range: [
-                            moment(minTime).subtract(1,'days').format('YYYY-MM-DD'),
-                            moment(maxTime).add(1,'days').format('YYYY-MM-DD')    
-                        ]
-                    },
+                    margin: 0,
+
+                    // rangeselector: {buttons: [{
+                    //       count: 1,
+                    //       label: '1m',
+                    //       step: 'month',
+                    //       stepmode: 'backward'
+                    //     }, {
+                    //       count: 6,
+                    //       label: '6m',
+                    //       step: 'month',
+                    //       stepmode: 'backward'
+                    //     },
+                    //     {step: 'all'}
+                    // ]},
+                    // rangeslider: {
+                    //     range: [
+                    //         moment(minTime).subtract(1,'days').format('YYYY-MM-DD'),
+                    //         moment(maxTime).add(1,'days').format('YYYY-MM-DD')
+                    //     ]
+                    // },
                     type: 'date'
                 },
                 yaxis: {

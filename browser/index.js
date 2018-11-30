@@ -47,8 +47,10 @@ let exId = "watsonc";
 const LAYER_NAMES = [
     `v:chemicals.boreholes_time_series_with_chemicals`,
     `chemicals.boreholes_time_series_without_chemicals`,
-    `v:sensor.sensordata_without_correction`
+    `v:sensor.sensordata_without_correction`,
+    `sensor.sensordata_without_timeseries`,
 ];
+
 
 const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
 
@@ -90,14 +92,18 @@ module.exports = module.exports = {
     },
     init: function () {
         switchLayer.init("chemicals.boreholes_time_series_without_chemicals", true, true, false);
+        switchLayer.init("sensor.sensordata_without_timeseries", true, true, false);
 
         backboneEvents.get().on(`startLoading:layers`, layerKey => {
             if (cloud.get().getZoom() < 15 && layerKey === "v:chemicals.boreholes_time_series_with_chemicals") {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
+                switchLayer.init("v:sensor.sensordata_without_correction", false, true, false);
 
                 setTimeout(()=>{
                     let applicationWideControls = $(`*[data-gc2-id="chemicals.boreholes_time_series_with_chemicals"]`);
+                    let applicationWideControls_sensor = $(`*[data-gc2-id="sensor.sensordata_without_timeseries"]`);
                     applicationWideControls.prop('checked', false);
+                    applicationWideControls_sensor.prop('checked', false);
                 }, 200);
             }
 
@@ -106,6 +112,7 @@ module.exports = module.exports = {
         cloud.get().on(`moveend`, () => {
             if (cloud.get().getZoom() < 15) {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
+                switchLayer.init("v:sensor.sensordata_without_correction", false, true, false);
                 jquery.snackbar({
                     id: "snackbar-watsonc",
                     content: "<span id='conflict-progress'>" + __("Zoom tættere på for at aktivere data-funktionerne.") + "</span>",
@@ -115,6 +122,7 @@ module.exports = module.exports = {
             } else {
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) === -1) {
                     switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
+                    switchLayer.init("v:sensor.sensordata_without_correction", true, true, false);
                 }
                 setTimeout(function () {
                     jquery("#snackbar-watsonc").snackbar("hide");
