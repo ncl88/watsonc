@@ -80,13 +80,6 @@ class MenuPanelComponent extends React.Component {
         if (!plotId) throw new Error(`Invalid plot identifier`);
         if ((!gid && gid !== 0) || !measurementKey || (!measurementIntakeIndex && measurementIntakeIndex !== 0)) throw new Error(`Invalid measurement location parameters`);
 
-        /*
-        @todo
-        Add not only measurement key, but also its cached data, so plot will just iterate over its property "measurementsCachedData"
-        Use the "measurementsCachedData" only if outer dataSource does not contain requested measurement - if it contains the measurement,
-        then use it (as it is probably the latest one) and update the data in cache (so when plot is saved, it will have the most recent data)
-        */
-
         let plots = JSON.parse(JSON.stringify(this.state.plots));
         let correspondingPlot = false;
         let correspondingPlotIndex = false;
@@ -134,11 +127,35 @@ class MenuPanelComponent extends React.Component {
     }
 
     setDataSource(dataSource) {
-        this.setState({ dataSource });
+        let plots = JSON.parse(JSON.stringify(this.state.plots));
+        plots.map((plot, index) => {
+            plot.measurements.map(measurementIndex => {
+                let splitMeasurementIndex = measurementIndex.split(`:`);
+                if (splitMeasurementIndex.length !== 3) throw new Error(`Invalid measurement index`);
+
+                let measurementData = false;
+                dataSource.map(item => {
+                    if (item.properties.gid === parseInt(splitMeasurementIndex[0])) {
+                        measurementData = item;
+                        return false;
+                    }
+                });
+
+                if (measurementData) {
+                    var currentTime = new Date();
+                    plots[index].measurementsCachedData[measurementIndex] = {
+                        data: measurementData,
+                        created_at: currentTime.toISOString() 
+                    }
+                }
+            });
+        });
+
+        this.setState({ dataSource, plots });
     }
 
-    getFeatureByGidFromDataSource(gid) {
-        if (isNumber(gid) === false) {
+    getFeatureByGidFromDataSource(gid, check = true) {
+        if (check && isNumber(gid) === false) {
             throw new Error(`Invalid gid ${gid} was provided`);
         }
 
@@ -169,7 +186,6 @@ class MenuPanelComponent extends React.Component {
             localPlotsControls.push(<li key={`borehole_plot_${index}`} className="list-group-item">
                 <div>
                     <MenuPlotComponent
-                        getFeatureByGid={(gid) => { return this.getFeatureByGidFromDataSource(gid)}}
                         onDelete={(id) => { this.handleDeletePlot(id)}}
                         plotMeta={plot}/>
                 </div>

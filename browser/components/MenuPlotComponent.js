@@ -12,6 +12,10 @@ class MenuPanelPlotComponent extends React.Component {
     }
 
     render() {
+
+console.log(`### menu plot is redrawn`);
+
+
         let plot = (<p className="text-muted">{__(`At least one y axis has to be provided`)}</p>);
         if (this.props.plotMeta.measurements && this.props.plotMeta.measurements.length > 0) {
             let colors = [`red`, `green`, `blue`, `orange`, `purple`, `black`];
@@ -24,10 +28,6 @@ class MenuPanelPlotComponent extends React.Component {
             this.props.plotMeta.measurements.map((measurementLocationRaw, index) => {
                 if (measurementLocationRaw in this.props.plotMeta.measurementsCachedData &&
                     this.props.plotMeta.measurementsCachedData[measurementLocationRaw]) {
-
-                    // @todo Actualize data
-                    //let feature = this.props.getFeatureByGid(gid);
-
                    let measurementLocation = measurementLocationRaw.split(':');
                    if (measurementLocation.length !== 3) throw new Error(`Invalid key and intake notation: ${measurementLocationRaw}`);
 
@@ -102,26 +102,6 @@ class MenuPanelPlotComponent extends React.Component {
                 xaxis: {
                     autorange: true,
                     margin: 0,
-
-                    // rangeselector: {buttons: [{
-                    //       count: 1,
-                    //       label: '1m',
-                    //       step: 'month',
-                    //       stepmode: 'backward'
-                    //     }, {
-                    //       count: 6,
-                    //       label: '6m',
-                    //       step: 'month',
-                    //       stepmode: 'backward'
-                    //     },
-                    //     {step: 'all'}
-                    // ]},
-                    // rangeslider: {
-                    //     range: [
-                    //         moment(minTime).subtract(1,'days').format('YYYY-MM-DD'),
-                    //         moment(maxTime).add(1,'days').format('YYYY-MM-DD')
-                    //     ]
-                    // },
                     type: 'date'
                 },
                 yaxis: {
@@ -151,7 +131,6 @@ class MenuPanelPlotComponent extends React.Component {
 }
 
 MenuPanelPlotComponent.propTypes = {
-    getFeatureByGid: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
     plotMeta: PropTypes.object.isRequired
 };
