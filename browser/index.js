@@ -152,27 +152,31 @@ module.exports = module.exports = {
                         });
                     }
 
+                    // Breadcrumbs
+                    let breadcrumbs = (`<div><h5 style="color: red;">breadcrumbs</h5></div>`);
+                    $(`#watsonc-layers`).append(breadcrumbs);
+
                     // Start waterlevel Group and layers
                     let group = `<div class="panel panel-default panel-layertree" id="layer-panel-watlevmsl">
-                                            <div class="panel-heading" role="tab">
-                                                <h4 class="panel-title">
-                                                    <!--<div class="layer-count badge">-->
-                                                        <!--<span>0</span> / <span></span>-->
-                                                    <!--</div>-->
-                                                    <a style="display: block" class="accordion-toggle" data-toggle="collapse" data-parent="#watsonc-layers" href="#collapsewatlevmsl">DGU boringer</a>
-                                                </h4>
-                                            </div>
-                                            <ul class="list-group" id="group-watlevmsl" role="tabpanel"></ul>
-                                        </div>`;
+                        <div class="panel-heading" role="tab">
+                            <h4 class="panel-title">
+                                <!--<div class="layer-count badge">-->
+                                    <!--<span>0</span> / <span></span>-->
+                                <!--</div>-->
+                                <a style="display: block" class="accordion-toggle" data-toggle="collapse" data-parent="#watsonc-layers" href="#collapsewatlevmsl">DGU boringer</a>
+                            </h4>
+                        </div>
+                        <ul class="list-group" id="group-watlevmsl" role="tabpanel"></ul>
+                    </div>`;
                     $(`#watsonc-layers`).append(group);
                     $(`#group-watlevmsl`).append(`<div id="collapsewatlevmsl" class="accordion-body collapse"></div>`);
-
                     let layer = `<li class="layer-item list-group-item" style="min-height: 40px; margin-top: 10px; border-bottom: 1px solid #CCC; background-color: white;">
-                                                    <div>
-                                                        <div style="display: inline-block;">
-                                                            <label><input data-chem="watlevmsl" name="chem" type="radio"/>&nbsp;DGU boringer</label>
-                                                        </div>
-                                                    </div>`;
+                        <div>
+                            <div style="display: inline-block;">
+                                <label><input data-chem="watlevmsl" name="chem" type="radio"/>&nbsp;DGU boringer</label>
+                            </div>
+                        </div>
+                    </li>`;
                     $(`#collapsewatlevmsl`).append(layer);
 
                     // Stop waterlevel Group and layers
@@ -181,18 +185,19 @@ module.exports = module.exports = {
                     for (let key in categories) {
                         if (categories.hasOwnProperty(key)) {
                             let group = `<div class="panel panel-default panel-layertree" id="layer-panel-${count}">
-                                            <div class="panel-heading" role="tab">
-                                                <h4 class="panel-title">
-                                                    <!--<div class="layer-count badge">-->
-                                                        <!--<span>0</span> / <span></span>-->
-                                                    <!--</div>-->
-                                                    <a style="display: block" class="accordion-toggle" data-toggle="collapse" data-parent="#watsonc-layers" href="#collapse${count}">${key}</a>
-                                                </h4>
-                                            </div>
-                                            <ul class="list-group" id="group-${count}" role="tabpanel"></ul>
-                                        </div>`;
+                                <div class="panel-heading" role="tab">
+                                    <h4 class="panel-title">
+                                        <!--<div class="layer-count badge">-->
+                                            <!--<span>0</span> / <span></span>-->
+                                        <!--</div>-->
+                                        <a style="display: block" class="accordion-toggle" data-toggle="collapse" data-parent="#watsonc-layers" href="#collapse${count}">${key}</a>
+                                    </h4>
+                                </div>
+                                <ul class="list-group" id="group-${count}" role="tabpanel"></ul>
+                            </div>`;
                             $(`#watsonc-layers`).append(group);
                             $(`#group-${count}`).append(`<div id="collapse${count}" class="accordion-body collapse"></div>`);
+
                             for (let key2 in categories[key]) {
                                 if (categories[key].hasOwnProperty(key2)) {
 
