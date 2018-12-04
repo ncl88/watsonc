@@ -179,7 +179,7 @@ class MenuPanelComponent extends React.Component {
     }
 
     render() {
-        let plotsControls = (<p>{__(`No plots were created yet`)}</p>);
+        let plotsControls = (<p>{__(`No time series were created yet`)}</p>);
 
         let localPlotsControls = [];
         this.state.plots.map((plot, index) => {
@@ -199,7 +199,7 @@ class MenuPanelComponent extends React.Component {
         return (<div>
             <div>
                 <h4>
-                    {__(`Plots`)} 
+                    {__(`Time series`)} 
                     <TitleFieldComponent onAdd={(title) => { this.handleCreatePlot(title) }} type="userOwned"/>
                 </h4>
             </div>

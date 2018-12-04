@@ -345,9 +345,9 @@
         margin-bottom: 8px;
     }
 
-    .leaflet-control-locate a, .leaflet-control-locate a:hover {
+    .leaflet-control-locate a, .leaflet-control-locate a:hover, .leaflet-control-locate .fa {
         border-radius: 50% !important;
-        font-size: 24px;
+        font-size: 18px;
         height: 40px;
         margin: auto;
         min-width: 40px;
@@ -358,6 +358,14 @@
         box-shadow: 0 1px 1.5px 0 rgba(0, 0, 0, 0.12), 0 1px 1px 0 rgba(0, 0, 0, 0.24);
         position: relative;
         line-height: 40px
+    }
+
+    #floating-container-primary a, #floating-container-secondary a {
+        background-color: white;
+    }
+
+    #floating-container-primary a:hover, #floating-container-secondary a:hover {
+        background-color: lightgray;
     }
 
     .leaflet-bar {
@@ -1018,9 +1026,17 @@
                     </ul>
                     <ul role="tablist">
                         <hr>
-                        <li><a href="#" id="btn-reset"><i class="material-icons">replay</i>{{Reset}}</a></li>
-                        <li><a href="#" data-toggle="modal" data-target="#about-model"><i class="material-icons">question_answer</i>{{About}}
-                        </a></li>
+                        <li>
+                            <a href="#" id="btn-reset"><i class="material-icons">replay</i>{{Reset}}</a>
+                        </li>
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#about-model"><i class="material-icons">question_answer</i>{{About}}</a>
+                        </li>
+                        <li>
+                            <a href="http://watsonc.dk" target="_blank">
+                                <i class="material-icons">home</i>{{Main page}}
+                            </a>
+                        </li>
                         <li>
                             <a id="session" href="#" data-toggle="modal" data-target="#login-modal">
                                 <i class="material-icons gc2-session-lock" aria-hidden="true"

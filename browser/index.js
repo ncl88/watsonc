@@ -362,7 +362,7 @@ module.exports = module.exports = {
         state.listenTo(MODULE_NAME, _self);
         state.listen(MODULE_NAME, `plotsUpdate`);
 
-        utils.createMainTab(exId, __("Plot"), __("Info"), require('./../../../browser/modules/height')().max, "check_circle");
+        utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, "check_circle");
         backboneEvents.get().on("doneLoading:layers", e => {
             if (e === LAYER_NAMES[0]) {
                 dataSource = [];

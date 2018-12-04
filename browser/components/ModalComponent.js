@@ -157,12 +157,12 @@ class ModalComponent extends React.Component {
         }
 
         // Preparing plots
-        let plotsText = __(`Plots`);
+        let plotsText = __(`Time series`);
         if (this.state.plotsSearchTerm.length > 0) {
-            plotsText = __(`Found plots`);
+            plotsText = __(`Found time series`);
         }
 
-        let plotsControls = (<p>{__(`No plots were created yet`)}</p>);
+        let plotsControls = (<p>{__(`No time series were created yet`)}</p>);
         if (this.state.plots && this.state.plots.length > 0) {
             plotsControls = [];
             this.state.plots.map((plot) => {
