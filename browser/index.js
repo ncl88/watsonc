@@ -139,6 +139,24 @@ module.exports = module.exports = {
             }
         }); 
 
+        const buildBreadcrumbs = (secondLevel = false, thirdLevel = false, isWaterLevel = false) => {
+            $(`.js-layer-slide-breadcrumbs`).empty();
+            if (secondLevel !== false) {
+                let firstLevel = `Kemi`;
+                let secondLevelMarkup = `<li class="active">${secondLevel}</li>`;
+                if (isWaterLevel) {
+                    firstLevel = `Vandstand`;
+                    secondLevelMarkup = ``;
+                }
+
+                $(`.js-layer-slide-breadcrumbs`).append(`<ol class="breadcrumb" style="background-color: white;">
+                    <li class="active"><i class="fa fa-database"></i> ${firstLevel}</li>
+                    ${secondLevelMarkup}
+                    <li class="active" style="color: #1380c4; font-weight: bold;">${thirdLevel}</li>
+                </ol>`);
+            }
+        };
+
         $.ajax({
             url: '/api/sql/jupiter?q=SELECT * FROM codes.compunds',
             scriptCharset: "utf-8",
@@ -162,8 +180,9 @@ module.exports = module.exports = {
                     }
 
                     // Breadcrumbs
-                    let breadcrumbs = (`<div><h5 style="color: red;">breadcrumbs</h5></div>`);
-                    $(`#watsonc-layers`).append(breadcrumbs);
+                    let breadcrumbs = (`<div class="js-layer-slide-breadcrumbs" style="position: sticky; top: 0px; margin: -10px; z-index: 1000;"></div>`);
+                    $(`#watsonc-layers`).parent().prepend(breadcrumbs);
+                    buildBreadcrumbs();
 
                     // Start waterlevel Group and layers
                     let group = `<div class="panel panel-default panel-layertree" id="layer-panel-watlevmsl">
@@ -182,23 +201,18 @@ module.exports = module.exports = {
                     let layer = `<li class="layer-item list-group-item" style="min-height: 40px; margin-top: 10px; border-bottom: 1px solid #CCC; background-color: white;">
                         <div>
                             <div style="display: inline-block;">
-                                <label><input data-chem="watlevmsl" name="chem" type="radio"/>&nbsp;DGU boringer</label>
+                                <label><input data-chem="watlevmsl" name="chem" type="radio"/>&nbsp;<span class="js-chemical-name js-water-level">DGU boringer</span></label>
                             </div>
                         </div>
                     </li>`;
                     $(`#collapsewatlevmsl`).append(layer);
 
                     // Stop waterlevel Group and layers
-
-
                     for (let key in categories) {
                         if (categories.hasOwnProperty(key)) {
                             let group = `<div class="panel panel-default panel-layertree" id="layer-panel-${count}">
                                 <div class="panel-heading" role="tab">
                                     <h4 class="panel-title">
-                                        <!--<div class="layer-count badge">-->
-                                            <!--<span>0</span> / <span></span>-->
-                                        <!--</div>-->
                                         <a style="display: block" class="accordion-toggle" data-toggle="collapse" data-parent="#watsonc-layers" href="#collapse${count}">${key}</a>
                                     </h4>
                                 </div>
@@ -209,16 +223,19 @@ module.exports = module.exports = {
 
                             for (let key2 in categories[key]) {
                                 if (categories[key].hasOwnProperty(key2)) {
-
                                     let layer = `<li class="layer-item list-group-item" style="min-height: 40px; margin-top: 10px; border-bottom: 1px solid #CCC; background-color: white;">
-                                                    <div>
-                                                        <div style="display: inline-block;">
-                                                            <label><input data-chem="${key2}" name="chem" type="radio"/>&nbsp;${categories[key][key2]}</label>
-                                                        </div>
-                                                    </div>`;
+                                        <div>
+                                            <div style="display: inline-block;">
+                                                <label>
+                                                    <input data-chem="${key2}" name="chem" type="radio"/>&nbsp;<span class="js-chemical-name">${categories[key][key2]}</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </li>`;
                                     $(`#collapse${count}`).append(layer);
                                 }
                             }
+
                             count++;
                         }
                     }
@@ -227,6 +244,9 @@ module.exports = module.exports = {
                         function (e) {
                             let chem = "_" + $(e.target).data("chem");
                             store = layerTree.getStores()["v:chemicals.boreholes_time_series_with_chemicals"];
+
+                            buildBreadcrumbs($(e.target).closest(`.panel-layertree`).find(`.accordion-toggle`).html(),
+                                $(e.target).parent().find(`.js-chemical-name`).html(), $(e.target).parent().find(`.js-chemical-name`).hasClass(`js-water-level`));
 
                             let fn = function (layer) {
                                 store.layer.eachLayer(function (layer) {
