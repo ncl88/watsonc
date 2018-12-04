@@ -91,6 +91,14 @@ module.exports = module.exports = {
         return this;
     },
     init: function () {
+        $(`.js-open-state-snapshots-panel`).click(() => {
+            $(`[href="#state-snapshots-content"]`).trigger(`click`);
+        });
+
+        $(`.js-open-watsonc-panel`).click(() => {
+            $(`[href="#watsonc-content"]`).trigger(`click`);
+        });
+
         switchLayer.init("chemicals.boreholes_time_series_without_chemicals", true, true, false);
         switchLayer.init("sensor.sensordata_without_timeseries", true, true, false);
 
@@ -124,6 +132,7 @@ module.exports = module.exports = {
                     switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
                     switchLayer.init("v:sensor.sensordata_without_correction", true, true, false);
                 }
+
                 setTimeout(function () {
                     jquery("#snackbar-watsonc").snackbar("hide");
                 }, 200);
@@ -338,12 +347,10 @@ module.exports = module.exports = {
 
                             layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", fn, "watsonc");
 
-                            //store.layer.eachLayer(fn);
-
                             //if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) === -1) {
-                            switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false)
+                            switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
+                            switchLayer.init("v:sensor.sensordata_without_correction", true, true, false);
                             //}
-
                         }
                     );
 
