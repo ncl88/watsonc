@@ -325,7 +325,7 @@
 
     #floating-container-primary {
         position: absolute;
-        top: 68px;
+        top: 124px;
         right: 8px;
         width: 40px;
     }
@@ -484,6 +484,7 @@
 
     #layer-slide {
         display: inline;
+        margin-top: 65px;
     }
 
     #vectorlayers .panel:first-child {
@@ -639,6 +640,9 @@
         right: auto;
     }
 
+    .help-btn {
+        top: 79px !important;
+    }
 </style>
 <!-- map -->
 <div id="pane">
@@ -926,12 +930,12 @@
     </div>
 
     <div id="layer-slide" class="slide-left fade-then-dragging">
-        <div class="modal-header">
+        <div class="modal-header" style="background-color: white;">
             <button type="button" class="close" aria-hidden="true">×</button>
             <h3 class="modal-title"></h3>
         </div>
-        <div id="layer-slide-body-wrapper">
-            <div class="modal-body">
+        <div id="layer-slide-body-wrapper" style="background-color: white;">
+            <div class="modal-body" style="background-color: white; height: calc(100vh - 110px);">
                 <div class="form-group" id="watsonc-layers" style="padding-top: 10px;"></div>
                 <div class="form-group" id="layers"></div>
             </div>
@@ -1009,7 +1013,7 @@
     </div>
 </div>
 
-<div id="search-ribbon">
+<div id="search-ribbon" style="margin-top: 65px;">
     <div id="search-border"><i class="floatRight cursorPointer fa fa-reorder"></i></div>
     <div id="search-container">
         <nav id="myNavmenu" class="navmenu navmenu-default navmenu-fixed-right offcanvas" role="navigation"
@@ -1025,7 +1029,7 @@
                 </div>
             </div>
 
-            <div id="module-container" class="slide-right">
+            <div id="module-container" class="slide-right" style="margin-top: 65px;">
                 <div class="modal-header">
                     <button type="button" class="close" aria-hidden="true">×</button>
                     <h2 class="modal-title"></h2>
