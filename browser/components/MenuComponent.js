@@ -199,8 +199,8 @@ class MenuPanelComponent extends React.Component {
         return (<div>
             <div>
                 <h4>
-                    {__(`Time series`)} 
-                    <TitleFieldComponent onAdd={(title) => { this.handleCreatePlot(title) }} type="userOwned"/>
+                    <span style={{ color: `rgb(16, 174, 140)`, fontWeight: `bold` }}>{__(`Time series`)}</span>
+                    <TitleFieldComponent saveButtonText={__(`Save`)} onAdd={(title) => { this.handleCreatePlot(title) }} type="userOwned"/>
                 </h4>
             </div>
             <div>{plotsControls}</div>
