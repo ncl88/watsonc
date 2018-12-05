@@ -268,8 +268,6 @@ module.exports = module.exports = {
                             });
                         }
 
-                        console.log(names)
-
                         // Breadcrumbs
                         let breadcrumbs = (`<div class="js-layer-slide-breadcrumbs" style="position: sticky; top: 0px; margin: -10px; z-index: 1000;"></div>`);
                         $(`#watsonc-layers`).parent().prepend(breadcrumbs);
@@ -334,6 +332,9 @@ module.exports = module.exports = {
                                 count++;
                             }
                         }
+
+                        // Open layertree
+                        $('#burger-btn').trigger('click');
 
                         $("[data-chem]").change(
                             function (e) {
