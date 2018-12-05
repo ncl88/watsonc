@@ -1,4 +1,14 @@
 <style>
+
+    .watsonc-layertree-header {
+        font-size: 24px;
+        color: rgb(16, 174, 140);
+    }
+
+    #layers {
+        display: none;
+    }
+
     .dropdown-submenu {
         position: relative;
         margin-right: 0;
@@ -332,7 +342,7 @@
 
     #floating-container-secondary {
         position: absolute;
-        top: 235px;
+        top: 270px;
         right: 8px;
         width: 40px;
     }
@@ -484,7 +494,7 @@
 
     #layer-slide {
         display: inline;
-        margin-top: 65px;
+        margin-top: 60px;
     }
 
     #vectorlayers .panel:first-child {
@@ -660,20 +670,18 @@
                     class="material-icons">remove</i></a>
         </div>
 
-        <div id="floating-container-secondary" style="display: none;">
+        <div id="floating-container-secondary" style="display: inline;">
             <div id="locale-btn"></div>
             <a href="#base-layers-dialog" id="base-layers-btn"
                class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
                     class="material-icons">layers</i></a>
-            <a href="#info-dialog" id="info-dialog-btn" data-module="info"
-               class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
-                    class="material-icons">info</i></a>
-            <a href="#print-dialog" id="print-dialog-btn" data-module="print"
-               class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
-                    class="material-icons">print</i></a>
-            <a href="#offline-map-dialog" id="offline-map-btn" data-module="offline-map"
-               class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
-                    class="material-icons">save_alt</i></a>
+            <!--<a href="#info-dialog" id="info-dialog-btn" data-module="info"-->
+               <!--class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i-->
+                    <!--class="material-icons">info</i></a>-->
+            <!--<a href="#print-dialog" id="print-dialog-btn" data-module="print"-->
+               <!--class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i-->
+                    <!--class="material-icons">print</i></a>-->
+
         </div>
     </div>
 
@@ -683,12 +691,12 @@
             <div class="row">
                 <div class="col-xs-4">
                     <button type="button" class="navbar-toggle" id="burger-btn">
-                        <i class="fa fa-database"></i> {{Filter measurements}}
+                        <i class="fa fa-database"></i> Vælg data
                     </button>
                 </div>
-                <div class="col-xs-4" style="text-align: center;">
+                <div class="col-xs-4" style="text-align: center; top: 5px">
                     <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-                        viewBox="0 0 321.2 93" style="enable-background:new 0 0 321.2 93; height: 60px;" xml:space="preserve">
+                        viewBox="0 0 321.2 93" style="enable-background:new 0 0 321.2 93; height: 40px;" xml:space="preserve">
                         <style type="text/css">
                             .st0{fill:#A0E0C5;}
                             .st1{fill:#FFFFFF;}
@@ -1013,7 +1021,7 @@
     </div>
 </div>
 
-<div id="search-ribbon" style="margin-top: 65px;">
+<div id="search-ribbon" style="margin-top: 60px;">
     <div id="search-border"><i class="floatRight cursorPointer fa fa-reorder"></i></div>
     <div id="search-container">
         <nav id="myNavmenu" class="navmenu navmenu-default navmenu-fixed-right offcanvas" role="navigation"
@@ -1029,7 +1037,7 @@
                 </div>
             </div>
 
-            <div id="module-container" class="slide-right" style="margin-top: 65px;">
+            <div id="module-container" class="slide-right" style="margin-top: 60px;">
                 <div class="modal-header">
                     <button type="button" class="close" aria-hidden="true">×</button>
                     <h2 class="modal-title"></h2>

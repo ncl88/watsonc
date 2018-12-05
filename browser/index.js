@@ -74,6 +74,7 @@ let waterLevelDataSource = [];
 let store;
 
 let categories = {};
+let names = {};
 
 var jquery = require('jquery');
 require('snackbarjs');
@@ -250,7 +251,10 @@ module.exports = module.exports = {
 
                         response.features.map(function (v) {
                             categories[v.properties.kategori.trim()] = {};
+                            names[v.properties.compundno] = v.properties.navn;
                         });
+
+                        names['watlevmsl'] = "Vandstand";
 
                         for (var key in categories) {
                             response.features.map(function (v) {
@@ -267,7 +271,9 @@ module.exports = module.exports = {
                         buildBreadcrumbs();
 
                         // Start waterlevel Group and layers
-                        let group = `<div class="panel panel-default panel-layertree" id="layer-panel-watlevmsl">
+                        $(`#watsonc-layers`).append(`<h1 class="watsonc-layertree-header">Vandstand</h1>`);
+                        let group = `
+                        <div class="panel panel-default panel-layertree" id="layer-panel-watlevmsl">
                             <div class="panel-heading" role="tab">
                                 <h4 class="panel-title">
                                     <!--<div class="layer-count badge">-->
@@ -288,11 +294,13 @@ module.exports = module.exports = {
                             </div>
                         </li>`;
                         $(`#collapsewatlevmsl`).append(layer);
-
                         // Stop waterlevel Group and layers
+
+                        $(`#watsonc-layers`).append(`<h1 class="watsonc-layertree-header">Kemi</h1>`);
                         for (let key in categories) {
                             if (categories.hasOwnProperty(key)) {
-                                let group = `<div class="panel panel-default panel-layertree" id="layer-panel-${count}">
+                                let group = `
+                                <div class="panel panel-default panel-layertree" id="layer-panel-${count}">
                                     <div class="panel-heading" role="tab">
                                         <h4 class="panel-title">
                                             <a style="display: block" class="accordion-toggle" data-toggle="collapse" data-parent="#watsonc-layers" href="#collapse${count}">${key}</a>
@@ -322,6 +330,9 @@ module.exports = module.exports = {
                             }
                         }
 
+                        // Open layertree
+                        $('#burger-btn').trigger('click');
+
                         $("[data-chem]").change(
                             function (e) {
                                 let chem = "_" + $(e.target).data("chem");
@@ -338,8 +349,15 @@ module.exports = module.exports = {
                                         let iconSize;
                                         let iconAnchor;
                                         let maxMeasurement = 0;
+                                        let maxMeasurementIntakes = [];
                                         let latestMeasurement = 0;
+                                        let latestMeasurementIntakes = [];
                                         let json;
+                                        let green = "rgb(16, 174, 140)";
+                                        let yellow = "rgb(247, 168, 77)";
+                                        let red = "rgb(252, 60, 60)";
+                                        let white = "rgb(255, 255, 255)";
+
 
                                         try {
                                             json = JSON.parse(feature.properties[chem]);
@@ -366,34 +384,50 @@ module.exports = module.exports = {
                                                         measurement: length
                                                     }
                                                 }
+                                                latestMeasurementIntakes[i] = json.measurements[i][length];
                                             }
 
                                             // Find Highest value
                                             intakes = json.measurements.length;
                                             maxMeasurement = 0;
+                                            maxMeasurementIntakes = [];
+                                            let html = [];
 
                                             for (let i = 0; i < intakes; i++) {
+                                                maxMeasurementIntakes[i] = 0;
                                                 let length = json.measurements[i].length;
                                                 for (let u = 0; u < length; u++) {
                                                     currentValue = json.measurements[i][u];
                                                     if (!(latestPosition.intake === i && latestPosition.measurement === u) && currentValue > maxMeasurement) {
                                                         maxMeasurement = currentValue;
                                                     }
+                                                    if (currentValue > maxMeasurementIntakes[i]) {
+                                                        maxMeasurementIntakes[i] = currentValue;
+                                                    }
                                                 }
+
+                                            }
+
+                                            for (let i = 0; i < intakes; i++) {
+                                                html.push(`
+                                                    <b style="color: rgb(16, 174, 140)">Intag: ${i+1}</b><br>
+                                                    Max: ${maxMeasurementIntakes[i]}<br>
+                                                    Seneste: ${latestMeasurementIntakes[i]}<br>
+                                                `)
                                             }
 
                                             layer.bindTooltip(`
-                                            <p>${chem} (${unit})</p>
-                                            <p>Max: ${maxMeasurement}</p>
-                                            <p>Seneste: ${latestMeasurement}</p>
-                                        `);
+                                            <p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
+                                            <b style="color: rgb(16, 174, 140)">${names[$(e.target).data("chem")]} (${unit})</b><br>
+                                            ${html.join('<br>')}
+                                            `);
 
                                             if (chem === "_watlevmsl") {
-                                                maxColor = maxMeasurement === 0 ? "#ffffff" : "#00aaff";
+                                                maxColor = maxMeasurement === 0 ? white : "#00aaff";
                                                 latestColor = "#00aaff";
                                             } else {
-                                                maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= limits[chem][0] ? "#00ff00" : maxMeasurement > limits[chem][0] && maxMeasurement <= limits[chem][1] ? "#ffff00" : "#ff0000";
-                                                latestColor = latestMeasurement <= limits[chem][0] ? "#00ff00" : latestMeasurement > limits[chem][0] && latestMeasurement <= limits[chem][1] ? "#ffff00" : "#ff0000";
+                                                maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= limits[chem][0] ? green : maxMeasurement > limits[chem][0] && maxMeasurement <= limits[chem][1] ? yellow : red;
+                                                latestColor = latestMeasurement <= limits[chem][0] ? green : latestMeasurement > limits[chem][0] && latestMeasurement <= limits[chem][1] ? yellow : red;
                                             }
                                             iconSize = [30, 30];
                                             iconAnchor = [15, 15];
@@ -612,7 +646,7 @@ module.exports = module.exports = {
 
         if (feature) {
             lastFeature = feature;
-            $("#" + CONTAINER_ID).find(`.modal-title`).html(`${__(`Borehole`)} no. ${feature.properties.boreholeno}`);
+            $("#" + CONTAINER_ID).find(`.modal-title`).html(`${feature.properties.boreholeno}`);
             if (document.getElementById(FORM_CONTAINER_ID)) {
                 try {
                     let existingPlots = (plots ? plots : menuComponentInstance.getPlots());
