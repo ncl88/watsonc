@@ -222,8 +222,23 @@ module.exports = module.exports = {
                     $(`.js-layer-slide-breadcrumbs`).append(`<ol class="breadcrumb" style="background-color: white;">
                         <li class="active"><i class="fa fa-database"></i> ${firstLevel}</li>
                         ${secondLevelMarkup}
-                        <li class="active" style="color: #1380c4; font-weight: bold;">${thirdLevel}</li>
+                        <li class="active">
+                            <span style="color: #1380c4; font-weight: bold;">${thirdLevel}<span> 
+                            <button type="button" class="btn btn-xs btn-link js-clear-breadcrubms" title="${__(`Clear`)}">
+                                <i class="fa fa-remove"></i> ${__(`Clear`)}
+                            </button>
+                        </li>
                     </ol>`);
+
+                    $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).off();
+                    $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).click(() => {
+                        $(`[name="chem"]`).prop('checked', false);
+                        layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", false, "watsonc");
+                        switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
+                        switchLayer.init("v:sensor.sensordata_without_correction", true, true, false);
+                        $(`[data-parent="#watsonc-layers"][aria-expanded="true"]`).trigger(`click`);
+                        buildBreadcrumbs();
+                    });
                 }
             };
 
