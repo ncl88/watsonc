@@ -118,7 +118,8 @@ module.exports = module.exports = {
         };
 
         /**
-         * Corrects data
+         * Corrects data. It is assumed that measurement times are in +0 timezone, so the correction
+         * time needs to be converted to +0 as well.
          * 
          * @param {Array} waterLevelOriginalData Data that needs to be corrected
          */
@@ -127,13 +128,10 @@ module.exports = module.exports = {
                 correctionData.map((correctionItem, correctionItemIndex) => {
                     let correctedStationId = correctionItem.properties.stationid;
                     let parsedCorrectionDate = moment(correctionItem.properties.date + `:00`, `YYYY-MM-DD HH:mm:ssZZ`);
-                    let parsedCorrectionDateISO = parsedCorrectionDate.toISOString();
-
-                    let correctionDateInISO = parsedCorrectionDateISO.replace(`.000Z`, ``);
+                    let correctionDateInISO = parsedCorrectionDate.toISOString().replace(`.000Z`, ``);
                     waterLevelOriginalData.map((waterLevelMeasurement, index) => {
                         if (waterLevelMeasurement.properties.boreholeno === correctedStationId) {
                             let parsedData = JSON.parse(waterLevelMeasurement.properties.watlevmsl);
-
                             parsedData.timeOfMeasurement.map((intakeData, intakeIndex) => {
                                 intakeData.map((measurementDate, measurementIndex) => {
                                     if (measurementIndex > 0) {
@@ -141,42 +139,10 @@ module.exports = module.exports = {
                                         if (parsedData.timeOfMeasurement[intakeIndex][measurementIndex - 1] !== parsedData.timeOfMeasurement[intakeIndex][measurementIndex]) {
                                             if (parsedData.timeOfMeasurement[intakeIndex][measurementIndex] === correctionDateInISO) {
                                                 let delta = (parsedData.measurements[intakeIndex][measurementIndex] - parsedData.measurements[intakeIndex][measurementIndex - 1]);
-
-                                                //console.log(`### performing correction (=+), delta: ${delta} (${parsedData.measurements[intakeIndex][measurementIndex]} - ${parsedData.measurements[intakeIndex][measurementIndex - 1]}), date: ${correctionDateInISO}`);
-
-                                                for (let i = measurementIndex; i < parsedData.measurements[intakeIndex].length; i++) {
-                                                    parsedData.measurements[intakeIndex][i] = (parsedData.measurements[intakeIndex][i] - delta);
-                                                }
-                                            } else if (parsedData.timeOfMeasurement[intakeIndex][measurementIndex - 1] === correctionDateInISO) {
-                                                let delta = (parsedData.measurements[intakeIndex][measurementIndex] - parsedData.measurements[intakeIndex][measurementIndex - 1]);
-
-                                                //console.log(`### performing correction (+=), delta: ${delta} (${parsedData.measurements[intakeIndex][measurementIndex]} - ${parsedData.measurements[intakeIndex][measurementIndex - 1]}), date: ${correctionDateInISO}`);
-
                                                 for (let i = measurementIndex; i < parsedData.measurements[intakeIndex].length; i++) {
                                                     parsedData.measurements[intakeIndex][i] = (parsedData.measurements[intakeIndex][i] - delta);
                                                 }
                                             }
-
-                                            /*
-                                            } else {
-                                                if (parsedData.timeOfMeasurement[intakeIndex][measurementIndex - 1] === `2018-08-01T08:20:50`) {
-                                                        let parsedMeasurementDateLeft = moment(parsedData.timeOfMeasurement[intakeIndex][measurementIndex - 1] + `.000Z`);
-                                                        let parsedMeasurementDateRight = moment(parsedData.timeOfMeasurement[intakeIndex][measurementIndex] + `.000Z`);
-        
-                                                        console.log(`###`, parsedMeasurementDateLeft.toISOString(), parsedCorrectionDate.toISOString(), parsedMeasurementDateRight.toISOString());
-        
-                                                        if (parsedCorrectionDate.isBetween(parsedMeasurementDateLeft, parsedMeasurementDateRight)) {
-                                                            let delta = (parsedData.measurements[intakeIndex][measurementIndex] - parsedData.measurements[intakeIndex][measurementIndex - 1]);
-                                                            
-                                                            console.log(`### performing correction (|), delta: ${delta}, date: ${correctionDateInISO}`);
-        
-                                                            for (let i = measurementIndex; i < parsedData.measurements[intakeIndex].length; i++) {
-                                                                parsedData.measurements[intakeIndex][i] = (parsedData.measurements[intakeIndex][i] - delta);
-                                                            }
-                                                        }
-                                                }
-                                            }
-                                            */
                                         }
                                     }
                                 });
