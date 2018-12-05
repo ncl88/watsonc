@@ -262,7 +262,7 @@ module.exports = module.exports = {
                                     limits["_" + v.properties.compundno] = [v.properties.attention || 0, v.properties.limit || 0];
                                 }
                             });
-                        }
+                        };
 
                         // Breadcrumbs
                         let breadcrumbs = (`<div class="js-layer-slide-breadcrumbs" style="position: sticky; top: 0px; margin: -10px; z-index: 1000;"></div>`);
@@ -270,7 +270,9 @@ module.exports = module.exports = {
                         buildBreadcrumbs();
 
                         // Start waterlevel Group and layers
-                        let group = `<div class="panel panel-default panel-layertree" id="layer-panel-watlevmsl">
+                        $(`#watsonc-layers`).append(`<h1 class="watsonc-layertree-header">Vandstand</h1>`);
+                        let group = `
+                        <div class="panel panel-default panel-layertree" id="layer-panel-watlevmsl">
                             <div class="panel-heading" role="tab">
                                 <h4 class="panel-title">
                                     <!--<div class="layer-count badge">-->
@@ -291,11 +293,13 @@ module.exports = module.exports = {
                             </div>
                         </li>`;
                         $(`#collapsewatlevmsl`).append(layer);
-
                         // Stop waterlevel Group and layers
+
+                        $(`#watsonc-layers`).append(`<h1 class="watsonc-layertree-header">Kemi</h1>`);
                         for (let key in categories) {
                             if (categories.hasOwnProperty(key)) {
-                                let group = `<div class="panel panel-default panel-layertree" id="layer-panel-${count}">
+                                let group = `
+                                <div class="panel panel-default panel-layertree" id="layer-panel-${count}">
                                     <div class="panel-heading" role="tab">
                                         <h4 class="panel-title">
                                             <a style="display: block" class="accordion-toggle" data-toggle="collapse" data-parent="#watsonc-layers" href="#collapse${count}">${key}</a>
@@ -343,6 +347,11 @@ module.exports = module.exports = {
                                         let maxMeasurement = 0;
                                         let latestMeasurement = 0;
                                         let json;
+                                        let green = "rgb(16, 174, 140)";
+                                        let yellow = "rgb(247, 168, 77)";
+                                        let red = "rgb(252, 60, 60)";
+                                        let white = "rgb(255, 255, 255)";
+
 
                                         try {
                                             json = JSON.parse(feature.properties[chem]);
@@ -392,11 +401,11 @@ module.exports = module.exports = {
                                         `);
 
                                             if (chem === "_watlevmsl") {
-                                                maxColor = maxMeasurement === 0 ? "#ffffff" : "#00aaff";
+                                                maxColor = maxMeasurement === 0 ? white : "#00aaff";
                                                 latestColor = "#00aaff";
                                             } else {
-                                                maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= limits[chem][0] ? "#00ff00" : maxMeasurement > limits[chem][0] && maxMeasurement <= limits[chem][1] ? "#ffff00" : "#ff0000";
-                                                latestColor = latestMeasurement <= limits[chem][0] ? "#00ff00" : latestMeasurement > limits[chem][0] && latestMeasurement <= limits[chem][1] ? "#ffff00" : "#ff0000";
+                                                maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= limits[chem][0] ? green : maxMeasurement > limits[chem][0] && maxMeasurement <= limits[chem][1] ? yellow : red;
+                                                latestColor = latestMeasurement <= limits[chem][0] ? green : latestMeasurement > limits[chem][0] && latestMeasurement <= limits[chem][1] ? yellow : red;
                                             }
                                             iconSize = [30, 30];
                                             iconAnchor = [15, 15];
