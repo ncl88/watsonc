@@ -30,6 +30,7 @@ class ModalPlotComponent extends React.Component {
 
             removeButtons.push(<div key={`remove_measurement_` + index + `_` + splitMeasurementId[1] + `_` + splitMeasurementId[2]}>
                 <button
+                    title={__(`Remove from time series`)}
                     type="button"
                     className="btn btn-sm btn-primary"
                     data-plot-id="{this.props.plot.id}"

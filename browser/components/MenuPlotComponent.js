@@ -119,8 +119,7 @@ console.log(`### menu plot is redrawn`);
 
         return (<div>
             <div>
-                <h5 title={this.props.plotMeta.id}>
-                    {this.props.plotMeta.title}  <a href="javascript:void(0)" onClick={() => { this.props.onDelete(this.props.plotMeta.id)}}>
+                <h5>{this.props.plotMeta.title}  <a href="javascript:void(0)" title={__(`Delete`) + ` ` + this.props.plotMeta.title} onClick={() => { this.props.onDelete(this.props.plotMeta.id)}}>
                         <i className="fa fa-remove"></i>
                     </a>
                 </h5>

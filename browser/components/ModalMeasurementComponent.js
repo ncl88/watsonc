@@ -12,6 +12,7 @@ class ModalMeasurementComponent extends React.Component {
 
     render() {
         return this.props.connectDragSource(<div
+            title={__(`Drag and drop measurement to add it to time series`)}
             className="btn btn-sm btn-primary js-plotted-property"
             data-gid="{this.props.gid}"
             data-key="{this.props.itemKey}"
