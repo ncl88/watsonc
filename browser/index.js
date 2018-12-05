@@ -74,6 +74,7 @@ let waterLevelDataSource = [];
 let store;
 
 let categories = {};
+let names = {};
 
 var jquery = require('jquery');
 require('snackbarjs');
@@ -253,7 +254,10 @@ module.exports = module.exports = {
 
                         response.features.map(function (v) {
                             categories[v.properties.kategori.trim()] = {};
+                            names[v.properties.compundno] = v.properties.navn;
                         });
+
+                        names['watlevmsl'] = "Vandstand";
 
                         for (var key in categories) {
                             response.features.map(function (v) {
@@ -262,7 +266,9 @@ module.exports = module.exports = {
                                     limits["_" + v.properties.compundno] = [v.properties.attention || 0, v.properties.limit || 0];
                                 }
                             });
-                        };
+                        }
+
+                        console.log(names)
 
                         // Breadcrumbs
                         let breadcrumbs = (`<div class="js-layer-slide-breadcrumbs" style="position: sticky; top: 0px; margin: -10px; z-index: 1000;"></div>`);
@@ -345,7 +351,9 @@ module.exports = module.exports = {
                                         let iconSize;
                                         let iconAnchor;
                                         let maxMeasurement = 0;
+                                        let maxMeasurementIntakes = [];
                                         let latestMeasurement = 0;
+                                        let latestMeasurementIntakes = [];
                                         let json;
                                         let green = "rgb(16, 174, 140)";
                                         let yellow = "rgb(247, 168, 77)";
@@ -378,27 +386,43 @@ module.exports = module.exports = {
                                                         measurement: length
                                                     }
                                                 }
+                                                latestMeasurementIntakes[i] = json.measurements[i][length];
                                             }
 
                                             // Find Highest value
                                             intakes = json.measurements.length;
                                             maxMeasurement = 0;
+                                            maxMeasurementIntakes = [];
+                                            let html = [];
 
                                             for (let i = 0; i < intakes; i++) {
+                                                maxMeasurementIntakes[i] = 0;
                                                 let length = json.measurements[i].length;
                                                 for (let u = 0; u < length; u++) {
                                                     currentValue = json.measurements[i][u];
                                                     if (!(latestPosition.intake === i && latestPosition.measurement === u) && currentValue > maxMeasurement) {
                                                         maxMeasurement = currentValue;
                                                     }
+                                                    if (currentValue > maxMeasurementIntakes[i]) {
+                                                        maxMeasurementIntakes[i] = currentValue;
+                                                    }
                                                 }
+
+                                            }
+
+                                            for (let i = 0; i < intakes; i++) {
+                                                html.push(`
+                                                    <b style="color: rgb(16, 174, 140)">Intag: ${i+1}</b><br>
+                                                    Max: ${maxMeasurementIntakes[i]}<br>
+                                                    Seneste: ${latestMeasurementIntakes[i]}<br>
+                                                `)
                                             }
 
                                             layer.bindTooltip(`
-                                            <p>${chem} (${unit})</p>
-                                            <p>Max: ${maxMeasurement}</p>
-                                            <p>Seneste: ${latestMeasurement}</p>
-                                        `);
+                                            <p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
+                                            <b style="color: rgb(16, 174, 140)">${names[$(e.target).data("chem")]} (${unit})</b><br>
+                                            ${html.join('<br>')}
+                                            `);
 
                                             if (chem === "_watlevmsl") {
                                                 maxColor = maxMeasurement === 0 ? white : "#00aaff";
@@ -625,7 +649,7 @@ module.exports = module.exports = {
 
         if (feature) {
             lastFeature = feature;
-            $("#" + CONTAINER_ID).find(`.modal-title`).html(`${__(`Borehole`)} no. ${feature.properties.boreholeno}`);
+            $("#" + CONTAINER_ID).find(`.modal-title`).html(`${feature.properties.boreholeno}`);
             if (document.getElementById(FORM_CONTAINER_ID)) {
                 try {
                     let existingPlots = (plots ? plots : menuComponentInstance.getPlots());
