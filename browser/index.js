@@ -166,9 +166,6 @@ module.exports = module.exports = {
                 $(`[href="#watsonc-content"]`).trigger(`click`);
             });
 
-
-
-
             switchLayer.init("chemicals.boreholes_time_series_without_chemicals", true, true, false);
             switchLayer.init("sensor.sensordata_without_timeseries", true, true, false);
 
@@ -512,7 +509,6 @@ module.exports = module.exports = {
                             });
 
                             _self.createModal(feature);
-
                             if (!menuComponentInstance) {
                                 throw new Error(`Unable to find the component instance`);
                             }

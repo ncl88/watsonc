@@ -102,20 +102,29 @@ class ModalComponent extends React.Component {
             return control;
         };
 
+        // Simulating the separate group for water level
+        let categories = JSON.parse(JSON.stringify(this.props.categories));
+        categories[`Vandstand`] = {};
+        categories[`Vandstand`][`watlevmsl`] = `Water level`;
+
         let propertiesControls = [];
-        if (Object.keys(this.props.categories).length > 0) {
+        if (Object.keys(categories).length > 0) {
             let numberOfDisplayedCategories = 0;
-            for (let categoryName in this.props.categories) {
-                let measurementsThatBelongToCategory = Object.values(this.props.categories[categoryName]);
+            for (let categoryName in categories) {
+                let measurementsThatBelongToCategory = Object.values(categories[categoryName]);
                 let measurementControls = [];
-                plottedProperties.map((item, index) => {
+                plottedProperties = plottedProperties.filter((item, index) => {
                     if (measurementsThatBelongToCategory.indexOf(item.title) !== -1) {
                         // Measurement is in current category
                         let control = createMeasurementControl(item, ('measurement_' + index));
-                        plottedProperties.splice(index, 1);
+
                         if (control) {
                             measurementControls.push(control);
                         }
+
+                        return false;
+                    } else {
+                        return true;
                     }
                 });
 
@@ -129,9 +138,9 @@ class ModalComponent extends React.Component {
                 }
             }
 
-            // lacing uncategorized measurements in separate category
+            // Placing uncategorized measurements in separate category
             let uncategorizedMeasurementControls = [];
-            plottedProperties.map((item, index) => {
+            plottedProperties.slice().map((item, index) => {
                 let control = createMeasurementControl(item, ('measurement_' + index));
                 plottedProperties.splice(index, 1);
                 if (control) {
@@ -143,7 +152,9 @@ class ModalComponent extends React.Component {
                 // Category has at least one displayed measurement
                 numberOfDisplayedCategories++;
                 propertiesControls.push(<div key={`uncategorized_category_0`}>
-                    <div><h5>{__(`Uncategorized`)}</h5></div>
+                    <div>
+                        <h5>{__(`Uncategorized`)}</h5>
+                    </div>
                     <div>{uncategorizedMeasurementControls}</div>
                 </div>);
             }
@@ -184,34 +195,34 @@ class ModalComponent extends React.Component {
         }
 
         return (<div>
-                <div className="container-fluid">
-                    <div className="row">
-                        <div className="col-sm-6">
-                            <div>
-                                <div>{measurementsText}</div>
+            <div className="container-fluid">
+                <div className="row">
+                    <div className="col-sm-6">
+                        <div>
+                            <div>{measurementsText}</div>
+                            <div className="form-group">
+                                <SearchFieldComponent id="measurements-search-control" onSearch={this.setMeasurementsSearchTerm.bind(this)}/>
+                            </div>
+                        </div>
+                        <div>{propertiesControls}</div>
+                    </div>
+                    <div className="col-sm-6">
+                        <div>
+                            <div>{plotsText}</div>
+                            <div style={{ display: `flex` }}>
                                 <div className="form-group">
-                                    <SearchFieldComponent id="measurements-search-control" onSearch={this.setMeasurementsSearchTerm.bind(this)}/>
+                                    <SearchFieldComponent id="plots-search-control" onSearch={this.setPlotsSearchTerm.bind(this)}/>
+                                </div>
+                                <div className="form-group">
+                                    <TitleFieldComponent id="new-plot-control" onAdd={(title) => { this.props.onPlotAdd(title) }} type="userOwned" customStyle={{ width: `100%` }}/>
                                 </div>
                             </div>
-                            <div>{propertiesControls}</div>
                         </div>
-                        <div className="col-sm-6">
-                            <div>
-                                <div>{plotsText}</div>
-                                <div style={{ display: `flex` }}>
-                                    <div className="form-group">
-                                        <SearchFieldComponent id="plots-search-control" onSearch={this.setPlotsSearchTerm.bind(this)}/>
-                                    </div>
-                                    <div className="form-group">
-                                        <TitleFieldComponent id="new-plot-control" onAdd={(title) => { this.props.onPlotAdd(title) }} type="userOwned" customStyle={{ width: `100%` }}/>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>{plotsControls}</div>
-                        </div>
+                        <div>{plotsControls}</div>
                     </div>
                 </div>
-            </div>);
+            </div>
+        </div>);
     }
 }
 
