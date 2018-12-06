@@ -528,7 +528,7 @@ module.exports = module.exports = {
                 data-original-title="${__("Time series")}"
                 style="font-size: 22px; margin-right: 20px; margin-left: 3px;"></i>`);
 
-            utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, "insert_chart", true);
+            utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, "insert_chart");
 
             backboneEvents.get().on("doneLoading:layers", e => {
                 if (e === LAYER_NAMES[0]) {
