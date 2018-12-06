@@ -342,7 +342,7 @@
 
     #floating-container-secondary {
         position: absolute;
-        top: 270px;
+        top: 366px;
         right: 8px;
         width: 40px;
     }
@@ -662,12 +662,31 @@
         <div id="map"></div>
 
         <div id="floating-container-primary">
-            <a href="javascript:void(0)" id="zoom-in-btn" class="btn btn-default btn-fab btn-fab-mini"><i
-                    class="material-icons">add</i></a>
-            <a href="javascript:void(0)" id="zoom-default-btn" class="btn btn-default btn-fab btn-fab-mini"><i
-                    class="material-icons">home</i></a>
-            <a href="javascript:void(0)" id="zoom-out-btn" class="btn btn-default btn-fab btn-fab-mini"><i
-                    class="material-icons">remove</i></a>
+            <a href="javascript:void(0)" id="zoom-in-btn" class="btn btn-default btn-fab btn-fab-mini">
+                <i class="material-icons">add</i>
+            </a>
+            <a href="javascript:void(0)" id="zoom-default-btn" class="btn btn-default btn-fab btn-fab-mini">
+                <i class="material-icons">home</i>
+            </a>
+            <a href="javascript:void(0)" id="zoom-out-btn" class="btn btn-default btn-fab btn-fab-mini">
+                <i class="material-icons">remove</i>
+            </a>
+            <a
+                href="javascript:void(0)"
+                id="js-open-state-snapshots-panel"
+                title="{{State snapshots}}"
+                class="btn btn-default btn-fab btn-fab-mini"
+                style="padding-top: 5px; padding-left: 2px;">
+                <i class="fa fa-file-alt" style="font-size: 20px;"></i>
+            </a>
+            <a
+                href="javascript:void(0)"
+                id="js-open-watsonc-panel"
+                title="{{Time series}}"
+                class="btn btn-default btn-fab btn-fab-mini"
+                style="padding-top: 5px; padding-left: 2px;">
+                <i class="fa fa-chart-area" style="font-size: 20px;"></i>
+            </a>
         </div>
 
         <div id="floating-container-secondary" style="display: inline;">
@@ -689,12 +708,14 @@
     <nav class="navbar navbar-default navbar-fixed-top fade-then-dragging">
         <div class="container">
             <div class="row">
-                <div class="col-xs-4">
-                    <button type="button" class="navbar-toggle" id="burger-btn">
-                        <i class="fa fa-database"></i> Vælg data
-                    </button>
+                <div class="col-xs-5">
+                    <div class="js-layer-slide-breadcrumbs">
+                        <button type="button" class="navbar-toggle" id="burger-btn">
+                            <i class="fa fa-database"></i> Vælg data
+                        </button>
+                    </div>
                 </div>
-                <div class="col-xs-4" style="text-align: center; top: 5px">
+                <div class="col-xs-2" style="text-align: center; top: 5px">
                     <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
                         viewBox="0 0 321.2 93" style="enable-background:new 0 0 321.2 93; height: 40px;" xml:space="preserve">
                         <style type="text/css">
@@ -736,14 +757,6 @@
                             </g>
                         </g>
                     </svg>
-                </div>
-                <div class="col-xs-4" style="text-align: right; padding-right: 50px;">
-                    <button type="button" class="navbar-toggle js-open-state-snapshots-panel" style="display: inline; float: right;">
-                        <i class="fa fa-file-alt"></i> {{State snapshots}}
-                    </button>
-                    <button type="button" class="navbar-toggle js-open-watsonc-panel" style="display: inline; float: right;">
-                        <i class="fa fa-chart-area"></i> {{Time series}}
-                    </button>
                 </div>
             </div>
         </div>
@@ -1072,12 +1085,18 @@
                 <div role="tabpanel">
                     <!-- Nav tabs -->
                     <ul class="" role="tablist" id="main-tabs">
-                        <li role="presentation"><a href="#state-snapshots-content" aria-controls="" role="tab"
-                                                   data-toggle="tab"><i data-container="body" data-toggle="tooltip"
-                                                                        data-placement="left"
-                                                                        title="{{State snapshots}}"
-                                                                        class="material-icons">camera</i><span
-                                class="module-title">{{State snapshots}}</a></li>
+                        <li role="presentation">
+                            <a href="#state-snapshots-content" aria-controls="" role="tab" data-toggle="tab">
+                                <i
+                                    data-container="body"
+                                    data-toggle="tooltip"
+                                    data-placement="left"
+                                    title="{{State snapshots}}"
+                                    class="fa fa-file-alt"
+                                    style="font-size: 22px; margin-right: 20px; margin-left: 3px;"></i>
+                                <span class="module-title">{{State snapshots}}</span>
+                            </a>
+                        </li>
                     </ul>
                     <ul role="tablist">
                         <hr>

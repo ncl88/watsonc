@@ -96,6 +96,14 @@ module.exports = module.exports = {
         return this;
     },
     init: function () {
+        $(`#js-open-state-snapshots-panel`).click(() => {
+            $(`[href="#state-snapshots-content"]`).trigger(`click`);
+        });
+
+        $(`#js-open-watsonc-panel`).click(() => {
+            $(`[href="#watsonc-content"]`).trigger(`click`);
+        });
+
         /**
          * Fetches the correction data
          */
@@ -159,14 +167,6 @@ module.exports = module.exports = {
         };
 
         getCorrectionData().then(() => {
-            $(`.js-open-state-snapshots-panel`).click(() => {
-                $(`[href="#state-snapshots-content"]`).trigger(`click`);
-            });
-
-            $(`.js-open-watsonc-panel`).click(() => {
-                $(`[href="#watsonc-content"]`).trigger(`click`);
-            });
-
             switchLayer.init("chemicals.boreholes_time_series_without_chemicals", true, true, false);
             switchLayer.init("sensor.sensordata_without_timeseries", true, true, false);
 
@@ -211,17 +211,17 @@ module.exports = module.exports = {
                 $(`.js-layer-slide-breadcrumbs`).empty();
                 if (secondLevel !== false) {
                     let firstLevel = `Kemi`;
-                    let secondLevelMarkup = `<li class="active">${secondLevel}</li>`;
+                    let secondLevelMarkup = `<li class="active" style="color: rgba(255, 255, 255, 0.84);">${secondLevel}</li>`;
                     if (isWaterLevel) {
                         firstLevel = `Vandstand`;
                         secondLevelMarkup = ``;
                     }
 
-                    $(`.js-layer-slide-breadcrumbs`).append(`<ol class="breadcrumb" style="background-color: white;">
-                        <li class="active"><i class="fa fa-database"></i> ${firstLevel}</li>
+                    $(`.js-layer-slide-breadcrumbs`).append(`<ol class="breadcrumb" style="background-color: transparent; margin-bottom: 0px;">
+                        <li class="active" style="color: rgba(255, 255, 255, 0.84);"><i class="fa fa-database"></i> ${firstLevel}</li>
                         ${secondLevelMarkup}
-                        <li class="active">
-                            <span style="color: #1380c4; font-weight: bold;">${thirdLevel}<span> 
+                        <li class="active" style="color: rgba(255, 255, 255, 0.84);">
+                            <span style="color: rgb(160, 244, 197); font-weight: bold;">${thirdLevel}<span> 
                             <button type="button" class="btn btn-xs btn-link js-clear-breadcrubms" title="${__(`Clear`)}">
                                 <i class="fa fa-remove"></i> ${__(`Clear`)}
                             </button>
@@ -236,6 +236,17 @@ module.exports = module.exports = {
                         switchLayer.init("v:sensor.sensordata_without_correction", true, true, false);
                         $(`[data-parent="#watsonc-layers"][aria-expanded="true"]`).trigger(`click`);
                         buildBreadcrumbs();
+                    });
+                } else {
+                    $(`.js-layer-slide-breadcrumbs`).append(`<button type="button" class="navbar-toggle" id="burger-btn">
+                        <i class="fa fa-database"></i> ${__(`Select data`)}
+                    </button>`);
+
+                    $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).off();
+                    $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).click(() => {
+                        $("#layer-slide.slide-left").animate({
+                            left: "0"
+                        }, 500);
                     });
                 }
             };
@@ -266,12 +277,14 @@ module.exports = module.exports = {
                         }
 
                         // Breadcrumbs
+                        /*
                         let breadcrumbs = (`<div class="js-layer-slide-breadcrumbs" style="position: sticky; top: 0px; margin: -10px; z-index: 1000;"></div>`);
                         $(`#watsonc-layers`).parent().prepend(breadcrumbs);
+                        */
                         buildBreadcrumbs();
 
                         // Start waterlevel Group and layers
-                        $(`#watsonc-layers`).append(`<h1 class="watsonc-layertree-header">Vandstand</h1>`);
+                        $(`#watsonc-layers`).append(`<h1 class="watsonc-layertree-header" style="margin-top: 0px;">Vandstand</h1>`);
                         let group = `
                         <div class="panel panel-default panel-layertree" id="layer-panel-watlevmsl">
                             <div class="panel-heading" role="tab">
@@ -510,7 +523,13 @@ module.exports = module.exports = {
             state.listenTo(MODULE_NAME, _self);
             state.listen(MODULE_NAME, `plotsUpdate`);
 
-            utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, "check_circle");
+            let icon = (`<i data-container="body" data-toggle="tooltip" data-placement="left" title="${__("Time series")}"
+                class="fa fa-chart-area"
+                data-original-title="${__("Time series")}"
+                style="font-size: 22px; margin-right: 20px; margin-left: 3px;"></i>`);
+
+            utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, icon, true);
+
             backboneEvents.get().on("doneLoading:layers", e => {
                 if (e === LAYER_NAMES[0]) {
                     dataSource = [];
