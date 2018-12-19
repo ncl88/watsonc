@@ -111,7 +111,7 @@ class ModalComponent extends React.Component {
         if (Object.keys(categories).length > 0) {
             let numberOfDisplayedCategories = 0;
             for (let categoryName in categories) {
-                let measurementsThatBelongToCategory = Object.values(categories[categoryName]);
+                let measurementsThatBelongToCategory = Object.keys(categories[categoryName]).map(e => categories[categoryName][e]);
                 let measurementControls = [];
                 plottedProperties = plottedProperties.filter((item, index) => {
                     if (measurementsThatBelongToCategory.indexOf(item.title) !== -1) {
