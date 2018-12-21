@@ -1,0 +1,28 @@
+{
+  "name": "watsonc",
+  "version": "1.0.0",
+  "description": "The watsonc extension for Vidi",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sashuk/watsonc.git"
+  },
+  "dependencies": {
+    "react-dnd": "^6.0.0",
+    "react-dnd-html5-backend": "^6.0.0",
+    "react-dnd-multi-backend": "^3.1.11",
+    "react-dnd-touch-backend": "^0.7.1"
+  },
+  "keywords": [
+    "Vidi"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sashuk/watsonc/issues"
+  },
+  "homepage": "https://github.com/sashuk/watsonc#readme"
+}
