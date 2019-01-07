@@ -50,7 +50,6 @@ const LAYER_NAMES = [
     `v:chemicals.boreholes_time_series_with_chemicals`,
     `chemicals.boreholes_time_series_without_chemicals`,
     `v:sensor.sensordata_without_correction`,
-    `sensor.sensordata_without_timeseries`,
 ];
 
 
@@ -167,9 +166,6 @@ module.exports = module.exports = {
         };
 
         getCorrectionData().then(() => {
-            switchLayer.init("chemicals.boreholes_time_series_without_chemicals", true, true, false);
-            switchLayer.init("sensor.sensordata_without_timeseries", true, true, false);
-
             backboneEvents.get().on(`startLoading:layers`, layerKey => {
                 if (cloud.get().getZoom() < 15 && layerKey === "v:chemicals.boreholes_time_series_with_chemicals") {
                     switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
@@ -177,12 +173,9 @@ module.exports = module.exports = {
 
                     setTimeout(()=>{
                         let applicationWideControls = $(`*[data-gc2-id="chemicals.boreholes_time_series_with_chemicals"]`);
-                        let applicationWideControls_sensor = $(`*[data-gc2-id="sensor.sensordata_without_timeseries"]`);
                         applicationWideControls.prop('checked', false);
-                        applicationWideControls_sensor.prop('checked', false);
                     }, 200);
                 }
-
             });
 
             cloud.get().on(`moveend`, () => {
@@ -523,11 +516,6 @@ module.exports = module.exports = {
             state.listenTo(MODULE_NAME, _self);
             state.listen(MODULE_NAME, `plotsUpdate`);
 
-            let icon = (`<i data-container="body" data-toggle="tooltip" data-placement="left" title="${__("Time series")}"
-                class="fa fa-chart-area"
-                data-original-title="${__("Time series")}"
-                style="font-size: 22px; margin-right: 20px; margin-left: 3px;"></i>`);
-
             utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, "insert_chart");
 
             backboneEvents.get().on("doneLoading:layers", e => {
@@ -592,10 +580,18 @@ module.exports = module.exports = {
 
                 // Renewing the already created store by rebuilding the layer tree
                 layerTree.create(false).then(() => {
-                    // Reloading (applying updated store settings) layers that need it
-                    layerTree.getActiveLayers().map(activeLayerKey => {
+                    let activeLayers = layerTree.getActiveLayers();
+                    activeLayers.map(activeLayerKey => {
+                        // Reloading (applying updated store settings) layers that need it
                         if (LAYER_NAMES.indexOf(activeLayerKey) !== -1) {
                             layerTree.reloadLayer(activeLayerKey);
+                        }
+                    });
+
+                    // Activating specific layers if they have not been activated before
+                    LAYER_NAMES.map(layerNameToEnable => {
+                        if (activeLayers.indexOf(layerNameToEnable) === -1) {
+                            switchLayer.init(layerNameToEnable, true, true, false);
                         }
                     });
                 });
