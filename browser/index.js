@@ -591,7 +591,7 @@ module.exports = module.exports = {
                 });
 
                 // Renewing the already created store by rebuilding the layer tree
-                layerTree.create(false, true).then(() => {
+                layerTree.create(false).then(() => {
                     // Reloading (applying updated store settings) layers that need it
                     layerTree.getActiveLayers().map(activeLayerKey => {
                         if (LAYER_NAMES.indexOf(activeLayerKey) !== -1) {
