@@ -52,7 +52,8 @@ class ModalComponent extends React.Component {
                         }
                     });
 
-                    if (isPlottableProperty && [`minofbottom`, `maksoftop`].indexOf(key) === -1) {
+                    //if (isPlottableProperty && [`minofbottom`, `maksoftop`].indexOf(key) === -1) {
+                    if (isPlottableProperty) {
                         for (let i = 0; i < data.measurements.length; i++) {
                             plottedProperties.push({
                                 key,
