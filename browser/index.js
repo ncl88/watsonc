@@ -477,7 +477,12 @@ module.exports = module.exports = {
                             $(".expand-more").hide();
                         });
 
-                        _self.createModal(feature);
+                        let titleAsLink = false;
+                        if (layerName.indexOf(`chemicals.boreholes_time_series_with_chemicals`) > -1) {
+                            titleAsLink = true;
+                        }
+
+                        _self.createModal(feature, false, titleAsLink);
                         if (!menuComponentInstance) {
                             throw new Error(`Unable to find the component instance`);
                         }
@@ -580,7 +585,7 @@ module.exports = module.exports = {
         });
     },
 
-    createModal: (feature = false, plots = false) => {
+    createModal: (feature = false, plots = false, titleAsLink = false) => {
         if (!feature) {
             if (lastFeature) {
                 feature = lastFeature;
@@ -589,7 +594,13 @@ module.exports = module.exports = {
 
         if (feature) {
             lastFeature = feature;
-            $("#" + CONTAINER_ID).find(`.modal-title`).html(`${feature.properties.boreholeno}`);
+            if (titleAsLink) {
+                let link = `http://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${encodeURIComponent(feature.properties.boreholeno)}`
+                $("#" + CONTAINER_ID).find(`.modal-title`).html(`<a href="${link}" target="_blank" title="${feature.properties.boreholeno} @ data.geus.dk">${feature.properties.boreholeno}</a>`);
+            } else {
+                $("#" + CONTAINER_ID).find(`.modal-title`).html(`${feature.properties.boreholeno}`);
+            }
+
             if (document.getElementById(FORM_CONTAINER_ID)) {
                 try {
                     let existingPlots = (plots ? plots : menuComponentInstance.getPlots());
