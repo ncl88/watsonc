@@ -49,7 +49,8 @@ let exId = "watsonc";
 const LAYER_NAMES = [
     `v:chemicals.boreholes_time_series_with_chemicals`,
     `chemicals.boreholes_time_series_without_chemicals`,
-    `v:sensor.sensordata_without_correction`,
+    `v:sensor.sensordata_with_correction`,
+    `sensor.sensordata_without_correction`,
 ];
 
 
@@ -104,7 +105,7 @@ module.exports = module.exports = {
         backboneEvents.get().on(`startLoading:layers`, layerKey => {
             if (cloud.get().getZoom() < 15 && layerKey === "v:chemicals.boreholes_time_series_with_chemicals") {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
-                switchLayer.init("v:sensor.sensordata_without_correction", false, true, false);
+                switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
 
                 setTimeout(()=>{
                     let applicationWideControls = $(`*[data-gc2-id="chemicals.boreholes_time_series_with_chemicals"]`);
@@ -116,7 +117,7 @@ module.exports = module.exports = {
         cloud.get().on(`moveend`, () => {
             if (cloud.get().getZoom() < 15) {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
-                switchLayer.init("v:sensor.sensordata_without_correction", false, true, false);
+                switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
                 jquery.snackbar({
                     id: "snackbar-watsonc",
                     content: "<span id='conflict-progress'>" + __("Zoom tættere på for at aktivere data-funktionerne.") + "</span>",
@@ -126,7 +127,7 @@ module.exports = module.exports = {
             } else {
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) === -1) {
                     switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
-                    switchLayer.init("v:sensor.sensordata_without_correction", true, true, false);
+                    switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
                 }
 
                 setTimeout(function () {
@@ -161,7 +162,7 @@ module.exports = module.exports = {
                     $(`[name="chem"]`).prop('checked', false);
                     layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", false, "watsonc");
                     switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
-                    switchLayer.init("v:sensor.sensordata_without_correction", true, true, false);
+                    switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
                     $(`[data-parent="#watsonc-layers"][aria-expanded="true"]`).trigger(`click`);
                     buildBreadcrumbs();
                 });
@@ -420,7 +421,7 @@ module.exports = module.exports = {
 
                             layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", fn, "watsonc");
                             switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
-                            switchLayer.init("v:sensor.sensordata_without_correction", true, true, false);
+                            switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
                         }
                     );
 
@@ -496,7 +497,7 @@ module.exports = module.exports = {
                         prefix: 'fa',
                         markerColor: 'purple'
                     });
-                } else if (layerName === `v:sensor.sensordata_without_correction`) {
+                } else if (layerName === `v:sensor.sensordata_with_correction`) {
                     icon = L.AwesomeMarkers.icon({
                         icon: 'tint',
                         prefix: 'fa',
