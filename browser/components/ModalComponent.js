@@ -192,35 +192,53 @@ class ModalComponent extends React.Component {
             });
         }
 
+        return (<div style={{ height: `inherit` }}>
+            <div>
+                <div className="measurements-modal_left-column">
+                    <div>{measurementsText}</div>
+                    <div className="form-group">
+                        <SearchFieldComponent id="measurements-search-control" onSearch={this.setMeasurementsSearchTerm.bind(this)}/>
+                    </div>
+                </div>
+                <div className="measurements-modal_right-column">
+                    <div>{plotsText}</div>
+                    <div style={{ display: `flex` }}>
+                        <div className="form-group">
+                            <SearchFieldComponent id="plots-search-control" onSearch={this.setPlotsSearchTerm.bind(this)}/>
+                        </div>
+                        <div className="form-group">
+                            <TitleFieldComponent id="new-plot-control" onAdd={(title) => { this.props.onPlotAdd(title) }} type="userOwned" customStyle={{ width: `100%` }}/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style={{ height: `calc(100% - 74px)` }}>
+                <div className="measurements-modal_left-column measurements-modal_scrollable">{propertiesControls}</div>
+                <div className="measurements-modal_right-column measurements-modal_scrollable">{plotsControls}</div>
+            </div>
+        </div>);
+
+
+        /*
         return (<div>
             <div className="container-fluid">
                 <div className="row">
                     <div className="col-sm-6">
                         <div>
-                            <div>{measurementsText}</div>
-                            <div className="form-group">
-                                <SearchFieldComponent id="measurements-search-control" onSearch={this.setMeasurementsSearchTerm.bind(this)}/>
-                            </div>
+
                         </div>
                         <div>{propertiesControls}</div>
                     </div>
                     <div className="col-sm-6">
                         <div>
-                            <div>{plotsText}</div>
-                            <div style={{ display: `flex` }}>
-                                <div className="form-group">
-                                    <SearchFieldComponent id="plots-search-control" onSearch={this.setPlotsSearchTerm.bind(this)}/>
-                                </div>
-                                <div className="form-group">
-                                    <TitleFieldComponent id="new-plot-control" onAdd={(title) => { this.props.onPlotAdd(title) }} type="userOwned" customStyle={{ width: `100%` }}/>
-                                </div>
-                            </div>
+
                         </div>
-                        <div>{plotsControls}</div>
+                        <div></div>
                     </div>
                 </div>
             </div>
         </div>);
+        */
     }
 }
 
