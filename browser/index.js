@@ -56,9 +56,9 @@ const LAYER_NAMES = [
 
 const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
 
-let menuComponentInstance = false;
+let menuComponentInstance = false, modalComponentInstance = false;
 
-let modalComponentInstance = false;
+let lastSelectedChemical = false;
 
 let _self = false;
 
@@ -160,6 +160,7 @@ module.exports = module.exports = {
                 $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).off();
                 $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).click(() => {
                     $(`[name="chem"]`).prop('checked', false);
+                    lastSelectedChemical = false;
                     layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", false, "watsonc");
                     switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
                     switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
@@ -273,6 +274,9 @@ module.exports = module.exports = {
 
                     $("[data-chem]").change(
                         function (e) {
+                            lastSelectedChemical = $(e.target).data("chem");
+                            backboneEvents.get().trigger(`${MODULE_NAME}:chemicalChange`);
+
                             let chem = "_" + $(e.target).data("chem");
                             store = layerTree.getStores()["v:chemicals.boreholes_time_series_with_chemicals"];
 
@@ -444,6 +448,7 @@ module.exports = module.exports = {
 
         state.listenTo(MODULE_NAME, _self);
         state.listen(MODULE_NAME, `plotsUpdate`);
+        state.listen(MODULE_NAME, `chemicalChange`);
 
         utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, "insert_chart");
 
@@ -633,7 +638,10 @@ module.exports = module.exports = {
      * Returns current module state
      */
     getState: () => {
-        return {plots: _self.getExistingPlots()};
+        return {
+            plots: _self.getExistingPlots(),
+            selectedChemical: lastSelectedChemical
+        };
     },
 
     /**
@@ -645,7 +653,26 @@ module.exports = module.exports = {
                 menuComponentInstance.setPlots(newState.plots);
             }
 
-            resolve();
+            if (newState.selectedChemical) {
+                lastSelectedChemical = newState.selectedChemical;
+                backboneEvents.get().once("allDoneLoading:layers", e => {
+                    setTimeout(() => {
+
+                        console.log(`## time to set`);
+
+                        $(`[data-chem="${newState.selectedChemical}"]`).prop('checked', false);
+                        $(`[data-chem="${newState.selectedChemical}"]`).trigger(`click`);
+                        if ($(`[data-chem="${newState.selectedChemical}"]`).closest(`.panel-layertree`).find(`.list-group`).height() === 0) {
+                            $(`[data-chem="${newState.selectedChemical}"]`).closest(`.panel-layertree`).find(`.accordion-toggle`).trigger(`click`);
+                        }
+
+                        resolve();
+                    }, 3000);
+                });
+            } else {
+                $(`.js-clear-breadcrubms`).trigger(`click`);
+                resolve();
+            }
         });
     },
 
