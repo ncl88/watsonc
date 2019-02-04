@@ -64,6 +64,8 @@ let _self = false;
 
 let lastFeature = false;
 
+let lastTitleAsLink = null;
+
 let dataSource = [];
 
 let boreholesDataSource = [];
@@ -591,11 +593,19 @@ module.exports = module.exports = {
         });
     },
 
-    createModal: (feature = false, plots = false, titleAsLink = false) => {
+    createModal: (feature = false, plots = false, titleAsLink = null) => {
         if (!feature) {
             if (lastFeature) {
                 feature = lastFeature;
             }
+        }
+
+        if (titleAsLink === null) {
+            if (lastTitleAsLink !== null) {
+                titleAsLink = lastTitleAsLink;
+            }
+        } else {
+            lastTitleAsLink = titleAsLink;
         }
 
         if (feature) {
