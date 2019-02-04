@@ -53,9 +53,6 @@ const LAYER_NAMES = [
     `sensor.sensordata_without_correction`,
 ];
 
-
-const TIME_MEASUREMENTS_FIELD = `timeofmeas`;
-
 let menuComponentInstance = false, modalComponentInstance = false;
 
 let lastSelectedChemical = false;
@@ -96,6 +93,10 @@ module.exports = module.exports = {
         return this;
     },
     init: function () {
+        state.listenTo(MODULE_NAME, _self);
+        state.listen(MODULE_NAME, `plotsUpdate`);
+        state.listen(MODULE_NAME, `chemicalChange`);
+
         $(`#js-open-state-snapshots-panel`).click(() => {
             $(`[href="#state-snapshots-content"]`).trigger(`click`);
         });
@@ -440,6 +441,8 @@ module.exports = module.exports = {
                         $('.dropdown-submenu').removeClass('open');
                         $(this).parent().toggleClass('open');
                     });
+
+                    backboneEvents.get().trigger(`${MODULE_NAME}:initialized`);
                 } else {
                     console.error(`Unable to request codes.compunds`);
                 }
@@ -447,10 +450,6 @@ module.exports = module.exports = {
             error: function (response) {
             }
         });
-
-        state.listenTo(MODULE_NAME, _self);
-        state.listen(MODULE_NAME, `plotsUpdate`);
-        state.listen(MODULE_NAME, `chemicalChange`);
 
         utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, "insert_chart");
 
@@ -665,11 +664,9 @@ module.exports = module.exports = {
 
             if (newState.selectedChemical) {
                 lastSelectedChemical = newState.selectedChemical;
+
                 backboneEvents.get().once("allDoneLoading:layers", e => {
                     setTimeout(() => {
-
-                        console.log(`## time to set`);
-
                         $(`[data-chem="${newState.selectedChemical}"]`).prop('checked', false);
                         $(`[data-chem="${newState.selectedChemical}"]`).trigger(`click`);
                         if ($(`[data-chem="${newState.selectedChemical}"]`).closest(`.panel-layertree`).find(`.list-group`).height() === 0) {
@@ -677,7 +674,7 @@ module.exports = module.exports = {
                         }
 
                         resolve();
-                    }, 3000);
+                    }, 1000);
                 });
             } else {
                 $(`.js-clear-breadcrubms`).trigger(`click`);
