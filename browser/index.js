@@ -658,12 +658,18 @@ module.exports = module.exports = {
      */
     applyState: (newState) => {
         return new Promise((resolve, reject) => {
+            let showPlotsPanel = false;
             if (newState && `plots` in newState && newState.plots.length > 0) {
                 menuComponentInstance.setPlots(newState.plots);
+                showPlotsPanel = true;
             }
 
             if (newState.selectedChemical) {
                 lastSelectedChemical = newState.selectedChemical;
+
+                if (showPlotsPanel) {
+                    $(`[href="#watsonc-content"]`).trigger(`click`);
+                }
 
                 backboneEvents.get().once("allDoneLoading:layers", e => {
                     setTimeout(() => {
@@ -678,6 +684,10 @@ module.exports = module.exports = {
                 });
             } else {
                 $(`.js-clear-breadcrubms`).trigger(`click`);
+                if (showPlotsPanel) {
+                    $(`[href="#watsonc-content"]`).trigger(`click`);
+                }
+
                 resolve();
             }
         });
