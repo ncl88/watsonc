@@ -96,6 +96,27 @@ class MenuPanelComponent extends React.Component {
             if (correspondingPlot.measurements.indexOf(measurementIndex) === -1) {
                 let measurementData = this.getFeatureByGidFromDataSource(gid);
                 if (measurementData) {
+
+                    /*
+                    // @todo Remove, deleting last 100 records for every intake for test purposes
+                    console.log(`### measurementData 1`, measurementData.properties.watlevmsl.length);
+                    let parsedWaterLevel = JSON.parse(measurementData.properties.watlevmsl);
+
+                    console.log(`### parsedWaterLevel 0 start`, parsedWaterLevel.timeOfMeasurement[0][parsedWaterLevel.timeOfMeasurement[0].length - 1]);
+                    console.log(`### parsedWaterLevel 1 start`, parsedWaterLevel.timeOfMeasurement[1][parsedWaterLevel.timeOfMeasurement[1].length - 1]);
+
+                    parsedWaterLevel.measurements[0].splice(-200, 200);
+                    parsedWaterLevel.measurements[1].splice(-200, 200);
+                    parsedWaterLevel.timeOfMeasurement[0].splice(-200, 200);
+                    parsedWaterLevel.timeOfMeasurement[1].splice(-200, 200);
+
+                    console.log(`### parsedWaterLevel 0 end`, parsedWaterLevel.timeOfMeasurement[0][parsedWaterLevel.timeOfMeasurement[0].length - 1]);
+                    console.log(`### parsedWaterLevel 1 end`, parsedWaterLevel.timeOfMeasurement[1][parsedWaterLevel.timeOfMeasurement[1].length - 1]);
+
+                    measurementData.properties.watlevmsl = JSON.stringify(parsedWaterLevel);
+                    console.log(`### measurementData 2`, measurementData.properties.watlevmsl.length);
+                    */
+
                     var currentTime = new Date();
                     correspondingPlot.measurements.push(measurementIndex);
                     correspondingPlot.measurementsCachedData[measurementIndex] = {

@@ -473,6 +473,16 @@ module.exports = module.exports = {
             }
         });
 
+        backboneEvents.get().on(`doneLoading:layers`, e => {
+            if ([LAYER_NAMES[0], LAYER_NAMES[2]].indexOf(e) > -1) {
+                if (menuComponentInstance) {
+                    let plots = menuComponentInstance.getPlots();
+                    plots = _self.syncPlotData(plots, e);
+                    menuComponentInstance.setPlots(plots);
+                }
+            }
+        });
+
         state.getState().then(applicationState => {
             LAYER_NAMES.map(layerName => {
                 layerTree.setOnEachFeature(layerName, (feature, layer) => {
@@ -563,7 +573,6 @@ module.exports = module.exports = {
             }
         });
     
-
         $(`#` + CONTAINER_ID).find(".expand-less").on("click", function () {
             $("#" + CONTAINER_ID).animate({
                 bottom: (($("#" + CONTAINER_ID).height() * -1) + 30) + "px"
@@ -590,6 +599,46 @@ module.exports = module.exports = {
                 $(`#` + CONTAINER_ID).find(".expand-more").hide();
             });
         });
+    },
+
+    /**
+     * Synchronizes plot data
+     * 
+     * @param {Array}  plots    Plots
+     * @param {String} storeKey Vector store key to sync with
+     * 
+     * @return {Array}
+     */
+    syncPlotData: (plots, storeKey) => {
+        if (Array.isArray(plots) && plots.length > 0) {
+            let stores = layerTree.getStores();
+            if (storeKey in stores && stores[storeKey].geoJSON && stores[storeKey].geoJSON.features.length > 0) {
+                plots.map(plot => {
+                    plot.measurements.map(measurement => {
+                        let parsedMeasurement = measurement.split(`:`);
+                        if (parsedMeasurement.length === 3) {
+                            let measurementId = parseInt(parsedMeasurement[0]);
+                            let measurementKey = parsedMeasurement[1];
+                            let intakeIndex = parseInt(parsedMeasurement[2]);
+
+                            let probablyStaleDataRaw = plot.measurementsCachedData[measurement].data.properties[measurementKey];
+
+                            stores[storeKey].geoJSON.features.map(feature => {
+                                if (feature.properties.gid === measurementId) {
+                                    if (probablyStaleDataRaw.length < feature.properties[measurementKey].length) {
+                                        // @todo Sync
+                                    }
+                                }
+                            });
+                        } else {
+                            console.error(`Unsupported measurement notation ${measurement}`);
+                        }
+                    });
+                });
+            }
+        }
+
+        return plots;
     },
 
     createModal: (feature = false, plots = false, titleAsLink = null) => {
