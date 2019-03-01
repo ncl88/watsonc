@@ -1,8 +1,5 @@
 'use strict';
 
-import { DragDropContextProvider } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
-
 import ModalComponent from './components/ModalComponent';
 import MenuComponent from './components/MenuComponent';
 
@@ -52,6 +49,19 @@ const LAYER_NAMES = [
     `v:sensor.sensordata_with_correction`,
     `sensor.sensordata_without_correction`,
 ];
+
+const STYLES = {
+    "v:chemicals.boreholes_time_series_with_chemicals": {
+        default: `<circle cx="14" cy="14" r="10" stroke="purple" stroke-width="4" fill="purple" fill-opacity="0.4" />`,
+        highlighted: `<circle cx="14" cy="14" r="10" stroke="purple" stroke-width="4" fill="red" fill-opacity="1" />`
+    },
+    "v:sensor.sensordata_with_correction": {
+        default: `<circle cx="14" cy="14" r="10" stroke="blue" stroke-width="4" fill="blue" fill-opacity="0.4" />`,
+        highlighted: `<circle cx="14" cy="14" r="10" stroke="blue" stroke-width="4" fill="red" fill-opacity="1" />`,
+    },
+    wrapper: `<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" id="svg8" version="1.1" viewBox="0 0 40 40" height="40" width="40">CONTENT</svg>`
+};
 
 let menuComponentInstance = false, modalComponentInstance = false;
 
@@ -303,7 +313,6 @@ module.exports = module.exports = {
                                     let red = "rgb(252, 60, 60)";
                                     let white = "rgb(255, 255, 255)";
 
-
                                     try {
                                         json = JSON.parse(feature.properties[chem]);
                                     } catch (e) {
@@ -377,42 +386,40 @@ module.exports = module.exports = {
                                         iconSize = [30, 30];
                                         iconAnchor = [15, 15];
                                         layer.setZIndexOffset(10000);
-
                                     } else {
                                         maxColor = latestColor = "#cccccc";
                                         iconSize = [20, 20];
                                         iconAnchor = [10, 10];
                                         layer.setZIndexOffset(1);
-
                                     }
 
                                     var svg = `<svg
-                                    xmlns:dc="http://purl.org/dc/elements/1.1/"
-                                    xmlns:cc="http://creativecommons.org/ns#"
-                                    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-                                    xmlns:svg="http://www.w3.org/2000/svg"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    id="svg8"
-                                    version="1.1"
-                                    viewBox="0 0 84.688354 84.688354"
-                                    height="84.688354"
-                                    width="84.688354">
-                                    <defs
-                                        id="defs2" />
-                                    <g
-                                        transform="translate(-61.786713,-90.408127)"
-                                        id="layer1">
-                                        <path
-                                        style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${maxColor};stroke-width:0.26458332"
-                                        d="m 104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.671133,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.671133,-21.172093 l 0,42.344173 z"
-                                        id="path3729" />
-                                        <path
-                                        transform="scale(-1,1)"
-                                        style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${latestColor};stroke-width:0.26458332"
-                                        d="m -104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.67113,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.67113,-21.172093 l 0,42.344173 z"
-                                        id="path3729-3" />
-                                    </g>
-                                </svg>`;
+                                        xmlns:dc="http://purl.org/dc/elements/1.1/"
+                                        xmlns:cc="http://creativecommons.org/ns#"
+                                        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                                        xmlns:svg="http://www.w3.org/2000/svg"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        id="svg8"
+                                        version="1.1"
+                                        viewBox="0 0 84.688354 84.688354"
+                                        height="84.688354"
+                                        width="84.688354">
+                                        <defs
+                                            id="defs2" />
+                                        <g
+                                            transform="translate(-61.786713,-90.408127)"
+                                            id="layer1">
+                                            <path
+                                            style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${maxColor};stroke-width:0.26458332"
+                                            d="m 104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.671133,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.671133,-21.172093 l 0,42.344173 z"
+                                            id="path3729" />
+                                            <path
+                                            transform="scale(-1,1)"
+                                            style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${latestColor};stroke-width:0.26458332"
+                                            d="m -104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.67113,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.67113,-21.172093 l 0,42.344173 z"
+                                            id="path3729-3" />
+                                        </g>
+                                    </svg>`;
 
                                     let iconUrl = 'data:image/svg+xml;base64,' + btoa(svg);
                                     let icon = L.icon({
@@ -478,6 +485,7 @@ module.exports = module.exports = {
                 if (menuComponentInstance) {
                     let plots = menuComponentInstance.getPlots();
                     plots = _self.syncPlotData(plots, e);
+                    _self.setStyleForParticipatingMeasurements(plots);
                     menuComponentInstance.setPlots(plots);
                 }
             }
@@ -506,22 +514,20 @@ module.exports = module.exports = {
                     });
                 }, "watsonc");
 
-                let icon = false;
+                let svgCirclePart = false;
                 if (layerName === `v:chemicals.boreholes_time_series_with_chemicals`) {
-                    icon = L.AwesomeMarkers.icon({
-                        icon: 'database',
-                        prefix: 'fa',
-                        markerColor: 'purple'
-                    });
+                    svgCirclePart = STYLES[layerName].default;
                 } else if (layerName === `v:sensor.sensordata_with_correction`) {
-                    icon = L.AwesomeMarkers.icon({
-                        icon: 'tint',
-                        prefix: 'fa',
-                        markerColor: 'blue'
-                    });
+                    svgCirclePart = STYLES[layerName].default;
                 }
 
-                if (icon) {
+                if (svgCirclePart) {
+                    let icon = L.icon({
+                        iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, svgCirclePart)),
+                        iconAnchor: [14, 14],
+                        watsoncStatus: `default`
+                    });
+
                     layerTree.setPointToLayer(layerName, (feature, latlng) => {
                         return L.marker(latlng, { icon });
                     });
@@ -559,6 +565,8 @@ module.exports = module.exports = {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
 
                             if (plots) {
+                                _self.setStyleForParticipatingMeasurements(plots);
+
                                 // Plots were updated from the MenuComponent component
                                 if (modalComponentInstance) {
                                     _self.createModal(false, plots);
@@ -668,6 +676,7 @@ module.exports = module.exports = {
             if (document.getElementById(FORM_CONTAINER_ID)) {
                 try {
                     let existingPlots = (plots ? plots : menuComponentInstance.getPlots());
+                    _self.setStyleForParticipatingMeasurements(existingPlots);
                     setTimeout(() => {
                         ReactDOM.unmountComponentAtNode(document.getElementById(FORM_CONTAINER_ID));
                         modalComponentInstance = ReactDOM.render(<ModalComponent
@@ -689,6 +698,87 @@ module.exports = module.exports = {
             } else {
                 console.warn(`Unable to find the container for borehole component (element id: ${FORM_CONTAINER_ID})`);
             }
+        }
+    },
+
+    /**
+     * Sets style for measurements vector features that participate in any of plots
+     * 
+     * @param {Array} plots Current plots
+     * 
+     * @return {void}
+     */
+    setStyleForParticipatingMeasurements: (plots) => {
+        // If specific chemical is activated, then do not style
+        if (lastSelectedChemical === false) {
+            let icons = {};
+
+            icons[LAYER_NAMES[0]] = {
+                highlighted: L.icon({
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, STYLES[LAYER_NAMES[0]].highlighted)),
+                    iconAnchor: [14, 14],
+                    watsoncStatus: `highlighted`
+                }),
+                default: L.icon({
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, STYLES[LAYER_NAMES[0]].default)),
+                    iconAnchor: [14, 14],
+                    watsoncStatus: `default`
+                }),
+            }
+
+            icons[LAYER_NAMES[2]] = {
+                highlighted: L.icon({
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, STYLES[LAYER_NAMES[2]].highlighted)),
+                    iconAnchor: [14, 14],
+                    watsoncStatus: `highlighted`
+                }),
+                default: L.icon({
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, STYLES[LAYER_NAMES[2]].default)),
+                    iconAnchor: [14, 14],
+                    watsoncStatus: `default`
+                }),
+            }
+
+            let participatingIds = [];
+            plots.map(plot => {
+                plot.measurements.map(measurement => {
+                    let splitMeasurement = measurement.split(`:`);
+                    if (splitMeasurement.length === 3) {
+                        let id = parseInt(splitMeasurement[0]);
+                        if (participatingIds.indexOf(id) === -1) participatingIds.push(id);
+                    }
+                });
+            });
+
+            let mapLayers = layers.getMapLayers();
+            mapLayers.map(layer => {
+                if ([LAYER_NAMES[0], LAYER_NAMES[2]].indexOf(layer.id) > -1 && layer._layers) {
+                    for (let key in layer._layers) {
+                        let featureLayer = layer._layers[key];
+                        if (featureLayer.feature && featureLayer.feature.properties && featureLayer.feature.properties.gid) {
+                            let icon = false;
+                            if (participatingIds.indexOf(featureLayer.feature.properties.gid) > -1) {
+                                icon = icons[layer.id].highlighted;
+                            } else {
+                                icon = icons[layer.id].default;
+                            }
+
+                            if (icon && `setIcon` in featureLayer) {
+                                // Do not set icon if the existing one is the same as the new one
+                                let statusOfExistingIcon = (`watsoncStatus` in featureLayer.options.icon.options ? featureLayer.options.icon.options.watsoncStatus : false);
+                                let statusOfNewIcon = icon.options.watsoncStatus;
+                                if (statusOfExistingIcon === false) {
+                                    featureLayer.setIcon(icon);
+                                } else {
+                                    if (statusOfExistingIcon !== statusOfNewIcon) {
+                                        featureLayer.setIcon(icon);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
     },
 
