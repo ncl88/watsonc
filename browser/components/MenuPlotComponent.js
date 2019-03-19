@@ -14,7 +14,7 @@ class MenuPanelPlotComponent extends React.Component {
     render() {
         let plot = (<p className="text-muted">{__(`At least one y axis has to be provided`)}</p>);
         if (this.props.plotMeta.measurements && this.props.plotMeta.measurements.length > 0) {
-            let colors = [`red`, `green`, `blue`, `orange`, `purple`, `black`];
+            let colors = ['rgb(19,128,196)', 'rgb(16,174,140)', 'rgb(235,96,29)', 'rgb(247,168,77)', 'rgb(119,203,231)', `black`]
 
             let minTime = false;
             let maxTime = false;
@@ -61,7 +61,7 @@ class MenuPanelPlotComponent extends React.Component {
                         name: (`${measurementData.title} (${measurementData.unit})`),
                         x: measurementData.timeOfMeasurement[intakeIndex],
                         y: measurementData.measurements[intakeIndex],
-                        //type: 'scatter',
+                        type: 'scattergl',
                         mode: 'lines+markers',
                         marker: {
                             color: colors[index]
@@ -93,7 +93,13 @@ class MenuPanelPlotComponent extends React.Component {
                 displayModeBar: false,
                 width: 520,
                 height: 420,
-                margin: 0,
+                margin: {
+                    l: 50,
+                    r: 10,
+                    b: 40,
+                    t: 50,
+                    pad: 4
+                },
                 showlegend: false,
                 xaxis: {
                     autorange: true,
