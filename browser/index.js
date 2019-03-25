@@ -2,6 +2,7 @@
 
 import ModalComponent from './components/ModalComponent';
 import MenuComponent from './components/MenuComponent';
+import StateSnapshotsDashboard from './../../../browser/modules/stateSnapshots/components/StateSnapshotsDashboard';
 
 import moment from 'moment';
 
@@ -35,7 +36,7 @@ var backboneEvents;
  *
  * @type {*|exports|module.exports}
  */
-var utils, layerTree, layers, state;
+var utils, layerTree, layers, anchor, state, urlparser;
 
 var React = require('react');
 
@@ -97,7 +98,9 @@ module.exports = module.exports = {
         backboneEvents = o.backboneEvents;
         layers = o.layers;
         layerTree = o.layerTree;
+        anchor = o.anchor;
         state = o.state;
+        urlparser = o.urlparser;
         utils = o.utils;
         _self = this;
         return this;
@@ -187,9 +190,13 @@ module.exports = module.exports = {
 
                 $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).off();
                 $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).click(() => {
+                    _self.openMenuModal();
+
+                    /*
                     $("#layer-slide.slide-left").animate({
                         left: "0"
                     }, 500);
+                    */
                 });
             }
         };
@@ -606,6 +613,68 @@ module.exports = module.exports = {
                 $(`#` + CONTAINER_ID).find(".expand-less").show();
                 $(`#` + CONTAINER_ID).find(".expand-more").hide();
             });
+        });
+    },
+
+    /**
+     * Open module menu modal dialog
+     * 
+     * @returns {void}
+     */
+    openMenuModal: () => {
+        $(`.js-watsonc-menu-dialog__title`).text(__(`Get started`));
+        $(`.js-watsonc-menu-dialog__new-project-text`).text(__(`New project`));
+        $(`.js-watsonc-menu-dialog__open-project-text`).text(__(`Open existing project`));
+        $(`.js-watsonc-menu-dialog__back-to-main-menu-text`).text(__(`Back to main menu`));
+
+        $(`#watsonc-menu-dialog`).find(`.js-new-project-view`).hide();
+        $(`#watsonc-menu-dialog`).find(`.js-open-project-view`).hide();
+
+        $(`.js-new-project`).off();
+        $(`.js-new-project`).click(() => {
+            $(`.js-watsonc-menu-dialog__title`).text(__(`New project`));
+
+            $(`#watsonc-menu-dialog`).find(`.js-initial-view`).hide();
+            $(`#watsonc-menu-dialog`).find(`.js-new-project-view`).show();
+            $(`#watsonc-menu-dialog`).find(`.js-open-project-view`).hide();
+        });
+        
+        $(`.js-open-project`).off();
+        $(`.js-open-project`).click(() => {
+            $(`.js-watsonc-menu-dialog__title`).text(__(`Open existing project`));
+
+            let containerId = `watsonc-menu-dialog__open-project-control-container`;
+            if (document.getElementById(containerId)) {
+                try {
+                    ReactDOM.render(<StateSnapshotsDashboard
+                        readOnly={true}
+                        anchor={anchor}
+                        state={state}
+                        urlparser={urlparser}
+                        backboneEvents={backboneEvents}/>, document.getElementById(containerId));
+                } catch (e) {
+                    console.log(e);
+                }
+            } else {
+                console.warn(`Unable to find the container for state snapshots extension (element id: ${containerId})`);
+            }
+
+            $(`#watsonc-menu-dialog`).find(`.js-initial-view`).hide();
+            $(`#watsonc-menu-dialog`).find(`.js-new-project-view`).hide();
+            $(`#watsonc-menu-dialog`).find(`.js-open-project-view`).show();
+        });
+
+        $(`.js-back-to-main-menu`).off();
+        $(`.js-back-to-main-menu`).click(() => {
+            $(`.js-watsonc-menu-dialog__title`).text(__(`Get started`));
+
+            $(`#watsonc-menu-dialog`).find(`.js-initial-view`).show();
+            $(`#watsonc-menu-dialog`).find(`.js-new-project-view`).hide();
+            $(`#watsonc-menu-dialog`).find(`.js-open-project-view`).hide();
+        });
+
+        $('#watsonc-menu-dialog').modal({
+            backdrop: `static`
         });
     },
 
