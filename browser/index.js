@@ -2,7 +2,8 @@
 
 import ModalComponent from './components/ModalComponent';
 import MenuComponent from './components/MenuComponent';
-import StateSnapshotsDashboard from './../../../browser/modules/stateSnapshots/components/StateSnapshotsDashboard';
+import IntroModal from './components/IntroModal';
+
 
 import moment from 'moment';
 
@@ -64,9 +65,9 @@ const STYLES = {
         xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" id="svg8" version="1.1" viewBox="0 0 40 40" height="40" width="40">CONTENT</svg>`
 };
 
-let menuComponentInstance = false, modalComponentInstance = false;
+let menuComponentInstance = false, modalComponentInstance = false, infoModalInstance = false;
 
-let lastSelectedChemical = false;
+let lastSelectedChemical = false, categoriesOverall = false;
 
 let _self = false;
 
@@ -191,12 +192,6 @@ module.exports = module.exports = {
                 $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).off();
                 $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).click(() => {
                     _self.openMenuModal();
-
-                    /*
-                    $("#layer-slide.slide-left").animate({
-                        left: "0"
-                    }, 500);
-                    */
                 });
             }
         };
@@ -254,6 +249,13 @@ module.exports = module.exports = {
                     </li>`;
                     $(`#collapsewatlevmsl`).append(layer);
                     // Stop waterlevel Group and layers
+
+                    categoriesOverall = {};
+                    categoriesOverall[LAYER_NAMES[0]] = categories;
+                    categoriesOverall[LAYER_NAMES[2]] = {"Vandstand": {"0": "watlevmsl"}};
+                    if (infoModalInstance) {
+                        infoModalInstance.setCategories(categoriesOverall);
+                    }
 
                     $(`#watsonc-layers`).append(`<h1 class="watsonc-layertree-header">Kemi</h1>`);
                     for (let key in categories) {
@@ -441,8 +443,10 @@ module.exports = module.exports = {
                             };
 
                             layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", fn, "watsonc");
-                            switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
-                            switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
+                            
+                            // Enabling layers only from intor modal or state snapshot
+                            //switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
+                            //switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
                         }
                     );
 
@@ -552,7 +556,10 @@ module.exports = module.exports = {
                 });
 
                 // Activating specific layers if they have not been activated before
-                LAYER_NAMES.map(layerNameToEnable => {
+                //LAYER_NAMES.map(layerNameToEnable => {
+
+                // Activating only raster layer, vector ones should be activated via state snapshot or via modal
+                [LAYER_NAMES[1], LAYER_NAMES[3]].map(layerNameToEnable => {
                     if (activeLayers.indexOf(layerNameToEnable) === -1) {
                         switchLayer.init(layerNameToEnable, true, true, false);
                     }
@@ -622,56 +629,40 @@ module.exports = module.exports = {
      * @returns {void}
      */
     openMenuModal: () => {
-        $(`.js-watsonc-menu-dialog__title`).text(__(`Get started`));
-        $(`.js-watsonc-menu-dialog__new-project-text`).text(__(`New project`));
-        $(`.js-watsonc-menu-dialog__open-project-text`).text(__(`Open existing project`));
-        $(`.js-watsonc-menu-dialog__back-to-main-menu-text`).text(__(`Back to main menu`));
+        const onApplyHandler = (parameters) => {
+            console.log(`### parameters`, parameters);
 
-        $(`#watsonc-menu-dialog`).find(`.js-new-project-view`).hide();
-        $(`#watsonc-menu-dialog`).find(`.js-open-project-view`).hide();
+            let numberOfLoadedLayers = 0;
+            let numberOfShouldLoadLayers = parameters.layers.length;
+            parameters.layers.map(layerNameToEnable => {
+                switchLayer.init(layerNameToEnable, true, true, false);
+                backboneEvents.get().on(`doneLoading:layers`, e => {
+                    if (parameters.layers.indexOf(e) > -1) {
+                        numberOfLoadedLayers++;
+                        if (numberOfLoadedLayers === numberOfShouldLoadLayers) {
+                            console.log(`### ready to turn on chemicals`);
+                        }
+                    }
+                });
+            });
+        };
 
-        $(`.js-new-project`).off();
-        $(`.js-new-project`).click(() => {
-            $(`.js-watsonc-menu-dialog__title`).text(__(`New project`));
-
-            $(`#watsonc-menu-dialog`).find(`.js-initial-view`).hide();
-            $(`#watsonc-menu-dialog`).find(`.js-new-project-view`).show();
-            $(`#watsonc-menu-dialog`).find(`.js-open-project-view`).hide();
-        });
-        
-        $(`.js-open-project`).off();
-        $(`.js-open-project`).click(() => {
-            $(`.js-watsonc-menu-dialog__title`).text(__(`Open existing project`));
-
-            let containerId = `watsonc-menu-dialog__open-project-control-container`;
-            if (document.getElementById(containerId)) {
-                try {
-                    ReactDOM.render(<StateSnapshotsDashboard
-                        readOnly={true}
-                        anchor={anchor}
-                        state={state}
-                        urlparser={urlparser}
-                        backboneEvents={backboneEvents}/>, document.getElementById(containerId));
-                } catch (e) {
-                    console.log(e);
-                }
-            } else {
-                console.warn(`Unable to find the container for state snapshots extension (element id: ${containerId})`);
+        const introlModalPlaceholderId = `watsonc-intro-modal-placeholder`;
+        if ($(`#${introlModalPlaceholderId}`).is(`:empty`)) {
+            try {
+                infoModalInstance = ReactDOM.render(<IntroModal
+                    anchor={anchor}
+                    state={state}
+                    urlparser={urlparser}
+                    backboneEvents={backboneEvents}
+                    layers={[LAYER_NAMES[0], LAYER_NAMES[2]]}
+                    categories={categoriesOverall ? categoriesOverall : []}
+                    onApply={onApplyHandler}
+                />, document.getElementById(introlModalPlaceholderId));
+            } catch (e) {
+                console.error(e);
             }
-
-            $(`#watsonc-menu-dialog`).find(`.js-initial-view`).hide();
-            $(`#watsonc-menu-dialog`).find(`.js-new-project-view`).hide();
-            $(`#watsonc-menu-dialog`).find(`.js-open-project-view`).show();
-        });
-
-        $(`.js-back-to-main-menu`).off();
-        $(`.js-back-to-main-menu`).click(() => {
-            $(`.js-watsonc-menu-dialog__title`).text(__(`Get started`));
-
-            $(`#watsonc-menu-dialog`).find(`.js-initial-view`).show();
-            $(`#watsonc-menu-dialog`).find(`.js-new-project-view`).hide();
-            $(`#watsonc-menu-dialog`).find(`.js-open-project-view`).hide();
-        });
+        }
 
         $('#watsonc-menu-dialog').modal({
             backdrop: `static`
