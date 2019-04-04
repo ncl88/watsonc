@@ -83,6 +83,7 @@ let waterLevelDataSource = [];
 let store;
 
 let categories = {};
+let limits = {};
 let names = {};
 
 var jquery = require('jquery');
@@ -142,59 +143,18 @@ module.exports = module.exports = {
                     timeout: 1000000
                 });
             } else {
+                /*
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) === -1) {
                     switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
                     switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
                 }
+                */
 
                 setTimeout(function () {
                     jquery("#snackbar-watsonc").snackbar("hide");
                 }, 200);
             }
-        }); 
-
-        const buildBreadcrumbs = (secondLevel = false, thirdLevel = false, isWaterLevel = false) => {
-            $(`.js-layer-slide-breadcrumbs`).empty();
-            if (secondLevel !== false) {
-                let firstLevel = `Kemi`;
-                let secondLevelMarkup = `<li class="active" style="color: rgba(255, 255, 255, 0.84);">${secondLevel}</li>`;
-                if (isWaterLevel) {
-                    firstLevel = `Vandstand`;
-                    secondLevelMarkup = ``;
-                }
-
-                $(`.js-layer-slide-breadcrumbs`).append(`<ol class="breadcrumb" style="background-color: transparent; margin-bottom: 0px;">
-                    <li class="active" style="color: rgba(255, 255, 255, 0.84);"><i class="fa fa-database"></i> ${firstLevel}</li>
-                    ${secondLevelMarkup}
-                    <li class="active" style="color: rgba(255, 255, 255, 0.84);">
-                        <span style="color: rgb(160, 244, 197); font-weight: bold;">${thirdLevel}<span> 
-                        <button type="button" class="btn btn-xs btn-link js-clear-breadcrubms" title="${__(`Clear`)}">
-                            <i class="fa fa-remove"></i> ${__(`Clear`)}
-                        </button>
-                    </li>
-                </ol>`);
-
-                $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).off();
-                $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).click(() => {
-                    $(`[name="chem"]`).prop('checked', false);
-                    lastSelectedChemical = false;
-                    layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", false, "watsonc");
-                    switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
-                    switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
-                    $(`[data-parent="#watsonc-layers"][aria-expanded="true"]`).trigger(`click`);
-                    buildBreadcrumbs();
-                });
-            } else {
-                $(`.js-layer-slide-breadcrumbs`).append(`<button type="button" class="navbar-toggle" id="burger-btn">
-                    <i class="fa fa-database"></i> ${__(`Select data`)}
-                </button>`);
-
-                $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).off();
-                $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).click(() => {
-                    _self.openMenuModal();
-                });
-            }
-        };
+        });
 
         $.ajax({
             url: '/api/sql/jupiter?q=SELECT * FROM codes.compunds&base64=false',
@@ -202,7 +162,7 @@ module.exports = module.exports = {
             success: function (response) {
                 if (`features` in response) {
                     categories = {};
-                    let limits = {};
+                    limits = {};
                     let count = 0;
 
                     response.features.map(function (v) {
@@ -222,33 +182,7 @@ module.exports = module.exports = {
                     }
 
                     // Breadcrumbs
-                    buildBreadcrumbs();
-
-                    // Start waterlevel Group and layers
-                    $(`#watsonc-layers`).append(`<h1 class="watsonc-layertree-header" style="margin-top: 0px;">Vandstand</h1>`);
-                    let group = `
-                    <div class="panel panel-default panel-layertree" id="layer-panel-watlevmsl">
-                        <div class="panel-heading" role="tab">
-                            <h4 class="panel-title">
-                                <!--<div class="layer-count badge">-->
-                                    <!--<span>0</span> / <span></span>-->
-                                <!--</div>-->
-                                <a style="display: block" class="accordion-toggle" data-toggle="collapse" data-parent="#watsonc-layers" href="#collapsewatlevmsl">DGU boringer</a>
-                            </h4>
-                        </div>
-                        <ul class="list-group" id="group-watlevmsl" role="tabpanel"></ul>
-                    </div>`;
-                    $(`#watsonc-layers`).append(group);
-                    $(`#group-watlevmsl`).append(`<div id="collapsewatlevmsl" class="accordion-body collapse"></div>`);
-                    let layer = `<li class="layer-item list-group-item" style="min-height: 40px; margin-top: 10px; border-bottom: 1px solid #CCC; background-color: white;">
-                        <div>
-                            <div style="display: inline-block;">
-                                <label><input data-chem="watlevmsl" name="chem" type="radio"/>&nbsp;<span class="js-chemical-name js-water-level">DGU boringer</span></label>
-                            </div>
-                        </div>
-                    </li>`;
-                    $(`#collapsewatlevmsl`).append(layer);
-                    // Stop waterlevel Group and layers
+                    _self.buildBreadcrumbs();
 
                     categoriesOverall = {};
                     categoriesOverall[LAYER_NAMES[0]] = categories;
@@ -257,216 +191,25 @@ module.exports = module.exports = {
                         infoModalInstance.setCategories(categoriesOverall);
                     }
 
-                    $(`#watsonc-layers`).append(`<h1 class="watsonc-layertree-header">Kemi</h1>`);
-                    for (let key in categories) {
-                        if (categories.hasOwnProperty(key)) {
-                            let group = `
-                            <div class="panel panel-default panel-layertree" id="layer-panel-${count}">
-                                <div class="panel-heading" role="tab">
-                                    <h4 class="panel-title">
-                                        <a style="display: block" class="accordion-toggle" data-toggle="collapse" data-parent="#watsonc-layers" href="#collapse${count}">${key}</a>
-                                    </h4>
-                                </div>
-                                <ul class="list-group" id="group-${count}" role="tabpanel"></ul>
-                            </div>`;
-                            $(`#watsonc-layers`).append(group);
-                            $(`#group-${count}`).append(`<div id="collapse${count}" class="accordion-body collapse"></div>`);
-
-                            for (let key2 in categories[key]) {
-                                if (categories[key].hasOwnProperty(key2)) {
-                                    let layer = `<li class="layer-item list-group-item" style="min-height: 40px; margin-top: 10px; border-bottom: 1px solid #CCC; background-color: white;">
-                                        <div>
-                                            <div style="display: inline-block;">
-                                                <label>
-                                                    <input data-chem="${key2}" name="chem" type="radio"/>&nbsp;<span class="js-chemical-name">${categories[key][key2]}</span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </li>`;
-                                    $(`#collapse${count}`).append(layer);
-                                }
-                            }
-
-                            count++;
-                        }
-                    }
-
-                    // Open layertree
-                    $('#burger-btn').trigger('click');
-
-                    $("[data-chem]").change(
-                        function (e) {
-                            lastSelectedChemical = $(e.target).data("chem");
-                            backboneEvents.get().trigger(`${MODULE_NAME}:chemicalChange`);
-
-                            let chem = "_" + $(e.target).data("chem");
-                            store = layerTree.getStores()["v:chemicals.boreholes_time_series_with_chemicals"];
-
-                            buildBreadcrumbs($(e.target).closest(`.panel-layertree`).find(`.accordion-toggle`).html(),
-                                $(e.target).parent().find(`.js-chemical-name`).html(), $(e.target).parent().find(`.js-chemical-name`).hasClass(`js-water-level`));
-
-                            let fn = function (layer) {
-                                store.layer.eachLayer(function (layer) {
-                                    let feature = layer.feature;
-                                    let maxColor;
-                                    let latestColor;
-                                    let iconSize;
-                                    let iconAnchor;
-                                    let maxMeasurement = 0;
-                                    let maxMeasurementIntakes = [];
-                                    let latestMeasurement = 0;
-                                    let latestMeasurementIntakes = [];
-                                    let json;
-                                    let green = "rgb(16, 174, 140)";
-                                    let yellow = "rgb(247, 168, 77)";
-                                    let red = "rgb(252, 60, 60)";
-                                    let white = "rgb(255, 255, 255)";
-
-                                    try {
-                                        json = JSON.parse(feature.properties[chem]);
-                                    } catch (e) {
-                                        return L.circleMarker(layer.getLatLng());
-                                    }
-
-                                    if (feature.properties[chem] !== null) {
-                                        let unit = json.unit;
-                                        // Find latest value
-                                        let intakes = json.timeOfMeasurement.length;
-                                        let currentValue;
-                                        let latestValue = moment("0001-01-01T00:00:00+00:00", "YYYY-MM-DDTHH:mm:ssZZ");
-                                        let latestPosition = {};
-
-                                        for (let i = 0; i < intakes; i++) {
-                                            let length = json.timeOfMeasurement[i].length - 1;
-                                            currentValue = moment(json.timeOfMeasurement[i][length], "YYYY-MM-DDTHH:mm:ssZZ");
-                                            if (currentValue.isAfter(latestValue)) {
-                                                latestValue = currentValue;
-                                                latestMeasurement = json.measurements[i][length];
-                                                latestPosition = {
-                                                    intake: i,
-                                                    measurement: length
-                                                }
-                                            }
-                                            latestMeasurementIntakes[i] = json.measurements[i][length];
-                                        }
-
-                                        // Find Highest value
-                                        intakes = json.measurements.length;
-                                        maxMeasurement = 0;
-                                        maxMeasurementIntakes = [];
-                                        let html = [];
-
-                                        for (let i = 0; i < intakes; i++) {
-                                            maxMeasurementIntakes[i] = 0;
-                                            let length = json.measurements[i].length;
-                                            for (let u = 0; u < length; u++) {
-                                                currentValue = json.measurements[i][u];
-                                                if (!(latestPosition.intake === i && latestPosition.measurement === u) && currentValue > maxMeasurement) {
-                                                    maxMeasurement = currentValue;
-                                                }
-                                                if (currentValue > maxMeasurementIntakes[i]) {
-                                                    maxMeasurementIntakes[i] = currentValue;
-                                                }
-                                            }
-
-                                        }
-
-                                        for (let i = 0; i < intakes; i++) {
-                                            html.push(`
-                                                <b style="color: rgb(16, 174, 140)">Intag: ${i+1}</b><br>
-                                                Max: ${maxMeasurementIntakes[i]}<br>
-                                                Seneste: ${latestMeasurementIntakes[i]}<br>
-                                            `)
-                                        }
-
-                                        layer.bindTooltip(`
-                                        <p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
-                                        <b style="color: rgb(16, 174, 140)">${names[$(e.target).data("chem")]} (${unit})</b><br>
-                                        ${html.join('<br>')}
-                                        `);
-
-                                        if (chem === "_watlevmsl") {
-                                            maxColor = maxMeasurement === 0 ? white : "#00aaff";
-                                            latestColor = "#00aaff";
-                                        } else {
-                                            maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= limits[chem][0] ? green : maxMeasurement > limits[chem][0] && maxMeasurement <= limits[chem][1] ? yellow : red;
-                                            latestColor = latestMeasurement <= limits[chem][0] ? green : latestMeasurement > limits[chem][0] && latestMeasurement <= limits[chem][1] ? yellow : red;
-                                        }
-                                        iconSize = [30, 30];
-                                        iconAnchor = [15, 15];
-                                        layer.setZIndexOffset(10000);
-                                    } else {
-                                        maxColor = latestColor = "#cccccc";
-                                        iconSize = [20, 20];
-                                        iconAnchor = [10, 10];
-                                        layer.setZIndexOffset(1);
-                                    }
-
-                                    var svg = `<svg
-                                        xmlns:dc="http://purl.org/dc/elements/1.1/"
-                                        xmlns:cc="http://creativecommons.org/ns#"
-                                        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-                                        xmlns:svg="http://www.w3.org/2000/svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        id="svg8"
-                                        version="1.1"
-                                        viewBox="0 0 84.688354 84.688354"
-                                        height="84.688354"
-                                        width="84.688354">
-                                        <defs
-                                            id="defs2" />
-                                        <g
-                                            transform="translate(-61.786713,-90.408127)"
-                                            id="layer1">
-                                            <path
-                                            style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${maxColor};stroke-width:0.26458332"
-                                            d="m 104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.671133,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.671133,-21.172093 l 0,42.344173 z"
-                                            id="path3729" />
-                                            <path
-                                            transform="scale(-1,1)"
-                                            style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${latestColor};stroke-width:0.26458332"
-                                            d="m -104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.67113,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.67113,-21.172093 l 0,42.344173 z"
-                                            id="path3729-3" />
-                                        </g>
-                                    </svg>`;
-
-                                    let iconUrl = 'data:image/svg+xml;base64,' + btoa(svg);
-                                    let icon = L.icon({
-                                        iconUrl: iconUrl,
-                                        iconSize: iconSize,
-                                        iconAnchor: iconAnchor,
-                                        popupAnchor: iconAnchor,
-                                    });
-
-                                    layer.setIcon(icon);
-                                });
-                            };
-
-                            layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", fn, "watsonc");
-                            
-                            // Enabling layers only from intor modal or state snapshot
-                            //switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
-                            //switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
-                        }
-                    );
-
                     // Setup menu
                     let dd = $('li .dropdown-toggle');
-                    let navLi = $(".dropdown-top");
-
                     dd.on('click', function (event) {
                         $(".dropdown-top").not($(this).parent()).removeClass('open');
                         $('.dropdown-submenu').removeClass('open');
                         $(this).parent().toggleClass('open');
                     });
 
+                    // Open intro modal only if there is no predefined state
+                    if (!urlparser.urlVars || !urlparser.urlVars.state) {
+                        _self.openMenuModal();
+                    }
+
                     backboneEvents.get().trigger(`${MODULE_NAME}:initialized`);
                 } else {
                     console.error(`Unable to request codes.compunds`);
                 }
             },
-            error: function (response) {
-            }
+            error: function () {}
         });
 
         utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, "insert_chart");
@@ -623,6 +366,54 @@ module.exports = module.exports = {
         });
     },
 
+    buildBreadcrumbs(secondLevel = false, thirdLevel = false, isWaterLevel = false) {
+        $(`.js-layer-slide-breadcrumbs`).empty();
+        if (secondLevel !== false) {
+            let firstLevel = `Kemi`;
+            let secondLevelMarkup = `<li class="active" style="color: rgba(255, 255, 255, 0.84);">${secondLevel}</li>`;
+            if (isWaterLevel) {
+                firstLevel = `Vandstand`;
+                secondLevelMarkup = ``;
+            }
+
+            $(`.js-layer-slide-breadcrumbs`).append(`<ol class="breadcrumb" style="background-color: transparent; margin-bottom: 0px;">
+                <li class="active" style="color: rgba(255, 255, 255, 0.84);"><i class="fa fa-database"></i> ${firstLevel}</li>
+                ${secondLevelMarkup}
+                <li class="active" style="color: rgba(255, 255, 255, 0.84);">
+                    <span style="color: rgb(160, 244, 197); font-weight: bold;">${thirdLevel}<span> 
+                    <button type="button" class="btn btn-xs btn-link js-clear-breadcrubms" title="${__(`Select another chemical`)}">
+                        <i class="fa fa-remove"></i> ${__(`Select another chemical`)}
+                    </button>
+                </li>
+            </ol>`);
+
+            $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).off();
+            $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).click(() => {
+                $(`[name="chem"]`).prop('checked', false);
+                lastSelectedChemical = false;
+
+                // Unsetting the onLoad handler
+                layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", false, "watsonc");
+
+                // Turning off current vector layers
+                if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) > -1) switchLayer.init(LAYER_NAMES[0], false);
+                if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[2]) > -1) switchLayer.init(LAYER_NAMES[2], false);
+
+                _self.buildBreadcrumbs();
+                _self.openMenuModal();
+            });
+        } else {
+            $(`.js-layer-slide-breadcrumbs`).append(`<button type="button" class="navbar-toggle" id="burger-btn">
+                <i class="fa fa-database"></i> ${__(`Select data`)}
+            </button>`);
+
+            $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).off();
+            $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).click(() => {
+                _self.openMenuModal();
+            });
+        }
+    },
+
     /**
      * Open module menu modal dialog
      * 
@@ -630,8 +421,6 @@ module.exports = module.exports = {
      */
     openMenuModal: () => {
         const onApplyHandler = (parameters) => {
-            console.log(`### parameters`, parameters);
-
             let numberOfLoadedLayers = 0;
             let numberOfShouldLoadLayers = parameters.layers.length;
             parameters.layers.map(layerNameToEnable => {
@@ -639,12 +428,18 @@ module.exports = module.exports = {
                 backboneEvents.get().on(`doneLoading:layers`, e => {
                     if (parameters.layers.indexOf(e) > -1) {
                         numberOfLoadedLayers++;
-                        if (numberOfLoadedLayers === numberOfShouldLoadLayers) {
-                            console.log(`### ready to turn on chemicals`);
+                        if (parameters.chemical && numberOfLoadedLayers === numberOfShouldLoadLayers) {
+                            setTimeout(() => {
+                                _self.enableChemical(parameters.chemical);
+                            }, 1000);
                         }
                     }
                 });
             });
+        };
+
+        const onCloseHandler = () => {
+            $('#watsonc-menu-dialog').modal('hide');
         };
 
         const introlModalPlaceholderId = `watsonc-intro-modal-placeholder`;
@@ -655,9 +450,16 @@ module.exports = module.exports = {
                     state={state}
                     urlparser={urlparser}
                     backboneEvents={backboneEvents}
-                    layers={[LAYER_NAMES[0], LAYER_NAMES[2]]}
+                    layers={[{
+                        id: LAYER_NAMES[0],
+                        title: __(`boreholes_time_series_with_chemicals`)
+                    }, {
+                        id: LAYER_NAMES[2],
+                        title: __(`sensordata_with_correction`)
+                    }]}
                     categories={categoriesOverall ? categoriesOverall : []}
                     onApply={onApplyHandler}
+                    onClose={onCloseHandler}
                 />, document.getElementById(introlModalPlaceholderId));
             } catch (e) {
                 console.error(e);
@@ -852,10 +654,177 @@ module.exports = module.exports = {
         };
     },
 
+    enableChemical(chemicalId) {
+        if (!chemicalId) throw new Error(`Chemical identifier was not provided`);
+
+        let layerToEnable = false;
+        if (categoriesOverall) {
+            for (let layerName in categoriesOverall) {
+                for (let key in categoriesOverall[layerName]) {
+                    for (let key2 in categoriesOverall[layerName][key]) {
+                        if (key2.toString() === chemicalId.toString()) {
+                            layerToEnable = layerName;
+                            _self.buildBreadcrumbs(key, categoriesOverall[layerName][key][key2], layerName === LAYER_NAMES[2]);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        lastSelectedChemical = chemicalId;
+        backboneEvents.get().trigger(`${MODULE_NAME}:chemicalChange`);
+
+        let chem = "_" + chemicalId;
+        store = layerTree.getStores()["v:chemicals.boreholes_time_series_with_chemicals"];
+        let fn = function (sqlStore) {
+            store.layer.eachLayer(function (layer) {
+                let feature = layer.feature;
+                let maxColor;
+                let latestColor;
+                let iconSize;
+                let iconAnchor;
+                let maxMeasurement = 0;
+                let maxMeasurementIntakes = [];
+                let latestMeasurement = 0;
+                let latestMeasurementIntakes = [];
+                let json;
+                let green = "rgb(16, 174, 140)";
+                let yellow = "rgb(247, 168, 77)";
+                let red = "rgb(252, 60, 60)";
+                let white = "rgb(255, 255, 255)";
+
+                try {
+                    json = JSON.parse(feature.properties[chem]);
+                } catch (e) {
+                    return L.circleMarker(layer.getLatLng());
+                }
+
+                if (feature.properties[chem] !== null) {
+                    let unit = json.unit;
+                    // Find latest value
+                    let intakes = json.timeOfMeasurement.length;
+                    let currentValue;
+                    let latestValue = moment("0001-01-01T00:00:00+00:00", "YYYY-MM-DDTHH:mm:ssZZ");
+                    let latestPosition = {};
+
+                    for (let i = 0; i < intakes; i++) {
+                        let length = json.timeOfMeasurement[i].length - 1;
+                        currentValue = moment(json.timeOfMeasurement[i][length], "YYYY-MM-DDTHH:mm:ssZZ");
+                        if (currentValue.isAfter(latestValue)) {
+                            latestValue = currentValue;
+                            latestMeasurement = json.measurements[i][length];
+                            latestPosition = {
+                                intake: i,
+                                measurement: length
+                            }
+                        }
+                        latestMeasurementIntakes[i] = json.measurements[i][length];
+                    }
+
+                    // Find Highest value
+                    intakes = json.measurements.length;
+                    maxMeasurement = 0;
+                    maxMeasurementIntakes = [];
+                    let html = [];
+
+                    for (let i = 0; i < intakes; i++) {
+                        maxMeasurementIntakes[i] = 0;
+                        let length = json.measurements[i].length;
+                        for (let u = 0; u < length; u++) {
+                            currentValue = json.measurements[i][u];
+                            if (!(latestPosition.intake === i && latestPosition.measurement === u) && currentValue > maxMeasurement) {
+                                maxMeasurement = currentValue;
+                            }
+                            if (currentValue > maxMeasurementIntakes[i]) {
+                                maxMeasurementIntakes[i] = currentValue;
+                            }
+                        }
+                    }
+
+                    for (let i = 0; i < intakes; i++) {
+                        html.push(`
+                           <b style="color: rgb(16, 174, 140)">Intag: ${i + 1}</b><br>
+                           Max: ${maxMeasurementIntakes[i]}<br>
+                           Seneste: ${latestMeasurementIntakes[i]}<br>
+                       `)
+                    }
+
+                    layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
+                    <b style="color: rgb(16, 174, 140)">${names[chemicalId]} (${unit})</b><br>${html.join('<br>')}`);
+
+                    if (chem === "_watlevmsl") {
+                        maxColor = maxMeasurement === 0 ? white : "#00aaff";
+                        latestColor = "#00aaff";
+                    } else {
+                        maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= limits[chem][0] ? green : maxMeasurement > limits[chem][0] && maxMeasurement <= limits[chem][1] ? yellow : red;
+                        latestColor = latestMeasurement <= limits[chem][0] ? green : latestMeasurement > limits[chem][0] && latestMeasurement <= limits[chem][1] ? yellow : red;
+                    }
+
+                    iconSize = [30, 30];
+                    iconAnchor = [15, 15];
+                    layer.setZIndexOffset(10000);
+                } else {
+                    maxColor = latestColor = "#cccccc";
+                    iconSize = [20, 20];
+                    iconAnchor = [10, 10];
+                    layer.setZIndexOffset(1);
+                }
+
+                var svg = `<svg
+                   xmlns:dc="http://purl.org/dc/elements/1.1/"
+                   xmlns:cc="http://creativecommons.org/ns#"
+                   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                   xmlns:svg="http://www.w3.org/2000/svg"
+                   xmlns="http://www.w3.org/2000/svg"
+                   id="svg8"
+                   version="1.1"
+                   viewBox="0 0 84.688354 84.688354"
+                   height="84.688354"
+                   width="84.688354">
+                   <defs
+                       id="defs2" />
+                   <g
+                       transform="translate(-61.786713,-90.408127)"
+                       id="layer1">
+                       <path
+                       style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${maxColor};stroke-width:0.26458332"
+                       d="m 104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.671133,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.671133,-21.172093 l 0,42.344173 z"
+                       id="path3729" />
+                       <path
+                       transform="scale(-1,1)"
+                       style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${latestColor};stroke-width:0.26458332"
+                       d="m -104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.67113,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.67113,-21.172093 l 0,42.344173 z"
+                       id="path3729-3" />
+                   </g>
+                </svg>`;
+
+                let iconUrl = 'data:image/svg+xml;base64,' + btoa(svg);
+                let icon = L.icon({
+                    iconUrl: iconUrl,
+                    iconSize: iconSize,
+                    iconAnchor: iconAnchor,
+                    popupAnchor: iconAnchor,
+                });
+
+                layer.setIcon(icon);
+            });
+        };
+
+        layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", fn, "watsonc");
+
+        console.log(`### layerToEnable`, layerToEnable);
+        if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[2]) > -1 || layerToEnable === LAYER_NAMES[0]) layerTree.reloadLayer(LAYER_NAMES[0]);
+        if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[2]) > -1 || layerToEnable === LAYER_NAMES[2]) layerTree.reloadLayer(LAYER_NAMES[2]);
+    },
+
     /**
      * Applies externally provided state
      */
     applyState: (newState) => {
+
+        console.log(`### applyState`, newState);
+
         return new Promise((resolve, reject) => {
             let showPlotsPanel = false;
             if (newState && `plots` in newState && newState.plots.length > 0) {
@@ -872,12 +841,7 @@ module.exports = module.exports = {
 
                 backboneEvents.get().once("allDoneLoading:layers", e => {
                     setTimeout(() => {
-                        $(`[data-chem="${newState.selectedChemical}"]`).prop('checked', false);
-                        $(`[data-chem="${newState.selectedChemical}"]`).trigger(`click`);
-                        if ($(`[data-chem="${newState.selectedChemical}"]`).closest(`.panel-layertree`).find(`.list-group`).height() === 0) {
-                            $(`[data-chem="${newState.selectedChemical}"]`).closest(`.panel-layertree`).find(`.accordion-toggle`).trigger(`click`);
-                        }
-
+                        _self.enableChemical(newState.selectedChemical);
                         resolve();
                     }, 1000);
                 });

@@ -218,28 +218,6 @@ class ModalComponent extends React.Component {
                 <div className="measurements-modal_right-column measurements-modal_scrollable">{plotsControls}</div>
             </div>
         </div>);
-
-
-        /*
-        return (<div>
-            <div className="container-fluid">
-                <div className="row">
-                    <div className="col-sm-6">
-                        <div>
-
-                        </div>
-                        <div>{propertiesControls}</div>
-                    </div>
-                    <div className="col-sm-6">
-                        <div>
-
-                        </div>
-                        <div></div>
-                    </div>
-                </div>
-            </div>
-        </div>);
-        */
     }
 }
 
