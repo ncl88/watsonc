@@ -55,11 +55,7 @@ class IntroModal extends React.Component {
     }
 
     render() {
-
-        console.log(`### state`, this.state);
-
         let layerGroupsList = false;
-
         if (this.state.mode === MODE_NEW) {
             layerGroupsList = [];
             for (let layerName in this.state.categories) {
@@ -75,6 +71,7 @@ class IntroModal extends React.Component {
                                             <input
                                                 name="chem_modal"
                                                 type="radio"
+                                                checked={this.state.selectedChemical === key2}
                                                 onChange={() => { this.setState({ selectedChemical: key2 })}}/> <span className="js-chemical-name">{this.state.categories[layerName][key][key2]}</span>
                                         </label>
                                     </div>

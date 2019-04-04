@@ -421,21 +421,7 @@ module.exports = module.exports = {
      */
     openMenuModal: () => {
         const onApplyHandler = (parameters) => {
-            let numberOfLoadedLayers = 0;
-            let numberOfShouldLoadLayers = parameters.layers.length;
-            parameters.layers.map(layerNameToEnable => {
-                switchLayer.init(layerNameToEnable, true, true, false);
-                backboneEvents.get().on(`doneLoading:layers`, e => {
-                    if (parameters.layers.indexOf(e) > -1) {
-                        numberOfLoadedLayers++;
-                        if (parameters.chemical && numberOfLoadedLayers === numberOfShouldLoadLayers) {
-                            setTimeout(() => {
-                                _self.enableChemical(parameters.chemical);
-                            }, 1000);
-                        }
-                    }
-                });
-            });
+            _self.enableChemical(parameters.chemical, parameters.layers);
         };
 
         const onCloseHandler = () => {
@@ -654,16 +640,15 @@ module.exports = module.exports = {
         };
     },
 
-    enableChemical(chemicalId) {
+    enableChemical(chemicalId, layersToEnable = []) {
         if (!chemicalId) throw new Error(`Chemical identifier was not provided`);
 
-        let layerToEnable = false;
         if (categoriesOverall) {
             for (let layerName in categoriesOverall) {
                 for (let key in categoriesOverall[layerName]) {
                     for (let key2 in categoriesOverall[layerName][key]) {
                         if (key2.toString() === chemicalId.toString()) {
-                            layerToEnable = layerName;
+                            if (layersToEnable.indexOf(layerName) === -1) layersToEnable.push(layerName);
                             _self.buildBreadcrumbs(key, categoriesOverall[layerName][key][key2], layerName === LAYER_NAMES[2]);
                             break;
                         }
@@ -813,9 +798,9 @@ module.exports = module.exports = {
 
         layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", fn, "watsonc");
 
-        console.log(`### layerToEnable`, layerToEnable);
-        if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[2]) > -1 || layerToEnable === LAYER_NAMES[0]) layerTree.reloadLayer(LAYER_NAMES[0]);
-        if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[2]) > -1 || layerToEnable === LAYER_NAMES[2]) layerTree.reloadLayer(LAYER_NAMES[2]);
+        layersToEnable.map(layerName => {
+            layerTree.reloadLayer(layerName);
+        });
     },
 
     /**
