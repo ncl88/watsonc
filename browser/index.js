@@ -15,6 +15,10 @@ const MODULE_NAME = `watsonc`;
 const CONTAINER_ID = 'watsonc-features-dialog';
 const FORM_CONTAINER_ID = 'watsonc-features-dialog-form';
 
+
+
+//watsonc-plots-dialog
+
 /**
  *
  * @type {*|exports|module.exports}
@@ -421,7 +425,13 @@ module.exports = module.exports = {
      */
     openMenuModal: () => {
         const onApplyHandler = (parameters) => {
-            _self.enableChemical(parameters.chemical, parameters.layers);
+            if (parameters.chemical) {
+                _self.enableChemical(parameters.chemical, parameters.layers);
+            } else {
+                parameters.layers.map(layerName => {
+                    layerTree.reloadLayer(layerName);
+                });
+            }
         };
 
         const onCloseHandler = () => {
