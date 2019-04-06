@@ -94,10 +94,10 @@ class MenuPanelPlotComponent extends React.Component {
                 width: 520,
                 height: 420,
                 margin: {
-                    l: 50,
-                    r: 10,
+                    l: 5,
+                    r: 5,
                     b: 40,
-                    t: 50,
+                    t: 5,
                     pad: 4
                 },
                 showlegend: false,
@@ -108,7 +108,8 @@ class MenuPanelPlotComponent extends React.Component {
                 },
                 yaxis: {
                     autorange: true
-                }
+                },
+                autosize: true
             };
 
             plot = (<div style={{ paddingBottom: `20px` }}>

@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {SortableContainer, SortableElement, SortableHandle} from 'react-sortable-hoc';
 
 import MenuPlotComponent from './MenuPlotComponent';
 import { isNumber } from 'util';
@@ -182,7 +183,7 @@ class PlotsGridComponent extends React.Component {
 
         let localPlotsControls = [];
         this.state.plots.map((plot, index) => {
-            localPlotsControls.push(<li key={`borehole_plot_${index}`} className="list-group-item">
+            localPlotsControls.push(<li key={`borehole_plot_${index}`} className="list-group-item col-sm-12 col-md-6">
                 <div>
                     <MenuPlotComponent
                         onDelete={(id) => { this.handleDeletePlot(id)}}
@@ -192,7 +193,7 @@ class PlotsGridComponent extends React.Component {
         });
 
         if (localPlotsControls.length > 0) {
-            plotsControls = (<ul className="list-group">{localPlotsControls}</ul>);
+            plotsControls = (<ul className="list-group row">{localPlotsControls}</ul>);
         }
 
         return (<div>{plotsControls}</div>);

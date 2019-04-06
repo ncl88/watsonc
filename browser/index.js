@@ -256,8 +256,8 @@ module.exports = module.exports = {
                         $("#" + FEATURE_CONTAINER_ID).animate({
                             bottom: "0"
                         }, 500, function () {
-                            $(".expand-less").show();
-                            $(".expand-more").hide();
+                            $("#" + FEATURE_CONTAINER_ID).find(".expand-less").show();
+                            $("#" + FEATURE_CONTAINER_ID).find(".expand-more").hide();
                         });
 
                         let titleAsLink = false;
@@ -303,10 +303,7 @@ module.exports = module.exports = {
                 });
 
                 // Activating specific layers if they have not been activated before
-                //LAYER_NAMES.map(layerNameToEnable => {
-
-                // Activating only raster layer, vector ones should be activated via state snapshot or via modal
-                [LAYER_NAMES[1], LAYER_NAMES[3]].map(layerNameToEnable => {
+                LAYER_NAMES.map(layerNameToEnable => {
                     if (activeLayers.indexOf(layerNameToEnable) === -1) {
                         switchLayer.init(layerNameToEnable, true, true, false);
                     }
@@ -509,6 +506,11 @@ module.exports = module.exports = {
      */
     openMenuModal: () => {
         const onApplyHandler = (parameters) => {
+            // Disabling vector layers
+            [LAYER_NAMES[0], LAYER_NAMES[2]].map(layerNameToEnable => {
+                switchLayer.init(layerNameToEnable, false);
+            });
+
             if (parameters.chemical) {
                 _self.enableChemical(parameters.chemical, parameters.layers);
             } else {
