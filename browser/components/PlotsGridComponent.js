@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 import MenuPlotComponent from './MenuPlotComponent';
 import { isNumber } from 'util';
 
@@ -10,7 +9,7 @@ const uuidv4 = require('uuid/v4');
 /**
  * Component creates plots management form and is the source of truth for plots overall
  */
-class MenuPanelComponent extends React.Component {
+class PlotsGridComponent extends React.Component {
     constructor(props) {
         super(props);
 
@@ -96,27 +95,6 @@ class MenuPanelComponent extends React.Component {
             if (correspondingPlot.measurements.indexOf(measurementIndex) === -1) {
                 let measurementData = this.getFeatureByGidFromDataSource(gid);
                 if (measurementData) {
-
-                    /*
-                    // @todo Remove, deleting last 100 records for every intake for test purposes
-                    console.log(`### measurementData 1`, measurementData.properties.watlevmsl.length);
-                    let parsedWaterLevel = JSON.parse(measurementData.properties.watlevmsl);
-
-                    console.log(`### parsedWaterLevel 0 start`, parsedWaterLevel.timeOfMeasurement[0][parsedWaterLevel.timeOfMeasurement[0].length - 1]);
-                    console.log(`### parsedWaterLevel 1 start`, parsedWaterLevel.timeOfMeasurement[1][parsedWaterLevel.timeOfMeasurement[1].length - 1]);
-
-                    parsedWaterLevel.measurements[0].splice(-200, 200);
-                    parsedWaterLevel.measurements[1].splice(-200, 200);
-                    parsedWaterLevel.timeOfMeasurement[0].splice(-200, 200);
-                    parsedWaterLevel.timeOfMeasurement[1].splice(-200, 200);
-
-                    console.log(`### parsedWaterLevel 0 end`, parsedWaterLevel.timeOfMeasurement[0][parsedWaterLevel.timeOfMeasurement[0].length - 1]);
-                    console.log(`### parsedWaterLevel 1 end`, parsedWaterLevel.timeOfMeasurement[1][parsedWaterLevel.timeOfMeasurement[1].length - 1]);
-
-                    measurementData.properties.watlevmsl = JSON.stringify(parsedWaterLevel);
-                    console.log(`### measurementData 2`, measurementData.properties.watlevmsl.length);
-                    */
-
                     var currentTime = new Date();
                     correspondingPlot.measurements.push(measurementIndex);
                     correspondingPlot.measurementsCachedData[measurementIndex] = {
@@ -217,21 +195,13 @@ class MenuPanelComponent extends React.Component {
             plotsControls = (<ul className="list-group">{localPlotsControls}</ul>);
         }
 
-        return (<div>
-            <div>
-                <h4>
-                    <span style={{ color: `rgb(16, 174, 140)`, fontWeight: `bold` }}>{__(`Time series`)}</span>
-                    <TitleFieldComponent saveButtonText={__(`Save`)} onAdd={(title) => { this.handleCreatePlot(title) }} type="userOwned"/>
-                </h4>
-            </div>
-            <div>{plotsControls}</div>
-        </div>);
+        return (<div>{plotsControls}</div>);
     }
 }
 
-MenuPanelComponent.propTypes = {
+PlotsGridComponent.propTypes = {
     initialPlots: PropTypes.array.isRequired,
     onPlotsChange: PropTypes.func.isRequired,
 };
 
-export default MenuPanelComponent;
+export default PlotsGridComponent;

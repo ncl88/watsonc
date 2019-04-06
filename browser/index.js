@@ -1,23 +1,25 @@
 'use strict';
 
 import ModalComponent from './components/ModalComponent';
-import MenuComponent from './components/MenuComponent';
+import PlotsGridComponent from './components/PlotsGridComponent';
 import IntroModal from './components/IntroModal';
-
+import TitleFieldComponent from './../../../browser/modules/shared/TitleFieldComponent';
 
 import moment from 'moment';
 
 const MODULE_NAME = `watsonc`;
 
 /**
- * The boring hole dialog
+ * The feature dialog constants
  */
-const CONTAINER_ID = 'watsonc-features-dialog';
-const FORM_CONTAINER_ID = 'watsonc-features-dialog-form';
+const FEATURE_CONTAINER_ID = 'watsonc-features-dialog';
+const FORM_FEATURE_CONTAINER_ID = 'watsonc-features-dialog-form';
 
-
-
-//watsonc-plots-dialog
+/**
+ * The plots dialog constants
+ */
+const PLOTS_CONTAINER_ID = 'watsonc-plots-dialog';
+const FORM_PLOTS_CONTAINER_ID = 'watsonc-plots-dialog-form';
 
 /**
  *
@@ -69,7 +71,7 @@ const STYLES = {
         xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" id="svg8" version="1.1" viewBox="0 0 40 40" height="40" width="40">CONTENT</svg>`
 };
 
-let menuComponentInstance = false, modalComponentInstance = false, infoModalInstance = false;
+let plotsGridComponentInstance = false, modalComponentInstance = false, infoModalInstance = false;
 
 let lastSelectedChemical = false, categoriesOverall = false;
 
@@ -216,35 +218,33 @@ module.exports = module.exports = {
             error: function () {}
         });
 
-        utils.createMainTab(exId, __("Time series"), __("Info"), require('./../../../browser/modules/height')().max, "insert_chart");
-
         backboneEvents.get().on("doneLoading:layers", e => {
             if (e === LAYER_NAMES[0]) {
                 dataSource = [];
                 boreholesDataSource = layers.getMapLayers(false, LAYER_NAMES[0])[0].toGeoJSON().features;
                 dataSource = dataSource.concat(waterLevelDataSource);
                 dataSource = dataSource.concat(boreholesDataSource);
-                if (menuComponentInstance) {
-                    menuComponentInstance.setDataSource(dataSource);
+                if (plotsGridComponentInstance) {
+                    plotsGridComponentInstance.setDataSource(dataSource);
                 }
             } else if (e === LAYER_NAMES[2]) {
                 dataSource = [];
                 waterLevelDataSource = layers.getMapLayers(false, LAYER_NAMES[2])[0].toGeoJSON().features;
                 dataSource = dataSource.concat(waterLevelDataSource);
                 dataSource = dataSource.concat(boreholesDataSource);
-                if (menuComponentInstance) {
-                    menuComponentInstance.setDataSource(dataSource);
+                if (plotsGridComponentInstance) {
+                    plotsGridComponentInstance.setDataSource(dataSource);
                 }
             }
         });
 
         backboneEvents.get().on(`doneLoading:layers`, e => {
             if ([LAYER_NAMES[0], LAYER_NAMES[2]].indexOf(e) > -1) {
-                if (menuComponentInstance) {
-                    let plots = menuComponentInstance.getPlots();
+                if (plotsGridComponentInstance) {
+                    let plots = plotsGridComponentInstance.getPlots();
                     plots = _self.syncPlotData(plots, e);
                     _self.setStyleForParticipatingMeasurements(plots);
-                    menuComponentInstance.setPlots(plots);
+                    plotsGridComponentInstance.setPlots(plots);
                 }
             }
         });
@@ -253,7 +253,7 @@ module.exports = module.exports = {
             LAYER_NAMES.map(layerName => {
                 layerTree.setOnEachFeature(layerName, (feature, layer) => {
                     layer.on("click", function (e) {
-                        $("#" + CONTAINER_ID).animate({
+                        $("#" + FEATURE_CONTAINER_ID).animate({
                             bottom: "0"
                         }, 500, function () {
                             $(".expand-less").show();
@@ -266,7 +266,7 @@ module.exports = module.exports = {
                         }
 
                         _self.createModal(feature, false, titleAsLink);
-                        if (!menuComponentInstance) {
+                        if (!plotsGridComponentInstance) {
                             throw new Error(`Unable to find the component instance`);
                         }
                     });
@@ -313,14 +313,14 @@ module.exports = module.exports = {
                 });
             });
 
-            if (document.getElementById(exId)) {
+            if (document.getElementById(FORM_PLOTS_CONTAINER_ID)) {
                 let initialPlots = [];
                 if (applicationState && `modules` in applicationState && MODULE_NAME in applicationState.modules && `plots` in applicationState.modules[MODULE_NAME]) {
                     initialPlots = applicationState.modules[MODULE_NAME].plots;
                 }
-
+                
                 try {
-                    menuComponentInstance = ReactDOM.render(<MenuComponent
+                    plotsGridComponentInstance = ReactDOM.render(<PlotsGridComponent
                         initialPlots={initialPlots}
                         onPlotsChange={(plots = false) => {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
@@ -328,46 +328,130 @@ module.exports = module.exports = {
                             if (plots) {
                                 _self.setStyleForParticipatingMeasurements(plots);
 
-                                // Plots were updated from the MenuComponent component
+                                // Plots were updated from the PlotsGridComponent component
                                 if (modalComponentInstance) {
                                     _self.createModal(false, plots);
                                 }
                             }
-                        }}/>, document.getElementById(exId));
+                        }}/>, document.getElementById(FORM_PLOTS_CONTAINER_ID));
                 } catch (e) {
                     console.log(e);
                 }
+                
             } else {
-                console.warn(`Unable to find the container for watsonc extension (element id: ${exId})`);
+                console.warn(`Unable to find the container for watsonc extension (element id: ${FORM_PLOTS_CONTAINER_ID})`);
             }
         });
-    
-        $(`#` + CONTAINER_ID).find(".expand-less").on("click", function () {
-            $("#" + CONTAINER_ID).animate({
-                bottom: (($("#" + CONTAINER_ID).height() * -1) + 30) + "px"
+
+        // Setting up feature dialog
+        $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").on("click", function () {
+            $("#" + FEATURE_CONTAINER_ID).animate({
+                bottom: (($("#" + FEATURE_CONTAINER_ID).height() * -1) + 30) + "px"
             }, 500, function () {
-                $(`#` + CONTAINER_ID).find(".expand-less").hide();
-                $(`#` + CONTAINER_ID).find(".expand-more").show();
+                $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").hide();
+                $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").show();
             });
         });
 
-        $(`#` + CONTAINER_ID).find(".expand-more").on("click", function () {
-            $("#" + CONTAINER_ID).animate({
+        $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").on("click", function () {
+            $("#" + FEATURE_CONTAINER_ID).animate({
                 bottom: "0"
             }, 500, function () {
-                $(`#` + CONTAINER_ID).find(".expand-less").show();
-                $(`#` + CONTAINER_ID).find(".expand-more").hide();
+                $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").show();
+                $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").hide();
             });
         });
 
-        $(`#` + CONTAINER_ID).find(".close-hide").on("click", function () {
-            $("#" + CONTAINER_ID).animate({
+        $(`#` + FEATURE_CONTAINER_ID).find(".close-hide").on("click", function () {
+            $("#" + FEATURE_CONTAINER_ID).animate({
                 bottom: "-100%"
             }, 500, function () {
-                $(`#` + CONTAINER_ID).find(".expand-less").show();
-                $(`#` + CONTAINER_ID).find(".expand-more").hide();
+                $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").show();
+                $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").hide();
             });
         });
+
+        // Setting up plots dialog
+        let plotsId = `#` + PLOTS_CONTAINER_ID;
+        let modalHeaderHeight = 70;
+        $(plotsId).find(".expand-less").on("click", function () {
+            console.log(`### clicked less`);
+
+            $(plotsId).find(".expand-less").hide();
+            $(plotsId).find(".expand-half").show();
+            $(plotsId).find(".expand-more").show();
+
+            $(plotsId).animate({
+                top: ($(document).height() - modalHeaderHeight) + 'px'
+            }, 500, function () {
+                $(plotsId).find('.modal-body').css(`max-height`, );
+            });
+        });
+
+        $(plotsId).find(".expand-half").on("click", function () {
+            console.log(`### clicked half`);
+            
+            $(plotsId).find(".expand-less").show();
+            $(plotsId).find(".expand-half").hide();
+            $(plotsId).find(".expand-more").show();
+
+            $(plotsId).animate({
+                top: "60%"
+            }, 500, function () {
+                $(plotsId).find('.modal-body').css(`max-height`, ($(document).height() * 0.4 - modalHeaderHeight - 10) + 'px');
+            });
+        });
+
+        $(plotsId).find(".expand-more").on("click", function () {
+            console.log(`### clicked more`);
+
+            $(plotsId).find(".expand-less").show();
+            $(plotsId).find(".expand-half").show();
+            $(plotsId).find(".expand-more").hide();
+
+            $(plotsId).animate({
+                top: "20%"
+            }, 500, function () {
+                $(plotsId).find('.modal-body').css(`max-height`, ($(document).height() * 0.8 - modalHeaderHeight - 10) + 'px');
+            });
+        });
+
+        $(plotsId).attr(`style`, `
+            margin-bottom: 0px;
+            width: 80%;
+            max-width: 80%;
+            right: 10%;
+            left: 10%;
+            bottom: 0px;
+        `);
+
+        /*
+        $(`#watsonc-plots-dialog-controls`).attr(`style`, `
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            padding: 20px;
+            width: 150px;
+        `);
+        */
+
+        try {
+            $(`#watsonc-plots-dialog-title-input`).css(`display`, `inline`);
+            plotsGridComponentInstance = ReactDOM.render(<TitleFieldComponent
+                saveButtonText={__(`Save`)}
+                layout="dense"
+                onAdd={(title) => {
+                    if (plotsGridComponentInstance) {
+                        plotsGridComponentInstance.handleCreatePlot(title);
+                    }
+                }} type="userOwned"/>, document.getElementById(`watsonc-plots-dialog-title-input`));
+        } catch (e) {
+            console.log(e);
+        }
+
+        $(plotsId).find(`.expand-less`).trigger(`click`);
+        $(plotsId).find(`.js-modal-title-text`).text(__(`Time series`));
+        $(`#search-border`).trigger(`click`);
     },
 
     buildBreadcrumbs(secondLevel = false, thirdLevel = false, isWaterLevel = false) {
@@ -526,35 +610,35 @@ module.exports = module.exports = {
             lastFeature = feature;
             if (titleAsLink) {
                 let link = `http://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${encodeURIComponent(feature.properties.boreholeno)}`
-                $("#" + CONTAINER_ID).find(`.modal-title`).html(`<a href="${link}" target="_blank" title="${feature.properties.boreholeno} @ data.geus.dk">${feature.properties.boreholeno}</a>`);
+                $("#" + FEATURE_CONTAINER_ID).find(`.modal-title`).html(`<a href="${link}" target="_blank" title="${feature.properties.boreholeno} @ data.geus.dk">${feature.properties.boreholeno}</a>`);
             } else {
-                $("#" + CONTAINER_ID).find(`.modal-title`).html(`${feature.properties.boreholeno}`);
+                $("#" + FEATURE_CONTAINER_ID).find(`.modal-title`).html(`${feature.properties.boreholeno}`);
             }
 
-            if (document.getElementById(FORM_CONTAINER_ID)) {
+            if (document.getElementById(FORM_FEATURE_CONTAINER_ID)) {
                 try {
-                    let existingPlots = (plots ? plots : menuComponentInstance.getPlots());
+                    let existingPlots = (plots ? plots : plotsGridComponentInstance.getPlots());
                     _self.setStyleForParticipatingMeasurements(existingPlots);
                     setTimeout(() => {
-                        ReactDOM.unmountComponentAtNode(document.getElementById(FORM_CONTAINER_ID));
+                        ReactDOM.unmountComponentAtNode(document.getElementById(FORM_FEATURE_CONTAINER_ID));
                         modalComponentInstance = ReactDOM.render(<ModalComponent
                             feature={feature}
                             categories={categories}
                             dataSource={dataSource}
                             initialPlots={(existingPlots ? existingPlots : [])}
                             onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
-                                menuComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
+                                plotsGridComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
                             }}
                             onDeleteMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
-                                menuComponentInstance.deleteMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
+                                plotsGridComponentInstance.deleteMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
                             }}
-                            onPlotAdd={((newPlotTitle) => { menuComponentInstance.addPlot(newPlotTitle); })}/>, document.getElementById(FORM_CONTAINER_ID));
+                            onPlotAdd={((newPlotTitle) => { plotsGridComponentInstance.addPlot(newPlotTitle); })}/>, document.getElementById(FORM_FEATURE_CONTAINER_ID));
                     }, 100);
                 } catch (e) {
                     console.log(e);
                 }
             } else {
-                console.warn(`Unable to find the container for borehole component (element id: ${FORM_CONTAINER_ID})`);
+                console.warn(`Unable to find the container for borehole component (element id: ${FORM_FEATURE_CONTAINER_ID})`);
             }
         }
     },
@@ -817,13 +901,10 @@ module.exports = module.exports = {
      * Applies externally provided state
      */
     applyState: (newState) => {
-
-        console.log(`### applyState`, newState);
-
         return new Promise((resolve, reject) => {
             let showPlotsPanel = false;
             if (newState && `plots` in newState && newState.plots.length > 0) {
-                menuComponentInstance.setPlots(newState.plots);
+                plotsGridComponentInstance.setPlots(newState.plots);
                 showPlotsPanel = true;
             }
 
@@ -852,8 +933,8 @@ module.exports = module.exports = {
     },
 
     getExistingPlots: () => {
-        if (menuComponentInstance) {
-            return menuComponentInstance.getPlots();
+        if (plotsGridComponentInstance) {
+            return plotsGridComponentInstance.getPlots();
         } else {
             throw new Error(`Unable to find the component instance`);
         }
