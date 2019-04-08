@@ -1,12 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import PlotManager from './../PlotManager';
 import SortablePlotComponent from './SortablePlotComponent';
 import SortablePlotsGridComponent from './SortablePlotsGridComponent';
 import { isNumber } from 'util';
 import arrayMove from 'array-move';
-
-const uuidv4 = require('uuid/v4');
 
 /**
  * Component creates plots management form and is the source of truth for plots overall
@@ -21,6 +20,7 @@ class PlotsGridComponent extends React.Component {
             dataSource: []
         };
 
+        this.plotManager = new PlotManager();
         this.handleCreatePlot = this.handleCreatePlot.bind(this);
         this.handleDeletePlot = this.handleDeletePlot.bind(this);
         this.getFeatureByGidFromDataSource = this.getFeatureByGidFromDataSource.bind(this);
@@ -43,35 +43,37 @@ class PlotsGridComponent extends React.Component {
     }
 
     handleCreatePlot(title) {
-        let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
-        plotsCopy.push({
-            id: uuidv4(),
-            title,
-            measurements: [],
-            measurementsCachedData: {}
+        this.plotManager.create(title).then(newPlot => {
+            let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
+            plotsCopy.push(newPlot);
+            this.setState({ plots: plotsCopy });
+            this.props.onPlotsChange(plotsCopy);
+        }).catch(error => {
+            console.error(`Error occured while creating plot (${error})`)
         });
-
-        this.setState({ plots: plotsCopy });
-        this.props.onPlotsChange(plotsCopy);
     }
 
     handleDeletePlot(id) {
-        let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
-        let plotWasDeleted = false;
-        plotsCopy.map((plot, index) => {
-            if (plot.id === id) {
-                plotsCopy.splice(index, 1);
-                plotWasDeleted = true;
-                return false;
+        this.plotManager.delete(id).then(() => {
+            let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
+            let plotWasDeleted = false;
+            plotsCopy.map((plot, index) => {
+                if (plot.id === id) {
+                    plotsCopy.splice(index, 1);
+                    plotWasDeleted = true;
+                    return false;
+                }
+            });
+    
+            if (plotWasDeleted === false) {
+                console.warn(`Plot ${id} was deleted only from backend storage`);
             }
+    
+            this.setState({ plots: plotsCopy });
+            this.props.onPlotsChange(plotsCopy);
+        }).catch(error => {
+            console.error(`Error occured while creating plot (${error})`)
         });
-
-        if (plotWasDeleted === false) {
-            throw new Error(`Unable to delete plot with id ${id}`);
-        }
-
-        this.setState({ plots: plotsCopy });
-        this.props.onPlotsChange(plotsCopy);
     }
 
     handleNewPlotNameChange(event) {
@@ -198,7 +200,7 @@ class PlotsGridComponent extends React.Component {
         });
 
         if (localPlotsControls.length > 0) {
-            plotsControls = (<SortablePlotsGridComponent axis="xy" onSortEnd={this.handlePlotSort}>{localPlotsControls}</SortablePlotsGridComponent>);
+            plotsControls = (<SortablePlotsGridComponent axis="xy" onSortEnd={this.handlePlotSort} useDragHandle>{localPlotsControls}</SortablePlotsGridComponent>);
         }
 
         return (<div>{plotsControls}</div>);

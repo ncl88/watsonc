@@ -49,8 +49,6 @@ var React = require('react');
 
 var ReactDOM = require('react-dom');
 
-let exId = "watsonc";
-
 const LAYER_NAMES = [
     `v:chemicals.boreholes_time_series_with_chemicals`,
     `chemicals.boreholes_time_series_without_chemicals`,
@@ -71,7 +69,7 @@ const STYLES = {
         xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" id="svg8" version="1.1" viewBox="0 0 40 40" height="40" width="40">CONTENT</svg>`
 };
 
-let plotsGridComponentInstance = false, modalComponentInstance = false, infoModalInstance = false;
+let plotsGridComponentInstance = false, modalComponentInstance = false, infoModalInstance = false, titleFieldComponentInstance = false;
 
 let lastSelectedChemical = false, categoriesOverall = false;
 
@@ -433,7 +431,7 @@ module.exports = module.exports = {
 
         try {
             $(`#watsonc-plots-dialog-title-input`).css(`display`, `inline`);
-            plotsGridComponentInstance = ReactDOM.render(<TitleFieldComponent
+            titleFieldComponentInstance = ReactDOM.render(<TitleFieldComponent
                 saveButtonText={__(`Save`)}
                 layout="dense"
                 onAdd={(title) => {

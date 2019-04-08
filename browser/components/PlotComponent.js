@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import Plot from 'react-plotly.js';
 
+import SortableHandleComponent from './SortableHandleComponent';
+
 /**
  * Creates single plot with multiple measurements displayed on it
  */
@@ -122,8 +124,13 @@ class MenuPanelPlotComponent extends React.Component {
 
         return (<div>
             <div>
-                <h5>{this.props.plotMeta.title}  <a href="javascript:void(0)" title={__(`Delete`) + ` ` + this.props.plotMeta.title} onClick={() => { this.props.onDelete(this.props.plotMeta.id)}}>
-                        <i className="fa fa-remove"></i>
+                <h5>{this.props.plotMeta.title}  <SortableHandleComponent title={this.props.plotMeta.title}/> <a
+                        className="btn"
+                        href="javascript:void(0)"
+                        title={__(`Delete`) + ` ` + this.props.plotMeta.title}
+                        onClick={() => { this.props.onDelete(this.props.plotMeta.id)}}
+                        style={{padding: `0px`}}>
+                        <i className="fa fa-remove"></i> {__(`Delete`)}
                     </a>
                 </h5>
             </div>
