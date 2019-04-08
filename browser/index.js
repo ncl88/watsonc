@@ -128,6 +128,8 @@ module.exports = module.exports = {
 
         backboneEvents.get().on(`startLoading:layers`, layerKey => {
             if (cloud.get().getZoom() < 15 && layerKey === "v:chemicals.boreholes_time_series_with_chemicals") {
+                
+                console.log(`### 1`);
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
                 switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
 
@@ -140,8 +142,11 @@ module.exports = module.exports = {
 
         cloud.get().on(`moveend`, () => {
             if (cloud.get().getZoom() < 15) {
+
+                console.log(`### 2`);
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
                 switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
+
                 jquery.snackbar({
                     id: "snackbar-watsonc",
                     content: "<span id='conflict-progress'>" + __("Zoom tættere på for at aktivere data-funktionerne.") + "</span>",
@@ -303,7 +308,7 @@ module.exports = module.exports = {
                 });
 
                 // Activating specific layers if they have not been activated before
-                LAYER_NAMES.map(layerNameToEnable => {
+                [LAYER_NAMES[1], LAYER_NAMES[3]].map(layerNameToEnable => {
                     if (activeLayers.indexOf(layerNameToEnable) === -1) {
                         switchLayer.init(layerNameToEnable, true, true, false);
                     }
@@ -372,8 +377,6 @@ module.exports = module.exports = {
         let plotsId = `#` + PLOTS_CONTAINER_ID;
         let modalHeaderHeight = 70;
         $(plotsId).find(".expand-less").on("click", function () {
-            console.log(`### clicked less`);
-
             $(plotsId).find(".expand-less").hide();
             $(plotsId).find(".expand-half").show();
             $(plotsId).find(".expand-more").show();
@@ -386,8 +389,6 @@ module.exports = module.exports = {
         });
 
         $(plotsId).find(".expand-half").on("click", function () {
-            console.log(`### clicked half`);
-            
             $(plotsId).find(".expand-less").show();
             $(plotsId).find(".expand-half").hide();
             $(plotsId).find(".expand-more").show();
@@ -400,8 +401,6 @@ module.exports = module.exports = {
         });
 
         $(plotsId).find(".expand-more").on("click", function () {
-            console.log(`### clicked more`);
-
             $(plotsId).find(".expand-less").show();
             $(plotsId).find(".expand-half").show();
             $(plotsId).find(".expand-more").hide();
@@ -481,6 +480,7 @@ module.exports = module.exports = {
                 layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", false, "watsonc");
 
                 // Turning off current vector layers
+                console.log(`### 4`, LAYER_NAMES[0], LAYER_NAMES[2]);
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) > -1) switchLayer.init(LAYER_NAMES[0], false);
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[2]) > -1) switchLayer.init(LAYER_NAMES[2], false);
 

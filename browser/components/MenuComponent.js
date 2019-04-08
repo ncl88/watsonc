@@ -1,17 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import SortablePlotComponent from './SortablePlotComponent';
-import SortablePlotsGridComponent from './SortablePlotsGridComponent';
+import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
+import PlotComponent from './PlotComponent';
 import { isNumber } from 'util';
-import arrayMove from 'array-move';
 
 const uuidv4 = require('uuid/v4');
 
 /**
  * Component creates plots management form and is the source of truth for plots overall
  */
-class PlotsGridComponent extends React.Component {
+class MenuPanelComponent extends React.Component {
     constructor(props) {
         super(props);
 
@@ -25,7 +24,6 @@ class PlotsGridComponent extends React.Component {
         this.handleDeletePlot = this.handleDeletePlot.bind(this);
         this.getFeatureByGidFromDataSource = this.getFeatureByGidFromDataSource.bind(this);
         this.handleNewPlotNameChange = this.handleNewPlotNameChange.bind(this);
-        this.handlePlotSort = this.handlePlotSort.bind(this);
     }
 
     componentDidMount() {}
@@ -180,34 +178,31 @@ class PlotsGridComponent extends React.Component {
         this._modifyAxes(plotId, gid, measurementKey, measurementIntakeIndex, `delete`);
     }
 
-    handlePlotSort({oldIndex, newIndex}) {
-        this.setState(({plots}) => ({
-            plots: arrayMove(plots, oldIndex, newIndex)
-        }));
-    };
-
     render() {
         let plotsControls = (<p>{__(`No time series were created yet`)}</p>);
 
         let localPlotsControls = [];
         this.state.plots.map((plot, index) => {
-            localPlotsControls.push(<SortablePlotComponent
-                key={`borehole_plot_${index}`} index={index}
-                handleDeletePlot={this.handleDeletePlot}
-                meta={plot}/>);
+            localPlotsControls.push(<li key={`borehole_plot_${index}`} className="list-group-item">
+                <div>
+                    <PlotComponent
+                        onDelete={(id) => { this.handleDeletePlot(id)}}
+                        plotMeta={plot}/>
+                </div>
+            </li>);
         });
 
         if (localPlotsControls.length > 0) {
-            plotsControls = (<SortablePlotsGridComponent axis="xy" onSortEnd={this.handlePlotSort}>{localPlotsControls}</SortablePlotsGridComponent>);
+            plotsControls = (<ul className="list-group">{localPlotsControls}</ul>);
         }
 
         return (<div>{plotsControls}</div>);
     }
 }
 
-PlotsGridComponent.propTypes = {
+MenuPanelComponent.propTypes = {
     initialPlots: PropTypes.array.isRequired,
     onPlotsChange: PropTypes.func.isRequired,
 };
 
-export default PlotsGridComponent;
+export default MenuPanelComponent;
