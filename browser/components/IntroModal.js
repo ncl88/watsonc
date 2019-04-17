@@ -7,6 +7,7 @@ import SearchFieldComponent from './../../../../browser/modules/shared/SearchFie
 const MODE_INDEX = 0;
 const MODE_NEW = 1;
 const MODE_SELECT = 2;
+const MODE_REGISTER_NEW_DATA = 3;
 
 /**
  * Intro modal window content
@@ -108,38 +109,74 @@ class IntroModal extends React.Component {
             }
         }
 
-        return (<div className="modal-content" style={{minHeight: `400px`, minWidth: `1000px`, marginTop: `10%`}}>
-            <div className="modal-header">
-                <h4 className="modal-title">
-                    {this.state.mode === MODE_INDEX ? (<span>{__(`Get started`)}</span>) : false}
-                    {this.state.mode === MODE_NEW ? (<span>{__(`New project`)}</span>) : false}
-                    {this.state.mode === MODE_SELECT ? (<span>{__(`Open existing project`)}</span>) : false}
+        let modalBodyStyle = {
+            paddingLeft: `0px`,
+            paddingRight: `0px`,
+            paddingTop: `48px`,
+            paddingBottom: `0px`
+        };
 
-                    {this.state.mode === MODE_NEW || this.state.mode === MODE_SELECT ? (<button
-                        type="button"
-                        className="btn btn-primary btn-xs"
-                        onClick={() => { this.setState({mode: MODE_INDEX}) }}>
-                        <i className="fas fa-arrow-left"></i>   {__(`Back to main menu`)}
-                    </button>) : false}
+        let buttonColumnStyle = {
+            paddingTop: `50px`,
+            backgroundColor: `rgb(0, 150, 136)`,
+            height: `130px`,
+        };
+
+        let buttonStyle = {
+            color: `white`,
+            fontSize: `20px`,
+            fontWeight: `600`,
+            cursor: `pointer`
+        };
+
+        let leftColumnBorder = {borderRadius: `0px 0px 0px 40px`};
+        let rightColumnBorder = {borderRadius: `0px 0px 40px 0px`};
+        if (this.state.mode !== MODE_INDEX) {
+            modalBodyStyle.minHeight = `550px`;
+            leftColumnBorder = {};
+            rightColumnBorder = {};
+        }
+
+        let shadowStyle = {
+            boxShadow: `0 6px 8px 0 rgba(0, 0, 0, 0.5), 0 6px 20px 0 rgba(0, 0, 0, 0.19)`,
+            zIndex: 1000
+        };
+
+        return (<div className="modal-content" style={{minWidth: `1000px`, marginTop: `20%`, borderRadius: `40px`}}>
+            <div className="modal-header" style={{color: `#009688`, textAlign: `center`, paddingTop: `60px`}}>
+                <h4 className="modal-title" style={{fontSize: `34px`, textTransform: `uppercase`, fontWeight: `700`}}>
+                    <span>{__(`Welcome to Calypso`)}</span>
                 </h4>
             </div>
-            <div className="modal-body" style={{minHeight: `400px`}}>
-                {this.state.mode === MODE_INDEX ? (<div className="container">
+            <div className="modal-body" style={modalBodyStyle}>
+                <div className="container" style={{padding: `0px`}}>
                     <div className="row-fluid">
-                        <div className="col-md-6 text-center" style={{paddingTop: `70px`}}>
-                            <button type="button" className="btn btn-primary btn-lg" onClick={() => { this.setState({mode: MODE_NEW}) }}>
-                                <i className="fas fa-plus"></i>   {__(`New project`)}
-                            </button>
+                        <div className="col-md-4 text-center"
+                            style={Object.assign({}, buttonColumnStyle, leftColumnBorder, (this.state.mode === MODE_NEW ? shadowStyle : {}))}
+                            onClick={() => { this.setState({mode: MODE_NEW}) }}>
+                            <div style={buttonStyle}>
+                                {__(`New project`)}    {this.state.mode === MODE_NEW ? (<i class="fas fa-chevron-down"></i>) : (<i class="fas fa-chevron-right"></i>)}
+                            </div>
                         </div>
-                        <div className="col-md-6 text-center" style={{paddingTop: `70px`}}>
-                            <button type="button" className="btn btn-primary btn-lg" onClick={() => { this.setState({mode: MODE_SELECT}) }}>
-                                <i className="fas fa-folder-open"></i>   {__(`Open existing project`)}
-                            </button>
+                        <div className="col-md-4 text-center" style={Object.assign({}, buttonColumnStyle, {
+                            borderRight: `1px solid white`,
+                            borderLeft: `1px solid white`
+                        }, (this.state.mode === MODE_SELECT ? shadowStyle : {}))} onClick={() => { this.setState({mode: MODE_SELECT}) }}>
+                            <div style={buttonStyle}>
+                                {__(`Open existing project`)}    {this.state.mode === MODE_SELECT ? (<i class="fas fa-chevron-down"></i>) : (<i class="fas fa-chevron-right"></i>)}
+                            </div>
+                        </div>
+                        <div className="col-md-4 text-center"
+                            style={Object.assign({}, buttonColumnStyle, rightColumnBorder, (this.state.mode === MODE_REGISTER_NEW_DATA ? shadowStyle : {}))}
+                            onClick={() => { this.setState({mode: MODE_REGISTER_NEW_DATA}) }}>
+                            <div style={buttonStyle}>
+                                {__(`Register new data`)}    {this.state.mode === MODE_REGISTER_NEW_DATA ? (<i class="fas fa-chevron-down"></i>) : (<i class="fas fa-chevron-right"></i>)}
+                            </div>
                         </div>
                     </div>
-                </div>) : false}
+                </div>
 
-                {this.state.mode === MODE_NEW ? (<div className="container">
+                {this.state.mode === MODE_NEW ? (<div className="container" style={{paddingTop: `20px`}}>
                     <div className="row-fluid">
                         <div className="col-md-6">
                             <p>{__(`Please select at least one layer`)}</p>
@@ -165,16 +202,16 @@ class IntroModal extends React.Component {
                     </div>
                 </div>) : false}
 
-                {this.state.mode === MODE_SELECT ? (<div className="container">
+                {this.state.mode === MODE_SELECT ? (<div className="container" style={{paddingTop: `20px`}}>
                     <div className="row-fluid">
                         <div className="col-md-12">
-                            <StateSnapshotsDashboard readOnly={true} playOnly={true} {...this.props} onStateSnapshotApply={this.props.onClose}/>
+                            <StateSnapshotsDashboard readOnly={true} showStateSnapshotTypes={false} playOnly={true} {...this.props} onStateSnapshotApply={this.props.onClose}/>
                         </div>
                     </div>
                 </div>) : false}
             </div>
 
-            <div className="modal-footer">
+            <div className="modal-footer" style={{padding: `0px`}}>
                 {this.state.mode === MODE_NEW ? (<div className="container">
                     <div className="row-fluid">
                         <div className="col-md-12" style={{ textAlign: `right` }}>

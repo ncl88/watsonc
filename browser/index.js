@@ -168,7 +168,6 @@ module.exports = module.exports = {
                 if (`features` in response) {
                     categories = {};
                     limits = {};
-                    let count = 0;
 
                     response.features.map(function (v) {
                         categories[v.properties.kategori.trim()] = {};
@@ -335,10 +334,16 @@ module.exports = module.exports = {
                 }
                 
 
+
                 // ### @todo Remove when the backend will work correctly
                 setTimeout(() => {
                     backboneEvents.get().trigger(`${MODULE_NAME}:initialized`);
                 }, 1000);
+                setTimeout(() => {
+                    _self.openMenuModal();
+                }, 2000);
+
+
 
 
             } else {
