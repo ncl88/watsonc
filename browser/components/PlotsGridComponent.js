@@ -28,7 +28,8 @@ class PlotsGridComponent extends React.Component {
         this.handlePlotSort = this.handlePlotSort.bind(this);
     }
 
-    componentDidMount() {}
+    dehydratePlots(plots) { return this.plotManager.dehydratePlots(plots); }
+    hydratePlots(plots) { return this.plotManager.hydratePlots(plots); }
 
     getPlots() {
         return JSON.parse(JSON.stringify(this.state.plots));
@@ -126,13 +127,20 @@ class PlotsGridComponent extends React.Component {
         }
 
         plots[correspondingPlotIndex] = correspondingPlot;
-        this.setState({ plots });
-        this.props.onPlotsChange(plots);
+        
+        this.plotManager.update(correspondingPlot).then(() => {
+            this.setState({ plots });
+            this.props.onPlotsChange(plots);
+        }).catch(error => {
+            console.error(`Error occured while updating plot (${error})`)
+        });
     }
 
     setDataSource(dataSource) {
         let plots = JSON.parse(JSON.stringify(this.state.plots));
+        let updatePlotsPromises = [];
         plots.map((plot, index) => {
+            let plotWasUpdatedAtLeastOnce = false;
             plot.measurements.map(measurementIndex => {
                 let splitMeasurementIndex = measurementIndex.split(`:`);
                 if (splitMeasurementIndex.length !== 3) throw new Error(`Invalid measurement index`);
@@ -151,11 +159,21 @@ class PlotsGridComponent extends React.Component {
                         data: measurementData,
                         created_at: currentTime.toISOString() 
                     }
+
+                    plotWasUpdatedAtLeastOnce = true;
                 }
             });
+
+            if (plotWasUpdatedAtLeastOnce) {
+                updatePlotsPromises.push(this.plotManager.update(plots[index]));
+            }
         });
 
-        this.setState({ dataSource, plots });
+        Promise.all(updatePlotsPromises).then(() => {
+            this.setState({ dataSource, plots });
+        }).catch(errors => {
+            console.error(`Unable to update measurement data upon updating the data source`, errors);
+        });
     }
 
     getFeatureByGidFromDataSource(gid, check = true) {

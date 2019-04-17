@@ -124,12 +124,12 @@ class MenuPanelPlotComponent extends React.Component {
 
         return (<div>
             <div>
-                <h5>{this.props.plotMeta.title}  <SortableHandleComponent title={this.props.plotMeta.title}/> <a
+                <h5>{this.props.plotMeta.title}  <SortableHandleComponent title={this.props.plotMeta.title} style={{marginLeft: `10px`}}/> <a
                         className="btn"
                         href="javascript:void(0)"
                         title={__(`Delete`) + ` ` + this.props.plotMeta.title}
                         onClick={() => { this.props.onDelete(this.props.plotMeta.id)}}
-                        style={{padding: `0px`}}>
+                        style={{padding: `0px`, marginLeft: `10px`}}>
                         <i className="fa fa-remove"></i> {__(`Delete`)}
                     </a>
                 </h5>

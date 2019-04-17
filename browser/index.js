@@ -126,8 +126,6 @@ module.exports = module.exports = {
 
         backboneEvents.get().on(`startLoading:layers`, layerKey => {
             if (cloud.get().getZoom() < 15 && layerKey === "v:chemicals.boreholes_time_series_with_chemicals") {
-                
-                console.log(`### 1`);
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
                 switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
 
@@ -140,8 +138,6 @@ module.exports = module.exports = {
 
         cloud.get().on(`moveend`, () => {
             if (cloud.get().getZoom() < 15) {
-
-                console.log(`### 2`);
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
                 switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
 
@@ -338,6 +334,13 @@ module.exports = module.exports = {
                     console.log(e);
                 }
                 
+
+                // ### @todo Remove when the backend will work correctly
+                setTimeout(() => {
+                    backboneEvents.get().trigger(`${MODULE_NAME}:initialized`);
+                }, 1000);
+
+
             } else {
                 console.warn(`Unable to find the container for watsonc extension (element id: ${FORM_PLOTS_CONTAINER_ID})`);
             }
@@ -449,6 +452,9 @@ module.exports = module.exports = {
     },
 
     buildBreadcrumbs(secondLevel = false, thirdLevel = false, isWaterLevel = false) {
+
+console.log(`### buildBreadcrumbs`);
+
         $(`.js-layer-slide-breadcrumbs`).empty();
         if (secondLevel !== false) {
             let firstLevel = `Kemi`;
@@ -490,6 +496,7 @@ module.exports = module.exports = {
                 <i class="fa fa-database"></i> ${__(`Select data`)}
             </button>`);
 
+            console.log('### click assigned');
             $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).off();
             $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).click(() => {
                 _self.openMenuModal();
@@ -728,8 +735,9 @@ module.exports = module.exports = {
      * Returns current module state
      */
     getState: () => {
+        let plots = plotsGridComponentInstance.dehydratePlots(_self.getExistingPlots());
         return {
-            plots: _self.getExistingPlots(),
+            plots,
             selectedChemical: lastSelectedChemical
         };
     },
@@ -902,32 +910,45 @@ module.exports = module.exports = {
      */
     applyState: (newState) => {
         return new Promise((resolve, reject) => {
-            let showPlotsPanel = false;
+            let plotsWereProvided = false;
             if (newState && `plots` in newState && newState.plots.length > 0) {
-                plotsGridComponentInstance.setPlots(newState.plots);
-                showPlotsPanel = true;
+                plotsWereProvided = true;
             }
 
-            if (newState.selectedChemical) {
-                lastSelectedChemical = newState.selectedChemical;
-
-                if (showPlotsPanel) {
-                    $(`[href="#watsonc-content"]`).trigger(`click`);
+            const continueWithInitialization = (populatedPlots) => {
+                if (populatedPlots) {
+                    plotsGridComponentInstance.setPlots(populatedPlots);
                 }
 
-                backboneEvents.get().once("allDoneLoading:layers", e => {
-                    setTimeout(() => {
-                        _self.enableChemical(newState.selectedChemical);
-                        resolve();
-                    }, 1000);
+                if (newState.selectedChemical) {
+                    lastSelectedChemical = newState.selectedChemical;
+    
+                    if (plotsWereProvided) {
+                        $(`[href="#watsonc-content"]`).trigger(`click`);
+                    }
+    
+                    backboneEvents.get().once("allDoneLoading:layers", e => {
+                        setTimeout(() => {
+                            _self.enableChemical(newState.selectedChemical);
+                            resolve();
+                        }, 1000);
+                    });
+                } else {
+                    $(`.js-clear-breadcrubms`).trigger(`click`);
+                    if (plotsWereProvided) {
+                        $(`[href="#watsonc-content"]`).trigger(`click`);
+                    }
+    
+                    resolve();
+                }
+            }
+
+            if (plotsWereProvided) {
+                plotsGridComponentInstance.hydratePlots(newState.plots).then(continueWithInitialization).catch(error => {
+                    console.error(`Error occured while hydrating plots at state application`, error);
                 });
             } else {
-                $(`.js-clear-breadcrubms`).trigger(`click`);
-                if (showPlotsPanel) {
-                    $(`[href="#watsonc-content"]`).trigger(`click`);
-                }
-
-                resolve();
+                continueWithInitialization();
             }
         });
     },
