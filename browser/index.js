@@ -84,6 +84,8 @@ let dataSource = [];
 let boreholesDataSource = [];
 let waterLevelDataSource = [];
 
+let bufferSlider, bufferValue;
+
 let store;
 
 let categories = {};
@@ -116,33 +118,8 @@ module.exports = module.exports = {
         state.listen(MODULE_NAME, `plotsUpdate`);
         state.listen(MODULE_NAME, `chemicalChange`);
         
-        let searchBar = $(`#js-watsonc-search-field`);
-        $(searchBar).parent().attr(`style`, `padding-top: 8px;`);
-        $(searchBar).attr(`style`, `max-width: 200px; float: right;`);
-        $(searchBar).append(`<div class="input-group">
-            <input type="text" class="form-control" placeholder="${__(`Search`) + '...'}" style="color: white;"/>
-            <span class="input-group-btn">
-                <button class="btn btn-primary" type="button" style="color: white;">
-                    <i class="fa fa-search"></i>
-                </button>
-            </span>
-        </div>`);
-    
-        $(searchBar).find('input').focus(function() {
-            $(this).attr(`placeholder`, __(`Enter borehole, installation, station`) + '...');
-            $(searchBar).animate({"max-width": `400px`});
-        });
-
-        $(searchBar).find('input').blur(function() {
-            $(this).attr(`placeholder`, __(`Search`) + '...');
-            if ($(this).val() === ``) {
-                $(searchBar).animate({"max-width": `200px`});
-            }
-        });
-
-        $(searchBar).find('button').click(() => {
-            alert(`Search button was clicked`);
-        });
+        this.initializeSearchBar();
+        this.initializeProfileDrawing();
 
         $(`#js-open-state-snapshots-panel`).click(() => {
             $(`[href="#state-snapshots-content"]`).trigger(`click`);
@@ -441,16 +418,6 @@ module.exports = module.exports = {
             bottom: 0px;
         `);
 
-        /*
-        $(`#watsonc-plots-dialog-controls`).attr(`style`, `
-            position: absolute;
-            top: 0px;
-            right: 0px;
-            padding: 20px;
-            width: 150px;
-        `);
-        */
-
         try {
             $(`#watsonc-plots-dialog-title-input`).css(`display`, `inline`);
             titleFieldComponentInstance = ReactDOM.render(<TitleFieldComponent
@@ -468,6 +435,90 @@ module.exports = module.exports = {
         $(plotsId).find(`.expand-less`).trigger(`click`);
         $(plotsId).find(`.js-modal-title-text`).text(__(`Time series`));
         $(`#search-border`).trigger(`click`);
+    },
+
+    initializeSearchBar() {
+        let searchBar = $(`#js-watsonc-search-field`);
+        $(searchBar).parent().attr(`style`, `padding-top: 8px;`);
+        $(searchBar).attr(`style`, `max-width: 200px; float: right;`);
+        $(searchBar).append(`<div class="input-group">
+            <input type="text" class="form-control" placeholder="${__(`Search`) + '...'}" style="color: white;"/>
+            <span class="input-group-btn">
+                <button class="btn btn-primary" type="button" style="color: white;">
+                    <i class="fa fa-search"></i>
+                </button>
+            </span>
+        </div>`);
+
+        $(searchBar).find('input').focus(function() {
+            $(this).attr(`placeholder`, __(`Enter borehole, installation, station`) + '...');
+            $(searchBar).animate({"max-width": `400px`});
+        });
+
+        $(searchBar).find('input').blur(function() {
+            $(this).attr(`placeholder`, __(`Search`) + '...');
+            if ($(this).val() === ``) {
+                $(searchBar).animate({"max-width": `200px`});
+            }
+        });
+
+        $(searchBar).find('button').click(() => { alert(`Search button was clicked`); });
+    },
+
+    initializeProfileDrawing() {
+        const profileDrawingModuleId = `profile-drawing`;
+
+        const onTool = () => {
+            console.log(`### on profile drawing`);
+            $("#profile-drawing-buffer").show();
+
+            $(`#profile-drawing-content`).find(`.js-profile-is-not-ready`).show();
+            $(`#profile-drawing-content`).find(`.js-profile-is-ready`).hide();
+        };
+
+        const offTool = () => {
+            console.log(`### off profile drawing`);
+
+        };
+
+        const resetTool = () => {
+            console.log(`### reset profile drawing`);
+
+        };
+
+        // Vidi interaction
+        backboneEvents.get().on(`reset:all reset:${profileDrawingModuleId} off:all` , () => {
+            offTool();
+            resetTool();
+        });
+
+        backboneEvents.get().on(`on:${profileDrawingModuleId}`, () => { onTool(); });
+        backboneEvents.get().on(`off:${profileDrawingModuleId}`, () => { offTool(); });
+
+        bufferSlider = document.getElementById('profile-drawing-buffer-slider');
+        bufferValue = document.getElementById('profile-drawing-buffer-value');
+
+        try {
+            noUiSlider.create(bufferSlider, {
+                start: 40,
+                connect: "lower",
+                step: 1,
+                range: {
+                    min: 0,
+                    max: 500
+                }
+            });
+
+            bufferSlider.noUiSlider.on('update', _.debounce(function (values, handle) {
+                bufferValue.value = values[handle];
+            }, 300));
+
+            bufferValue.addEventListener('change', function () {
+                bufferSlider.noUiSlider.set([this.value]);
+            });
+        } catch (e) {
+            console.info(e.message);
+        }
     },
 
     buildBreadcrumbs(secondLevel = false, thirdLevel = false, isWaterLevel = false) {
