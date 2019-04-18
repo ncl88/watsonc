@@ -155,7 +155,7 @@ class IntroModal extends React.Component {
                             style={Object.assign({}, buttonColumnStyle, leftColumnBorder, (this.state.mode === MODE_NEW ? shadowStyle : {}))}
                             onClick={() => { this.setState({mode: MODE_NEW}) }}>
                             <div style={buttonStyle}>
-                                {__(`New project`)}    {this.state.mode === MODE_NEW ? (<i class="fas fa-chevron-down"></i>) : (<i class="fas fa-chevron-right"></i>)}
+                                {__(`New project`)}    {this.state.mode === MODE_NEW ? (<i className="fas fa-chevron-down"></i>) : (<i className="fas fa-chevron-right"></i>)}
                             </div>
                         </div>
                         <div className="col-md-4 text-center" style={Object.assign({}, buttonColumnStyle, {
@@ -163,14 +163,14 @@ class IntroModal extends React.Component {
                             borderLeft: `1px solid white`
                         }, (this.state.mode === MODE_SELECT ? shadowStyle : {}))} onClick={() => { this.setState({mode: MODE_SELECT}) }}>
                             <div style={buttonStyle}>
-                                {__(`Open existing project`)}    {this.state.mode === MODE_SELECT ? (<i class="fas fa-chevron-down"></i>) : (<i class="fas fa-chevron-right"></i>)}
+                                {__(`Open existing project`)}    {this.state.mode === MODE_SELECT ? (<i className="fas fa-chevron-down"></i>) : (<i className="fas fa-chevron-right"></i>)}
                             </div>
                         </div>
                         <div className="col-md-4 text-center"
                             style={Object.assign({}, buttonColumnStyle, rightColumnBorder, (this.state.mode === MODE_REGISTER_NEW_DATA ? shadowStyle : {}))}
                             onClick={() => { this.setState({mode: MODE_REGISTER_NEW_DATA}) }}>
                             <div style={buttonStyle}>
-                                {__(`Register new data`)}    {this.state.mode === MODE_REGISTER_NEW_DATA ? (<i class="fas fa-chevron-down"></i>) : (<i class="fas fa-chevron-right"></i>)}
+                                {__(`Register new data`)}    {this.state.mode === MODE_REGISTER_NEW_DATA ? (<i className="fas fa-chevron-down"></i>) : (<i className="fas fa-chevron-right"></i>)}
                             </div>
                         </div>
                     </div>

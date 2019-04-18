@@ -332,20 +332,6 @@ module.exports = module.exports = {
                 } catch (e) {
                     console.log(e);
                 }
-                
-
-
-                // ### @todo Remove when the backend will work correctly
-                setTimeout(() => {
-                    backboneEvents.get().trigger(`${MODULE_NAME}:initialized`);
-                }, 1000);
-                setTimeout(() => {
-                    _self.openMenuModal();
-                }, 2000);
-
-
-
-
             } else {
                 console.warn(`Unable to find the container for watsonc extension (element id: ${FORM_PLOTS_CONTAINER_ID})`);
             }
