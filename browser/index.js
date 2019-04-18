@@ -115,6 +115,34 @@ module.exports = module.exports = {
         state.listenTo(MODULE_NAME, _self);
         state.listen(MODULE_NAME, `plotsUpdate`);
         state.listen(MODULE_NAME, `chemicalChange`);
+        
+        let searchBar = $(`#js-watsonc-search-field`);
+        $(searchBar).parent().attr(`style`, `padding-top: 8px;`);
+        $(searchBar).attr(`style`, `max-width: 200px; float: right;`);
+        $(searchBar).append(`<div class="input-group">
+            <input type="text" class="form-control" placeholder="${__(`Search`) + '...'}" style="color: white;"/>
+            <span class="input-group-btn">
+                <button class="btn btn-primary" type="button" style="color: white;">
+                    <i class="fa fa-search"></i>
+                </button>
+            </span>
+        </div>`);
+    
+        $(searchBar).find('input').focus(function() {
+            $(this).attr(`placeholder`, __(`Enter borehole, installation, station`) + '...');
+            $(searchBar).animate({"max-width": `400px`});
+        });
+
+        $(searchBar).find('input').blur(function() {
+            $(this).attr(`placeholder`, __(`Search`) + '...');
+            if ($(this).val() === ``) {
+                $(searchBar).animate({"max-width": `200px`});
+            }
+        });
+
+        $(searchBar).find('button').click(() => {
+            alert(`Search button was clicked`);
+        });
 
         $(`#js-open-state-snapshots-panel`).click(() => {
             $(`[href="#state-snapshots-content"]`).trigger(`click`);
@@ -443,9 +471,6 @@ module.exports = module.exports = {
     },
 
     buildBreadcrumbs(secondLevel = false, thirdLevel = false, isWaterLevel = false) {
-
-console.log(`### buildBreadcrumbs`);
-
         $(`.js-layer-slide-breadcrumbs`).empty();
         if (secondLevel !== false) {
             let firstLevel = `Kemi`;
@@ -475,7 +500,6 @@ console.log(`### buildBreadcrumbs`);
                 layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", false, "watsonc");
 
                 // Turning off current vector layers
-                console.log(`### 4`, LAYER_NAMES[0], LAYER_NAMES[2]);
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) > -1) switchLayer.init(LAYER_NAMES[0], false);
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[2]) > -1) switchLayer.init(LAYER_NAMES[2], false);
 
@@ -487,7 +511,6 @@ console.log(`### buildBreadcrumbs`);
                 <i class="fa fa-database"></i> ${__(`Select data`)}
             </button>`);
 
-            console.log('### click assigned');
             $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).off();
             $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).click(() => {
                 _self.openMenuModal();

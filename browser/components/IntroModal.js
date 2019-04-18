@@ -112,14 +112,14 @@ class IntroModal extends React.Component {
         let modalBodyStyle = {
             paddingLeft: `0px`,
             paddingRight: `0px`,
-            paddingTop: `48px`,
+            paddingTop: `35px`,
             paddingBottom: `0px`
         };
 
         let buttonColumnStyle = {
-            paddingTop: `50px`,
+            paddingTop: `30px`,
             backgroundColor: `rgb(0, 150, 136)`,
-            height: `130px`,
+            height: `90px`,
         };
 
         let buttonStyle = {
@@ -143,7 +143,7 @@ class IntroModal extends React.Component {
         };
 
         return (<div className="modal-content" style={{minWidth: `1000px`, marginTop: `20%`, borderRadius: `40px`}}>
-            <div className="modal-header" style={{color: `#009688`, textAlign: `center`, paddingTop: `60px`}}>
+            <div className="modal-header" style={{color: `#009688`, textAlign: `center`, paddingTop: `35px`}}>
                 <h4 className="modal-title" style={{fontSize: `34px`, textTransform: `uppercase`, fontWeight: `700`}}>
                     <span>{__(`Welcome to Calypso`)}</span>
                 </h4>
