@@ -5,6 +5,8 @@ import PlotsGridComponent from './components/PlotsGridComponent';
 import IntroModal from './components/IntroModal';
 import TitleFieldComponent from './../../../browser/modules/shared/TitleFieldComponent';
 
+const utmZone = require('./../../../browser/modules/utmZone.js');
+
 import moment from 'moment';
 
 const MODULE_NAME = `watsonc`;
@@ -91,6 +93,8 @@ let store;
 let categories = {};
 let limits = {};
 let names = {};
+
+let drawnItems = new L.FeatureGroup(), embedDrawControl = false, bufferedProfile = false;
 
 var jquery = require('jquery');
 require('snackbarjs');
@@ -467,25 +471,141 @@ module.exports = module.exports = {
 
     initializeProfileDrawing() {
         const profileDrawingModuleId = `profile-drawing`;
+        let container = $(`#profile-drawing-content`);
+
+        const setState = (state) => {
+            if (state === `not-ready`) {
+                $(container).find(`.js-profile-is-not-ready`).show();
+                $(container).find(`.js-profile-is-being-drawn`).hide();
+                $(container).find(`.js-profile-is-ready-to-load`).hide();
+                $(container).find(`.js-profile-is-loading`).hide();
+            } else if (state === `being-drawn`) {
+                $(container).find(`.js-profile-is-not-ready`).hide();
+                $(container).find(`.js-profile-is-being-drawn`).show();
+                $(container).find(`.js-profile-is-ready-to-load`).hide();
+                $(container).find(`.js-profile-is-loading`).hide();
+            } else if (state === `ready-to-load`) {
+                $(container).find(`.js-profile-is-not-ready`).hide();
+                $(container).find(`.js-profile-is-being-drawn`).hide();
+                $(container).find(`.js-profile-is-ready-to-load`).show();
+                $(container).find(`.js-profile-is-loading`).hide();
+            } else if (state === `loading`) {
+                $(container).find(`.js-profile-is-not-ready`).hide();
+                $(container).find(`.js-profile-is-being-drawn`).hide();
+                $(container).find(`.js-profile-is-ready-to-load`).hide();
+                $(container).find(`.js-profile-is-loading`).show();
+            } else {
+                throw new Error(`Invalid state ${state}`);
+            }
+        };
+
+        const startDrawing = () => {
+            drawnItems.eachLayer(layer => {
+                if (layer && layer.feature && layer.feature.properties && layer.feature.properties.type ===`polyline`) {
+                    drawnItems.removeLayer(layer);
+                }
+            });
+
+            if (embedDrawControl) embedDrawControl.disable();
+            embedDrawControl = new L.Draw.Polyline(cloud.get().map);
+            embedDrawControl.enable();
+
+            embedDrawControl._map.off('draw:created');
+            embedDrawControl._map.on('draw:created', e => {
+                if (embedDrawControl) embedDrawControl.disable();
+
+                let coord, layer = e.layer, buffer = parseFloat($("#profile-drawing-buffer-value").val());
+                let primitive = layer.toGeoJSON();
+                if (primitive) {
+                    if (typeof layer.getBounds !== "undefined") {
+                        coord = layer.getBounds().getSouthWest();
+                    } else {
+                        coord = layer.getLatLng();
+                    }
+
+                    // Get utm zone
+                    var zone = utmZone.getZone(coord.lat, coord.lng);
+                    var crss = {
+                        "proj": "+proj=utm +zone=" + zone + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+                        "unproj": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+                    };
+
+                    var reader = new jsts.io.GeoJSONReader();
+                    var writer = new jsts.io.GeoJSONWriter();
+                    var geom = reader.read(reproject.reproject(primitive, "unproj", "proj", crss));
+                    var buffer4326 = reproject.reproject(writer.write(geom.geometry.buffer(buffer)), "proj", "unproj", crss);
+
+                    L.geoJson(buffer4326, {
+                        "color": "#ff7800",
+                        "weight": 1,
+                        "opacity": 1,
+                        "fillOpacity": 0.1,
+                        "dashArray": '5,3'
+                    }).addTo(drawnItems);
+
+                    bufferedProfile = buffer4326;
+                }
+
+                setState(`ready-to-load`);
+            });
+        };
+
+        const stopDrawing = () => {
+            if (drawnItems) drawnItems.clearLayers();
+            if (embedDrawControl) embedDrawControl.disable();
+        };
 
         const onTool = () => {
-            console.log(`### on profile drawing`);
             $("#profile-drawing-buffer").show();
-
-            $(`#profile-drawing-content`).find(`.js-profile-is-not-ready`).show();
-            $(`#profile-drawing-content`).find(`.js-profile-is-ready`).hide();
+            setState(`not-ready`);
         };
 
         const offTool = () => {
-            console.log(`### off profile drawing`);
-
+            stopDrawing();
         };
 
         const resetTool = () => {
-            console.log(`### reset profile drawing`);
-
+            stopDrawing();
         };
 
+        $(`#profile-drawing-content`).find(`.js-profile-is-not-ready`).click(() => {
+            startDrawing();
+            $(container).find(`.js-results`).empty();
+            setState(`being-drawn`);
+        });
+
+        $(`#profile-drawing-content`).find(`.js-profile-is-being-drawn`).click(() => {
+            stopDrawing();
+            setState(`not-ready`);
+        });
+
+        $(`#profile-drawing-content`).find(`.js-cancel`).click(() => {
+            stopDrawing();
+            setState(`not-ready`);
+        });
+
+        $(`#profile-drawing-content`).find(`.js-search`).click(() => {
+            $(container).find(`.js-results`).empty();
+
+            $.ajax({
+                type: `POST`,
+                url: `/api/extension/watsonc`,
+                data: {data: bufferedProfile},
+                dataType: 'json',
+                success: (response) => {
+                    console.log(`### response`, response);
+                    $(container).find(`.js-results`).append(`<p><strong>Result</strong>: ${JSON.stringify(response)}</p>`);
+                },
+                error: (error) => {
+                    console.log(`### error`, error);
+                },
+            });
+
+            stopDrawing();
+            setState(`not-ready`);
+        });
+
+        
         // Vidi interaction
         backboneEvents.get().on(`reset:all reset:${profileDrawingModuleId} off:all` , () => {
             offTool();
@@ -519,6 +639,8 @@ module.exports = module.exports = {
         } catch (e) {
             console.info(e.message);
         }
+
+        cloud.get().map.addLayer(drawnItems);
     },
 
     buildBreadcrumbs(secondLevel = false, thirdLevel = false, isWaterLevel = false) {

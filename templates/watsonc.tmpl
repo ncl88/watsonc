@@ -1130,15 +1130,24 @@
                                         <h4>{{Draw the profile}}</h4>
                                     </div>
                                     <div>
-                                        <button type="button" href="javascript:void(0)" class="btn btn-primary js-profile-is-not-ready">
+                                        <button type="button" href="javascript:void(0)" class="btn btn-primary btn-raised btn-block js-profile-is-not-ready">
                                             {{Start}}
                                         </button>
 
-                                        <div class="btn-group btn-group-justified btn-group-raised js-profile-is-ready">
-                                            <a href="javascript:void(0)" class="btn btn-primary" disabled>{{Start}}</a>
-                                            <a href="javascript:void(0)" class="btn btn-primary">{{Clear}}</a>
+                                        <button type="button" href="javascript:void(0)" class="btn btn-primary btn-block js-profile-is-being-drawn">
+                                            {{Cancel}}
+                                        </button>
+
+                                        <div class="btn-group btn-group-justified btn-group-raised js-profile-is-ready-to-load">
+                                            <a href="javascript:void(0)" class="btn btn-primary js-search">{{Search}}</a>
+                                            <a href="javascript:void(0)" class="btn js-cancel">{{Cancel}}</a>
                                         </div>
+
+                                        <button type="button" href="javascript:void(0)" disabled class="btn btn-primary btn-block js-profile-is-loading">
+                                            {{Loading}}
+                                        </button>
                                     </div>
+                                    <div class="js-results"></div>
                                 </div>
                                 <div></div>
                             </div>
