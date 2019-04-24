@@ -4,6 +4,7 @@ import ModalComponent from './components/ModalComponent';
 import PlotsGridComponent from './components/PlotsGridComponent';
 import IntroModal from './components/IntroModal';
 import TitleFieldComponent from './../../../browser/modules/shared/TitleFieldComponent';
+var wkt = require('terraformer-wkt-parser');
 
 const utmZone = require('./../../../browser/modules/utmZone.js');
 
@@ -590,7 +591,7 @@ module.exports = module.exports = {
             $.ajax({
                 type: `POST`,
                 url: `/api/extension/watsonc`,
-                data: {data: bufferedProfile},
+                data: {data: wkt.convert(bufferedProfile)},
                 dataType: 'json',
                 success: (response) => {
                     console.log(`### response`, response);

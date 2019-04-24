@@ -16,14 +16,19 @@ router.post('/api/extension/watsonc', function (req, res) {
     if (!config.gc2.host) throw new Error(`GC2 host has to be specified`);
 
     let table = `chemicals.boreholes_time_series_with_chemicals`;
-    let url = config.gc2.host + `/api/sql/jupiter?base64=true&srs=4326&lifetime=0&client_encoding=UTF8&key=null`;
-    url += `&q=` + Buffer.from(`SELECT * FROM ${table} WHERE ST_Intersects(ST_Transform(ST_geomfromtext('${JSON.stringify(req.body)}', 4326), 25832), the_geom)`).toString('base64');
+    let sql = `SELECT * FROM ${table} WHERE ST_Intersects(ST_Transform(ST_geomfromtext('${req.body.data}', 4326), 25832), the_geom)`;
 
-    request.get(url, function (err, localRes, body) {
+    let url = config.gc2.host + `/api/v1/sql/jupiter`;
+    let data = {
+        q: Buffer.from(sql).toString('base64'),
+        base64: true,
+        srs: 4326,
+        lifetime: 0,
+        client_encoding: `UTF8`,
+    };
 
-        console.log(err, body);
-
-        res.send({status: `success`});
+    request.post({url, form: data}, function (err, localRes, body) {
+        res.send(body);
     }); 
 });
 
