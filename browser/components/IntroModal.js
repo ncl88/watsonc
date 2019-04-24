@@ -217,7 +217,7 @@ class IntroModal extends React.Component {
                         <div className="col-md-12" style={{ textAlign: `right` }}>
                             <button
                                 type="button"
-                                disabled={this.state.selectedLayers.length === 0}
+                                disabled={this.state.selectedLayers.length === 0 || this.state.selectedChemical !== false}
                                 className="btn btn-primary"
                                 data-dismiss="modal"
                                 onClick={this.applyParameters.bind(this)}>{__(`Continue without selecting chemical`)}<div className="ripple-container"></div></button>

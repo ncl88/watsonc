@@ -7,6 +7,9 @@ import ModalPlotComponent from './ModalPlotComponent';
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 import SearchFieldComponent from './../../../../browser/modules/shared/SearchFieldComponent';
 
+const evaluateMeasurement = require('./../evaluateMeasurement');
+const measurementIcon = require('./../measurementIcon');
+
 /**
  * Creates borehole parameters display and visualization panel
  */
@@ -89,8 +92,19 @@ class ModalComponent extends React.Component {
 
             let control = false;
             if (display) {
+                let json;
+                try {
+                    json = JSON.parse(this.props.feature.properties[item.key]);
+                } catch (e) {
+                    console.error(item);
+                    throw new Error(`Unable to parse measurements data`);
+                }
+    
+                let measurementData = evaluateMeasurement(json, this.props.limits, item.key);
+                let icon = measurementIcon.generate(measurementData.maxColor, measurementData.latestColor);
                 control = (<ModalMeasurementComponent
                     key={key}
+                    icon={icon}
                     onAddMeasurement={this.props.onAddMeasurement}
                     gid={this.props.feature.properties.gid}
                     itemKey={item.key}
@@ -116,7 +130,6 @@ class ModalComponent extends React.Component {
                     if (measurementsThatBelongToCategory.indexOf(item.title) !== -1) {
                         // Measurement is in current category
                         let control = createMeasurementControl(item, ('measurement_' + index));
-
                         if (control) {
                             measurementControls.push(control);
                         }
@@ -224,6 +237,8 @@ class ModalComponent extends React.Component {
 ModalComponent.propTypes = {
     categories: PropTypes.object.isRequired,
     feature: PropTypes.object.isRequired,
+    names: PropTypes.object.isRequired,
+    limits: PropTypes.object.isRequired,
     initialPlots: PropTypes.array.isRequired,
     onPlotAdd: PropTypes.func.isRequired,
     onAddMeasurement: PropTypes.func.isRequired,

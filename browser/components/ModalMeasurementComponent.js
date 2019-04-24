@@ -13,6 +13,11 @@ class ModalMeasurementComponent extends React.Component {
     render() {
         const isDragging = this.props.isDragging;
 
+        let circleIcon = false;
+        if (this.props.icon) {
+            circleIcon = (<img src={this.props.icon} alt={this.props.title} style={{width: `12px`, height: `12px`, marginTop: `-2px`}}/>);
+        }
+
         return this.props.connectDragSource(<div
             title={__(`Drag and drop measurement to add it to time series`)}
             className="btn btn-sm btn-primary js-plotted-property"
@@ -26,7 +31,7 @@ class ModalMeasurementComponent extends React.Component {
                 backgroundColor: (isDragging ? `darkgreen` : ``),
                 color: (isDragging ? `white` : ``)
             }}>
-            <i className="fa fa-arrows-alt"></i> {this.props.title} (#{this.props.intakeIndex + 1})
+            <i className="fa fa-arrows-alt"></i> {circleIcon} {this.props.title} (#{this.props.intakeIndex + 1})
         </div>);
     }
 }

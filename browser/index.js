@@ -7,8 +7,8 @@ import TitleFieldComponent from './../../../browser/modules/shared/TitleFieldCom
 var wkt = require('terraformer-wkt-parser');
 
 const utmZone = require('./../../../browser/modules/utmZone.js');
-
-import moment from 'moment';
+const evaluateMeasurement = require('./evaluateMeasurement');
+const measurementIcon = require('./measurementIcon');
 
 const MODULE_NAME = `watsonc`;
 
@@ -46,7 +46,7 @@ var backboneEvents;
  *
  * @type {*|exports|module.exports}
  */
-var utils, layerTree, layers, anchor, state, urlparser;
+var layerTree, layers, anchor, state, urlparser;
 
 var React = require('react');
 
@@ -114,7 +114,6 @@ module.exports = module.exports = {
         anchor = o.anchor;
         state = o.state;
         urlparser = o.urlparser;
-        utils = o.utils;
         _self = this;
         return this;
     },
@@ -820,6 +819,8 @@ module.exports = module.exports = {
                             feature={feature}
                             categories={categories}
                             dataSource={dataSource}
+                            names={names}
+                            limits={limits}
                             initialPlots={(existingPlots ? existingPlots : [])}
                             onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
                                 plotsGridComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
@@ -952,23 +953,16 @@ module.exports = module.exports = {
 
         let chem = "_" + chemicalId;
         store = layerTree.getStores()["v:chemicals.boreholes_time_series_with_chemicals"];
-        let fn = function (sqlStore) {
+        let fn = function () {
             store.layer.eachLayer(function (layer) {
                 let feature = layer.feature;
+
                 let maxColor;
                 let latestColor;
                 let iconSize;
                 let iconAnchor;
-                let maxMeasurement = 0;
-                let maxMeasurementIntakes = [];
-                let latestMeasurement = 0;
-                let latestMeasurementIntakes = [];
-                let json;
-                let green = "rgb(16, 174, 140)";
-                let yellow = "rgb(247, 168, 77)";
-                let red = "rgb(252, 60, 60)";
-                let white = "rgb(255, 255, 255)";
 
+                let json;
                 try {
                     json = JSON.parse(feature.properties[chem]);
                 } catch (e) {
@@ -976,65 +970,21 @@ module.exports = module.exports = {
                 }
 
                 if (feature.properties[chem] !== null) {
-                    let unit = json.unit;
-                    // Find latest value
-                    let intakes = json.timeOfMeasurement.length;
-                    let currentValue;
-                    let latestValue = moment("0001-01-01T00:00:00+00:00", "YYYY-MM-DDTHH:mm:ssZZ");
-                    let latestPosition = {};
+                    let measurementData = evaluateMeasurement(json, limits, chem);
+                    maxColor = measurementData.maxColor;
+                    latestColor = measurementData.latestColor;
 
-                    for (let i = 0; i < intakes; i++) {
-                        let length = json.timeOfMeasurement[i].length - 1;
-                        currentValue = moment(json.timeOfMeasurement[i][length], "YYYY-MM-DDTHH:mm:ssZZ");
-                        if (currentValue.isAfter(latestValue)) {
-                            latestValue = currentValue;
-                            latestMeasurement = json.measurements[i][length];
-                            latestPosition = {
-                                intake: i,
-                                measurement: length
-                            }
-                        }
-                        latestMeasurementIntakes[i] = json.measurements[i][length];
-                    }
-
-                    // Find Highest value
-                    intakes = json.measurements.length;
-                    maxMeasurement = 0;
-                    maxMeasurementIntakes = [];
                     let html = [];
-
-                    for (let i = 0; i < intakes; i++) {
-                        maxMeasurementIntakes[i] = 0;
-                        let length = json.measurements[i].length;
-                        for (let u = 0; u < length; u++) {
-                            currentValue = json.measurements[i][u];
-                            if (!(latestPosition.intake === i && latestPosition.measurement === u) && currentValue > maxMeasurement) {
-                                maxMeasurement = currentValue;
-                            }
-                            if (currentValue > maxMeasurementIntakes[i]) {
-                                maxMeasurementIntakes[i] = currentValue;
-                            }
-                        }
-                    }
-
-                    for (let i = 0; i < intakes; i++) {
+                    for (let i = 0; i < measurementData.numberOfIntakes; i++) {
                         html.push(`
                            <b style="color: rgb(16, 174, 140)">Intag: ${i + 1}</b><br>
-                           Max: ${maxMeasurementIntakes[i]}<br>
-                           Seneste: ${latestMeasurementIntakes[i]}<br>
+                           Max: ${measurementData.maxMeasurementIntakes[i]}<br>
+                           Seneste: ${measurementData.latestMeasurementIntakes[i]}<br>
                        `)
                     }
 
                     layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
-                    <b style="color: rgb(16, 174, 140)">${names[chemicalId]} (${unit})</b><br>${html.join('<br>')}`);
-
-                    if (chem === "_watlevmsl") {
-                        maxColor = maxMeasurement === 0 ? white : "#00aaff";
-                        latestColor = "#00aaff";
-                    } else {
-                        maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= limits[chem][0] ? green : maxMeasurement > limits[chem][0] && maxMeasurement <= limits[chem][1] ? yellow : red;
-                        latestColor = latestMeasurement <= limits[chem][0] ? green : latestMeasurement > limits[chem][0] && latestMeasurement <= limits[chem][1] ? yellow : red;
-                    }
+                    <b style="color: rgb(16, 174, 140)">${names[chemicalId]} (${json.unit})</b><br>${html.join('<br>')}`);
 
                     iconSize = [30, 30];
                     iconAnchor = [15, 15];
@@ -1046,37 +996,8 @@ module.exports = module.exports = {
                     layer.setZIndexOffset(1);
                 }
 
-                var svg = `<svg
-                   xmlns:dc="http://purl.org/dc/elements/1.1/"
-                   xmlns:cc="http://creativecommons.org/ns#"
-                   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-                   xmlns:svg="http://www.w3.org/2000/svg"
-                   xmlns="http://www.w3.org/2000/svg"
-                   id="svg8"
-                   version="1.1"
-                   viewBox="0 0 84.688354 84.688354"
-                   height="84.688354"
-                   width="84.688354">
-                   <defs
-                       id="defs2" />
-                   <g
-                       transform="translate(-61.786713,-90.408127)"
-                       id="layer1">
-                       <path
-                       style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${maxColor};stroke-width:0.26458332"
-                       d="m 104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.671133,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.671133,-21.172093 l 0,42.344173 z"
-                       id="path3729" />
-                       <path
-                       transform="scale(-1,1)"
-                       style=";stroke-width:0.26458332;stroke:#000000;stroke-opacity:1;fill:${latestColor};stroke-width:0.26458332"
-                       d="m -104.13089,175.09648 a 42.344177,42.344177 0 0 1 -36.67113,-21.17209 42.344177,42.344177 0 0 1 0,-42.34417 42.344177,42.344177 0 0 1 36.67113,-21.172093 l 0,42.344173 z"
-                       id="path3729-3" />
-                   </g>
-                </svg>`;
-
-                let iconUrl = 'data:image/svg+xml;base64,' + btoa(svg);
                 let icon = L.icon({
-                    iconUrl: iconUrl,
+                    iconUrl: measurementIcon.generate(maxColor, latestColor),
                     iconSize: iconSize,
                     iconAnchor: iconAnchor,
                     popupAnchor: iconAnchor,
