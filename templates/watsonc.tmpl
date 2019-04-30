@@ -644,9 +644,14 @@
         height: auto !important;
     }
 
+    #watsonc-features-dialog {
+        z-index: 100000;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
     #watsonc-features-dialog.dialog-bottom {
         height: 80% !important;
-        left: 56px;
         right: auto;
     }
 
@@ -830,8 +835,6 @@
                     class="material-icons">close</i>
             </button>
             <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
-            </button>
-            <button type="button" class="close expand-less" aria-hidden="true"><i class="material-icons">expand_more</i>
             </button>
             <h3 class="modal-title">Watsonc extension</h3>
         </div>
