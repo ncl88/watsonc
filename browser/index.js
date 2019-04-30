@@ -87,6 +87,9 @@ let dataSource = [];
 let boreholesDataSource = [];
 let waterLevelDataSource = [];
 
+let lastEnabledLayers = [];
+let previousZoom = -1;
+
 let bufferSlider, bufferValue;
 
 let store;
@@ -146,6 +149,10 @@ module.exports = module.exports = {
         });
 
         cloud.get().on(`moveend`, () => {
+            if (previousZoom === -1 && cloud.get().getZoom() < 15 || previousZoom >= 15 && cloud.get().getZoom() < 15) {
+                lastEnabledLayers = layerTree.getActiveLayers();
+            }
+
             if (cloud.get().getZoom() < 15) {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
                 switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
@@ -157,17 +164,18 @@ module.exports = module.exports = {
                     timeout: 1000000
                 });
             } else {
-                /*
-                if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) === -1) {
-                    switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", true, true, false);
-                    switchLayer.init("v:sensor.sensordata_with_correction", true, true, false);
-                }
-                */
+                if (lastEnabledLayers.length > 0) {
+                    lastEnabledLayers.map(item => {
+                        if (item.indexOf(`v:`) === 0) {
+                            switchLayer.init(item, true, true, false);
+                        }
+                    });
 
-                setTimeout(function () {
-                    jquery("#snackbar-watsonc").snackbar("hide");
-                }, 200);
+                    lastEnabledLayers = [];
+                }
             }
+
+            previousZoom = cloud.get().getZoom();
         });
 
         $.ajax({
