@@ -6,7 +6,7 @@ const SortableHandleComponent = (props) => {
         className="btn btn-primary"
         href="javascript:void(0)"
         title={__(`Move`) + ` ` + props.title}
-        style={{padding: `0px`}}>
+        style={{padding: `0px`, marginLeft: `20px`}}>
         <i className="fa fa-bars"></i> {__(`Move`)}
     </a>);
 }

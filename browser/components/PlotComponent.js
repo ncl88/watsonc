@@ -21,7 +21,6 @@ class MenuPanelPlotComponent extends React.Component {
             let minTime = false;
             let maxTime = false;
 
-            let legend = [];
             let data = [];
             this.props.plotMeta.measurements.map((measurementLocationRaw, index) => {
                 if (measurementLocationRaw in this.props.plotMeta.measurementsCachedData &&
@@ -60,7 +59,7 @@ class MenuPanelPlotComponent extends React.Component {
                     }
 
                     data.push({
-                        name: (`${measurementData.title} (${measurementData.unit})`),
+                        name: (`${measurementData.title} (${measurementData.unit}, ${__(`updated at`)} ${createdAt})`),
                         x: measurementData.timeOfMeasurement[intakeIndex],
                         y: measurementData.measurements[intakeIndex],
                         type: 'scattergl',
@@ -69,23 +68,6 @@ class MenuPanelPlotComponent extends React.Component {
                             color: colors[index]
                         }
                     });
-
-                    legend.push(<div key={index} style={{
-                        display: `inline-block`,
-                        border: `1px solid lightgray`,
-                        borderRadius: `4px`,
-                        padding: `0px`,
-                        marginRight: `0px`
-                    }}>
-                        <div style={{
-                            width: '10px',
-                            height: '10px',
-                            backgroundColor: colors[index],
-                            display: `inline-block`,
-                            marginRight: `0px`
-                        }}></div>
-                        <div style={{ display: `inline-block` }}>{`${feature.properties.boreholeno} ${measurementData.title} (${__(`units`)}: ${measurementData.unit}, ${__(`updated at`)}: ${createdAt})`}</div>
-                    </div>);
                 } else {
                     console.error(`Plot does not contain measurement ${measurementLocationRaw}`);
                 }
@@ -93,8 +75,6 @@ class MenuPanelPlotComponent extends React.Component {
 
             let layout = {
                 displayModeBar: false,
-                width: 520,
-                height: 420,
                 margin: {
                     l: 5,
                     r: 5,
@@ -102,7 +82,7 @@ class MenuPanelPlotComponent extends React.Component {
                     t: 5,
                     pad: 4
                 },
-                showlegend: false,
+                showlegend: true,
                 xaxis: {
                     autorange: true,
                     margin: 0,
@@ -111,12 +91,16 @@ class MenuPanelPlotComponent extends React.Component {
                 yaxis: {
                     autorange: true
                 },
+                showlegend: true,
+                legend: {
+                    orientation: "h"
+                },
                 autosize: true
             };
 
             plot = (<div style={{ paddingBottom: `20px` }}>
                 <div style={{ border: `1px solid lightgray`, paddingBottom: `20px` }}>
-                    <Plot data={data} layout={layout}/>
+                    <Plot data={data} useResizeHandler={true} layout={layout} style={{width: "100%", height: "100%"}}/>
                 </div>
                 <div>{legend}</div>
             </div>);
@@ -124,7 +108,7 @@ class MenuPanelPlotComponent extends React.Component {
 
         return (<div>
             <div>
-                <h5>{this.props.plotMeta.title}  <SortableHandleComponent title={this.props.plotMeta.title} style={{marginLeft: `10px`}}/> <a
+                <h5>{this.props.plotMeta.title} <SortableHandleComponent title={this.props.plotMeta.title}/> <a
                         className="btn"
                         href="javascript:void(0)"
                         title={__(`Delete`) + ` ` + this.props.plotMeta.title}
