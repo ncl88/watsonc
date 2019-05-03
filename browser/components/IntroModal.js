@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import StateSnapshotsDashboard from './../../../../browser/modules/stateSnapshots/components/StateSnapshotsDashboard';
 import SearchFieldComponent from './../../../../browser/modules/shared/SearchFieldComponent';
+import { LAYER_NAMES, WATER_LEVEL_KEY } from './../constants';
 
 const MODE_INDEX = 0;
 const MODE_NEW = 1;
@@ -55,57 +56,74 @@ class IntroModal extends React.Component {
         });
     }
 
-    render() {
-        let layerGroupsList = false;
-        if (this.state.mode === MODE_NEW) {
-            layerGroupsList = [];
-            for (let layerName in this.state.categories) {
-                if (this.state.selectedLayers.indexOf(layerName) > -1) {
-                    let chemicalGroupsForLayer = [];
-                    for (let key in this.state.categories[layerName]) {
-                        let chemicalsMarkup = [];
-                        for (let key2 in this.state.categories[layerName][key]) {
-                            if (this.state.searchTerm === `` || this.state.categories[layerName][key][key2].toLowerCase().indexOf(this.state.searchTerm.toLowerCase()) > -1) {
-                                chemicalsMarkup.push(<div key={`chemical_${key2}`}>
-                                    <div style={{ display: `inline-block`}}>
-                                        <label>
-                                            <input
-                                                name="chem_modal"
-                                                type="radio"
-                                                checked={this.state.selectedChemical === key2}
-                                                onChange={() => { this.setState({ selectedChemical: key2 })}}/> <span className="js-chemical-name">{this.state.categories[layerName][key][key2]}</span>
-                                        </label>
-                                    </div>
-                                </div>);
-                            }
-                        }
+    generateWaterGroup() {
+        return (<div key={`chemical_group_key_water_level`}>
+            <div>
+                <h5>{__(`Water level`)}</h5>
+            </div>
+            <div>
+                <div>
+                    <div style={{ display: `inline-block`}}>
+                        <label>
+                            <input name="chem_modal" type="radio" checked={this.state.selectedChemical === WATER_LEVEL_KEY}
+                                onChange={() => { this.setState({ selectedChemical: WATER_LEVEL_KEY })}}/> <span className="js-chemical-name">{__(`Water level`)}</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>);
+    }
 
-                        if (chemicalsMarkup.length > 0) {
-                            chemicalGroupsForLayer.push(<div key={`chemical_group_key_${key}`}>
-                                <div>
-                                    <h5>{key}</h5>
+    generateChemicalGroups() {
+        let chemicalGroupsForLayer = [];
+        for (let layerName in this.state.categories) {
+            if (layerName === LAYER_NAMES[0]) {
+                for (let key in this.state.categories[layerName]) {
+                    let chemicalsMarkup = [];
+                    for (let key2 in this.state.categories[layerName][key]) {
+                        if (this.state.searchTerm === `` || this.state.categories[layerName][key][key2].toLowerCase().indexOf(this.state.searchTerm.toLowerCase()) > -1) {
+                            chemicalsMarkup.push(<div key={`chemical_${key2}`}>
+                                <div style={{ display: `inline-block`}}>
+                                    <label>
+                                        <input
+                                            name="chem_modal"
+                                            type="radio"
+                                            checked={this.state.selectedChemical === key2}
+                                            onChange={() => { this.setState({ selectedChemical: key2 })}}/> <span className="js-chemical-name">{this.state.categories[layerName][key][key2]}</span>
+                                    </label>
                                 </div>
-                                <div>{chemicalsMarkup}</div>
                             </div>);
                         }
                     }
 
-                    let humanReadableLayerName = layerName;
-                    this.state.layers.map(item => {
-                        if (item.id === layerName) {
-                            humanReadableLayerName = item.title;
-                        }
-                    });
-
-                    if (chemicalGroupsForLayer.length > 0) {
-                        layerGroupsList.push(<div key={`layer_key_${layerName}`}>
+                    if (chemicalsMarkup.length > 0) {
+                        chemicalGroupsForLayer.push(<div key={`chemical_group_key_${key}`}>
                             <div>
-                                <h4>{humanReadableLayerName}</h4>
+                                <h5>{key}</h5>
                             </div>
-                            <div style={{ maxHeight: `400px`, overflowY: `scroll`}}>{chemicalGroupsForLayer}</div>
+                            <div>{chemicalsMarkup}</div>
                         </div>);
                     }
                 }
+            }
+        }
+
+        return chemicalGroupsForLayer;
+    }
+
+    render() {
+        let layerGroupsList = false;
+        if (this.state.mode === MODE_NEW) {
+            layerGroupsList = [];
+
+            if (this.state.selectedLayers.length > 0) {
+                let waterGroup = this.generateWaterGroup();
+                layerGroupsList.push(waterGroup);
+            }
+
+            if (this.state.selectedLayers.indexOf(LAYER_NAMES[0]) > -1) {
+                let chemicalGroups = this.generateChemicalGroups();
+                layerGroupsList = layerGroupsList.concat(chemicalGroups);
             }
         }
 
@@ -151,26 +169,18 @@ class IntroModal extends React.Component {
             <div className="modal-body" style={modalBodyStyle}>
                 <div className="container" style={{padding: `0px`}}>
                     <div className="row-fluid">
-                        <div className="col-md-4 text-center"
+                        <div className="col-md-6 text-center"
                             style={Object.assign({}, buttonColumnStyle, leftColumnBorder, (this.state.mode === MODE_NEW ? shadowStyle : {}))}
                             onClick={() => { this.setState({mode: MODE_NEW}) }}>
                             <div style={buttonStyle}>
                                 {__(`New project`)}    {this.state.mode === MODE_NEW ? (<i className="fas fa-chevron-down"></i>) : (<i className="fas fa-chevron-right"></i>)}
                             </div>
                         </div>
-                        <div className="col-md-4 text-center" style={Object.assign({}, buttonColumnStyle, {
-                            borderRight: `1px solid white`,
+                        <div className="col-md-6 text-center" style={Object.assign({}, buttonColumnStyle, rightColumnBorder, {
                             borderLeft: `1px solid white`
                         }, (this.state.mode === MODE_SELECT ? shadowStyle : {}))} onClick={() => { this.setState({mode: MODE_SELECT}) }}>
                             <div style={buttonStyle}>
                                 {__(`Open existing project`)}    {this.state.mode === MODE_SELECT ? (<i className="fas fa-chevron-down"></i>) : (<i className="fas fa-chevron-right"></i>)}
-                            </div>
-                        </div>
-                        <div className="col-md-4 text-center"
-                            style={Object.assign({}, buttonColumnStyle, rightColumnBorder, (this.state.mode === MODE_REGISTER_NEW_DATA ? shadowStyle : {}))}
-                            onClick={() => { this.setState({mode: MODE_REGISTER_NEW_DATA}) }}>
-                            <div style={buttonStyle}>
-                                {__(`Register new data`)}    {this.state.mode === MODE_REGISTER_NEW_DATA ? (<i className="fas fa-chevron-down"></i>) : (<i className="fas fa-chevron-right"></i>)}
                             </div>
                         </div>
                     </div>
@@ -196,7 +206,7 @@ class IntroModal extends React.Component {
                         <div className="col-md-6">
                             {this.state.selectedLayers.length > 0 ? (<div>
                                 <SearchFieldComponent onSearch={this.handleSearch}/>
-                                {layerGroupsList.length > 0 ? layerGroupsList : (<p>{__(`Nothing found`)}</p>)}
+                                {layerGroupsList.length > 0 ? (<div style={{ maxHeight: `400px`, overflowY: `scroll`}}>{layerGroupsList}</div>) : (<p>{__(`Nothing found`)}</p>)}
                             </div>) : false}
                         </div>
                     </div>
@@ -214,17 +224,11 @@ class IntroModal extends React.Component {
             <div className="modal-footer" style={{padding: `0px`}}>
                 {this.state.mode === MODE_NEW ? (<div className="container">
                     <div className="row-fluid">
-                        <div className="col-md-12" style={{ textAlign: `right` }}>
+                        <div className="col-md-12" style={{textAlign: `right`, paddingTop: `10px`, paddingBottom: `10px`}}>
                             <button
                                 type="button"
-                                disabled={this.state.selectedLayers.length === 0 || this.state.selectedChemical !== false}
-                                className="btn btn-primary"
-                                data-dismiss="modal"
-                                onClick={this.applyParameters.bind(this)}>{__(`Continue without selecting chemical`)}<div className="ripple-container"></div></button>
-                            <button
-                                type="button"
-                                disabled={this.state.selectedLayers.length === 0 || this.state.selectedChemical === false}
-                                className="btn btn-primary"
+                                disabled={this.state.selectedLayers.length === 0}
+                                className="btn btn-raised btn-primary"
                                 data-dismiss="modal"
                                 onClick={this.applyParameters.bind(this)}>{__(`Continue`)}<div className="ripple-container"></div></button>
                         </div>

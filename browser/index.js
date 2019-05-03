@@ -4,6 +4,8 @@ import ModalComponent from './components/ModalComponent';
 import PlotsGridComponent from './components/PlotsGridComponent';
 import IntroModal from './components/IntroModal';
 import TitleFieldComponent from './../../../browser/modules/shared/TitleFieldComponent';
+import { LAYER_NAMES, WATER_LEVEL_KEY } from './constants';
+
 var wkt = require('terraformer-wkt-parser');
 
 const utmZone = require('./../../../browser/modules/utmZone.js');
@@ -51,13 +53,6 @@ var layerTree, layers, anchor, state, urlparser;
 var React = require('react');
 
 var ReactDOM = require('react-dom');
-
-const LAYER_NAMES = [
-    `v:chemicals.boreholes_time_series_with_chemicals`,
-    `chemicals.boreholes_time_series_without_chemicals`,
-    `v:sensor.sensordata_with_correction`,
-    `sensor.sensordata_without_correction`,
-];
 
 const STYLES = {
     "v:chemicals.boreholes_time_series_with_chemicals": {
@@ -191,7 +186,7 @@ module.exports = module.exports = {
                         names[v.properties.compundno] = v.properties.navn;
                     });
 
-                    names['watlevmsl'] = "Vandstand";
+                    names[WATER_LEVEL_KEY] = "Vandstand";
 
                     for (var key in categories) {
                         response.features.map(function (v) {
@@ -207,7 +202,7 @@ module.exports = module.exports = {
 
                     categoriesOverall = {};
                     categoriesOverall[LAYER_NAMES[0]] = categories;
-                    categoriesOverall[LAYER_NAMES[2]] = {"Vandstand": {"0": "watlevmsl"}};
+                    categoriesOverall[LAYER_NAMES[2]] = {"Vandstand": {"0": WATER_LEVEL_KEY}};
                     if (infoModalInstance) {
                         infoModalInstance.setCategories(categoriesOverall);
                     }
@@ -601,7 +596,6 @@ module.exports = module.exports = {
                 data: {data: wkt.convert(bufferedProfile)},
                 dataType: 'json',
                 success: (response) => {
-                    console.log(`### response`, response);
                     $(container).find(`.js-results`).append(`<p><strong>Result</strong>: ${JSON.stringify(response)}</p>`);
                 },
                 error: (error) => {
@@ -960,62 +954,72 @@ module.exports = module.exports = {
         backboneEvents.get().trigger(`${MODULE_NAME}:chemicalChange`);
 
         let chem = "_" + chemicalId;
-        store = layerTree.getStores()["v:chemicals.boreholes_time_series_with_chemicals"];
-        let fn = function () {
-            store.layer.eachLayer(function (layer) {
-                let feature = layer.feature;
+        let fn = function (store) {
+            if (layersToEnable.indexOf(store.id) > -1) {
+                let stores = layerTree.getStores();
+                stores[store.id].layer.eachLayer(function (layer) {
+                    let feature = layer.feature;
 
-                let maxColor;
-                let latestColor;
-                let iconSize;
-                let iconAnchor;
+                    let maxColor;
+                    let latestColor;
+                    let iconSize;
+                    let iconAnchor;
 
-                let json;
-                try {
-                    json = JSON.parse(feature.properties[chem]);
-                } catch (e) {
-                    return L.circleMarker(layer.getLatLng());
-                }
-
-                if (feature.properties[chem] !== null) {
-                    let measurementData = evaluateMeasurement(json, limits, chem);
-                    maxColor = measurementData.maxColor;
-                    latestColor = measurementData.latestColor;
-
-                    let html = [];
-                    for (let i = 0; i < measurementData.numberOfIntakes; i++) {
-                        html.push(`
-                           <b style="color: rgb(16, 174, 140)">Intag: ${i + 1}</b><br>
-                           Max: ${measurementData.maxMeasurementIntakes[i]}<br>
-                           Seneste: ${measurementData.latestMeasurementIntakes[i]}<br>
-                       `)
+                    let featureData = false;
+                    if (chem in feature.properties) {
+                        featureData = feature.properties[chem];
+                    } else if (chemicalId in feature.properties) {
+                        featureData = feature.properties[chemicalId];
                     }
 
-                    layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
-                    <b style="color: rgb(16, 174, 140)">${names[chemicalId]} (${json.unit})</b><br>${html.join('<br>')}`);
+                    let json;
+                    try {
+                        json = JSON.parse(featureData);
+                    } catch (e) {
+                        return L.circleMarker(layer.getLatLng());
+                    }
 
-                    iconSize = [30, 30];
-                    iconAnchor = [15, 15];
-                    layer.setZIndexOffset(10000);
-                } else {
-                    maxColor = latestColor = "#cccccc";
-                    iconSize = [20, 20];
-                    iconAnchor = [10, 10];
-                    layer.setZIndexOffset(1);
-                }
+                    if (featureData !== null) {
+                        let measurementData = evaluateMeasurement(json, limits, chem);
+                        maxColor = measurementData.maxColor;
+                        latestColor = measurementData.latestColor;
 
-                let icon = L.icon({
-                    iconUrl: measurementIcon.generate(maxColor, latestColor),
-                    iconSize: iconSize,
-                    iconAnchor: iconAnchor,
-                    popupAnchor: iconAnchor,
+                        let html = [];
+                        for (let i = 0; i < measurementData.numberOfIntakes; i++) {
+                            html.push(`
+                            <b style="color: rgb(16, 174, 140)">Intag: ${i + 1}</b><br>
+                            Max: ${measurementData.maxMeasurementIntakes[i]}<br>
+                            Seneste: ${measurementData.latestMeasurementIntakes[i]}<br>
+                        `)
+                        }
+
+                        layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
+                        <b style="color: rgb(16, 174, 140)">${names[chemicalId]} (${json.unit})</b><br>${html.join('<br>')}`);
+
+                        iconSize = [30, 30];
+                        iconAnchor = [15, 15];
+                        layer.setZIndexOffset(10000);
+                    } else {
+                        maxColor = latestColor = "#cccccc";
+                        iconSize = [20, 20];
+                        iconAnchor = [10, 10];
+                        layer.setZIndexOffset(1);
+                    }
+
+                    let icon = L.icon({
+                        iconUrl: measurementIcon.generate(maxColor, latestColor),
+                        iconSize: iconSize,
+                        iconAnchor: iconAnchor,
+                        popupAnchor: iconAnchor,
+                    });
+
+                    layer.setIcon(icon);
                 });
-
-                layer.setIcon(icon);
-            });
+            }
         };
 
-        layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", fn, "watsonc");
+        layerTree.setOnLoad(LAYER_NAMES[0], fn, "watsonc");
+        layerTree.setOnLoad(LAYER_NAMES[2], fn, "watsonc");
 
         layersToEnable.map(layerName => {
             layerTree.reloadLayer(layerName);
