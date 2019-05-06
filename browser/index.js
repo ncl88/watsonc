@@ -2,6 +2,7 @@
 
 import ModalComponent from './components/ModalComponent';
 import PlotsGridComponent from './components/PlotsGridComponent';
+import MenuTimeSeriesComponent from './components/MenuTimeSeriesComponent';
 import IntroModal from './components/IntroModal';
 import TitleFieldComponent from './../../../browser/modules/shared/TitleFieldComponent';
 import { LAYER_NAMES, WATER_LEVEL_KEY } from './constants';
@@ -67,7 +68,8 @@ const STYLES = {
         xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" id="svg8" version="1.1" viewBox="0 0 40 40" height="40" width="40">CONTENT</svg>`
 };
 
-let plotsGridComponentInstance = false, modalComponentInstance = false, infoModalInstance = false, titleFieldComponentInstance = false;
+let plotsGridComponentInstance = false, modalComponentInstance = false, infoModalInstance = false,
+    titleFieldComponentInstance = false, menuTimeSeriesComponentInstance = false;
 
 let lastSelectedChemical = false, categoriesOverall = false;
 
@@ -119,7 +121,7 @@ module.exports = module.exports = {
         state.listenTo(MODULE_NAME, _self);
         state.listen(MODULE_NAME, `plotsUpdate`);
         state.listen(MODULE_NAME, `chemicalChange`);
-        
+
         this.initializeSearchBar();
         this.initializeProfileDrawing();
 
@@ -325,7 +327,7 @@ module.exports = module.exports = {
                 if (applicationState && `modules` in applicationState && MODULE_NAME in applicationState.modules && `plots` in applicationState.modules[MODULE_NAME]) {
                     initialPlots = applicationState.modules[MODULE_NAME].plots;
                 }
-                
+
                 try {
                     plotsGridComponentInstance = ReactDOM.render(<PlotsGridComponent
                         initialPlots={initialPlots}
@@ -432,6 +434,7 @@ module.exports = module.exports = {
             bottom: 0px;
         `);
 
+        // Initializing TitleField component
         try {
             $(`#watsonc-plots-dialog-title-input`).css(`display`, `inline`);
             titleFieldComponentInstance = ReactDOM.render(<TitleFieldComponent
@@ -446,8 +449,24 @@ module.exports = module.exports = {
             console.log(e);
         }
 
+        // Initializing TimeSeries management component
+        $(`[data-module-id="profile-drawing"]`).click(() => {
+            if ($(`#watsonc-timeseries`).children().length === 0) {
+                try {
+                    menuTimeSeriesComponentInstance = ReactDOM.render(<MenuTimeSeriesComponent
+                        initialPlots={plotsGridComponentInstance.getPlots()}
+                        onPlotDelete={plotsGridComponentInstance.handleDeletePlot}
+                        onPlotHighlight={plotsGridComponentInstance.handleHighlightPlot}
+                        onPlotShow={plotsGridComponentInstance.handleShowPlot}
+                        onPlotHide={plotsGridComponentInstance.handleHidePlot}/>, document.getElementById(`watsonc-timeseries`));
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        });
+
         $(plotsId).find(`.expand-less`).trigger(`click`);
-        $(plotsId).find(`.js-modal-title-text`).text(__(`Time series`));
+        $(plotsId).find(`.js-modal-title-text`).text(__(`Calypso dashboard`));
         $(`#search-border`).trigger(`click`);
     },
 

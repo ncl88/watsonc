@@ -17,6 +17,7 @@ class PlotsGridComponent extends React.Component {
         this.state = {
             newPlotName: ``,
             plots: this.props.initialPlots,
+            visiblePlots: [],
             dataSource: []
         };
 
@@ -54,27 +55,46 @@ class PlotsGridComponent extends React.Component {
         });
     }
 
+
+    handleHighlightPlot(plotId) {
+        if (!plotId) throw new Error(`Empty plot identifier`);
+
+    }
+
+    handleShowPlot(plotId) {
+        if (!plotId) throw new Error(`Empty plot identifier`);
+
+    }
+    handleHidePlot(plotId) {
+        if (!plotId) throw new Error(`Empty plot identifier`);
+
+    }
+
     handleDeletePlot(id) {
-        this.plotManager.delete(id).then(() => {
-            let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
-            let plotWasDeleted = false;
-            plotsCopy.map((plot, index) => {
-                if (plot.id === id) {
-                    plotsCopy.splice(index, 1);
-                    plotWasDeleted = true;
-                    return false;
+        if (!plotId) throw new Error(`Empty plot identifier`);
+
+        if (confirm(__(`Delete plot`) + ` ${id}?`)) {
+            this.plotManager.delete(id).then(() => {
+                let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
+                let plotWasDeleted = false;
+                plotsCopy.map((plot, index) => {
+                    if (plot.id === id) {
+                        plotsCopy.splice(index, 1);
+                        plotWasDeleted = true;
+                        return false;
+                    }
+                });
+        
+                if (plotWasDeleted === false) {
+                    console.warn(`Plot ${id} was deleted only from backend storage`);
                 }
+        
+                this.setState({ plots: plotsCopy });
+                this.props.onPlotsChange(plotsCopy);
+            }).catch(error => {
+                console.error(`Error occured while creating plot (${error})`)
             });
-    
-            if (plotWasDeleted === false) {
-                console.warn(`Plot ${id} was deleted only from backend storage`);
-            }
-    
-            this.setState({ plots: plotsCopy });
-            this.props.onPlotsChange(plotsCopy);
-        }).catch(error => {
-            console.error(`Error occured while creating plot (${error})`)
-        });
+        }
     }
 
     handleNewPlotNameChange(event) {
