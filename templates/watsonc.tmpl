@@ -686,6 +686,20 @@
     .navbar, .navbar.navbar-default {
         background-color: rgb(0, 150, 136);
     }
+
+    .bottom-menu-panel {
+        width: 100%;
+        position: absolute;
+        bottom: 60px;
+    }
+
+    .fas-material-adapt {
+        margin-right: 17px;
+        padding: 2px;
+        border-radius: 50%;
+        width: 28px;
+        text-align: center;
+    }
 </style>
 <!-- map -->
 <div id="pane">
@@ -703,20 +717,6 @@
             </a>
             <a href="javascript:void(0)" id="zoom-out-btn" class="btn btn-default btn-fab btn-fab-mini">
                 <i class="material-icons">remove</i>
-            </a>
-            <a
-                href="javascript:void(0)"
-                id="js-open-state-snapshots-panel"
-                title="{{State snapshots}}"
-                class="btn btn-default btn-fab btn-fab-mini">
-                <i class="material-icons">folder_open</i>
-            </a>
-            <a
-                href="javascript:void(0)"
-                id="js-open-watsonc-panel"
-                title="{{Time series}}"
-                class="btn btn-default btn-fab btn-fab-mini">
-                <i class="material-icons">insert_chart</i>
             </a>
         </div>
 
@@ -1117,6 +1117,11 @@
                                 <div></div>
                                 <div class="form-group" id="state-snapshots" role="tablist"></div>
                             </div>
+
+                            <div role="tabpanel" class="tab-pane fade" id="timeseries-content">
+                                <div class="form-group" id="timeseries" role="tablist"></div>
+                            </div>
+
                             <div role="tabpanel" class="tab-pane fade" id="profile-drawing-content">
                                 <div class="help-btn"></div>
                                 <div></div>
@@ -1173,25 +1178,38 @@
                     <!-- Nav tabs -->
                     <ul class="" role="tablist" id="main-tabs">
                         <li role="presentation">
+                            <a href="#" class="js-data-sources" aria-controls="" role="tab" data-toggle="tab">
+                                <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{Data sources and -types}}" class="fas fa-database fas-material-adapt"></i>
+                                <span class="module-title">{{Data sources and -types}}</span>
+                            </a>
+                        </li>
+                        <li role="presentation">
                             <a href="#state-snapshots-content" aria-controls="" role="tab" data-toggle="tab">
-                                <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{State snapshots}}" class="material-icons">folder_open</i>
-                                <span class="module-title">{{State snapshots}}</span>
+                                <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{Projects}}" class="material-icons">folder_open</i>
+                                <span class="module-title">{{Projects}}</span>
+                            </a>
+                        </li>
+                        <hr/>
+                        <li>
+                            <a href="#timeseries-content" aria-controls="" role="tab" data-toggle="tab" data-module-id="profile-drawing" data-module-ignore-errors="true">
+                                <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{Timeseries}}" class="fas fa-chart-bar fas-material-adapt"></i>
+                                <span class="module-title">{{Timeseries}}</span>
                             </a>
                         </li>
                         <li>
                             <a href="#profile-drawing-content" aria-controls="" role="tab" data-toggle="tab" data-module-id="profile-drawing" data-module-ignore-errors="true">
-                                <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{Profile drawing}}" class="material-icons">timeline</i>
-                                <span class="module-title">{{Profile drawing}}</span>
+                                <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{Profiles}}" class="fas fa-chart-area fas-material-adapt"></i>
+                                <span class="module-title">{{Profiles}}</span>
                             </a>
                         </li>
                     </ul>
-                    <ul role="tablist">
+                    <ul class="bottom-menu-panel" role="tablist">
                         <hr>
                         <li>
                             <a href="#" id="btn-reset"><i class="material-icons">replay</i>{{Reset}}</a>
                         </li>
                         <li>
-                            <a href="#" data-toggle="modal" data-target="#about-model"><i class="material-icons">question_answer</i>{{About}}</a>
+                            <a href="https://admin.calypso.watsonc.dk/" target="_blank"><i class="material-icons">person</i>{{My profile}}</a>
                         </li>
                         <li>
                             <a href="http://watsonc.dk" target="_blank">

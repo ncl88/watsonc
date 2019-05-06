@@ -377,8 +377,15 @@ module.exports = module.exports = {
             });
         });
 
-        // Setting up plots dialog
         let plotsId = `#` + PLOTS_CONTAINER_ID;
+
+        // Setting up some items from the menu
+        $('#search-ribbon').find('.js-data-sources').click(() => {
+            $('#search-border').trigger("click");
+            $(plotsId).find(".expand-more").trigger("click");
+        });
+
+        // Setting up plots dialog
         let modalHeaderHeight = 70;
         $(plotsId).find(".expand-less").on("click", function () {
             $(plotsId).find(".expand-less").hide();
