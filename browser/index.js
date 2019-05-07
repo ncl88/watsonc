@@ -125,6 +125,18 @@ module.exports = module.exports = {
         this.initializeSearchBar();
         this.initializeProfileDrawing();
 
+        var lc = L.control.locate({
+            drawCircle: false
+        }).addTo(cloud.get().map);
+
+        $(`#find-me-btn`).click(() => {
+            lc.stop();
+            lc.start();
+            setTimeout(() => {
+                lc.stop();
+            }, 5000);
+        });
+
         $(`#js-open-state-snapshots-panel`).click(() => {
             $(`[href="#state-snapshots-content"]`).trigger(`click`);
         });
