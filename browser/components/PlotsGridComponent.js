@@ -17,13 +17,17 @@ class PlotsGridComponent extends React.Component {
         this.state = {
             newPlotName: ``,
             plots: this.props.initialPlots,
-            visiblePlots: [],
-            dataSource: []
+            activePlots: [],
+            dataSource: [],
+            highlightedPlot: false
         };
 
         this.plotManager = new PlotManager();
+        this.handleShowPlot = this.handleShowPlot.bind(this);
+        this.handleHidePlot = this.handleHidePlot.bind(this);
         this.handleCreatePlot = this.handleCreatePlot.bind(this);
         this.handleDeletePlot = this.handleDeletePlot.bind(this);
+        this.handleHighlightPlot = this.handleHighlightPlot.bind(this);
         this.getFeatureByGidFromDataSource = this.getFeatureByGidFromDataSource.bind(this);
         this.handleNewPlotNameChange = this.handleNewPlotNameChange.bind(this);
         this.handlePlotSort = this.handlePlotSort.bind(this);
@@ -55,25 +59,38 @@ class PlotsGridComponent extends React.Component {
         });
     }
 
-
     handleHighlightPlot(plotId) {
         if (!plotId) throw new Error(`Empty plot identifier`);
 
+        this.setState({highlightedPlot: (plotId === this.state.highlightedPlot ? false : plotId)}, () => {
+            this.props.onHighlightedPlotChange(this.state.highlightedPlot, this.state.plots);
+        });
     }
 
     handleShowPlot(plotId) {
         if (!plotId) throw new Error(`Empty plot identifier`);
 
+        let activePlots = JSON.parse(JSON.stringify(this.state.activePlots));
+        if (activePlots.indexOf(plotId) === -1) activePlots.push(plotId);
+        this.setState({activePlots}, () => {
+            this.props.onActivePlotsChange(this.state.activePlots);
+        });
     }
+
     handleHidePlot(plotId) {
         if (!plotId) throw new Error(`Empty plot identifier`);
 
+        let activePlots = JSON.parse(JSON.stringify(this.state.activePlots));
+        if (activePlots.indexOf(plotId) > -1) activePlots.splice(activePlots.indexOf(plotId), 1);
+        this.setState({activePlots}, () => {
+            this.props.onActivePlotsChange(this.state.activePlots);
+        });
     }
 
-    handleDeletePlot(id) {
-        if (!plotId) throw new Error(`Empty plot identifier`);
+    handleDeletePlot(id, name) {
+        if (!id) throw new Error(`Empty plot identifier`);
 
-        if (confirm(__(`Delete plot`) + ` ${id}?`)) {
+        if (confirm(__(`Delete plot`) + ` ${name ? name : id}?`)) {
             this.plotManager.delete(id).then(() => {
                 let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
                 let plotWasDeleted = false;
@@ -227,27 +244,36 @@ class PlotsGridComponent extends React.Component {
     };
 
     render() {
-        let plotsControls = (<p>{__(`No time series were created yet`)}</p>);
+        let plotsControls = (<p style={{textAlign: `center`}}>{__(`No timeseries were created or set as active yet`)}</p>);
 
         let localPlotsControls = [];
         this.state.plots.map((plot, index) => {
-            localPlotsControls.push(<SortablePlotComponent
-                key={`borehole_plot_${index}`} index={index}
-                handleDeletePlot={this.handleDeletePlot}
-                meta={plot}/>);
+            if (this.state.activePlots.indexOf(plot.id) > -1) {
+                localPlotsControls.push(<SortablePlotComponent
+                    key={`borehole_plot_${index}`} index={index}
+                    handleDeletePlot={this.handleDeletePlot}
+                    meta={plot}/>);
+            }
         });
 
         if (localPlotsControls.length > 0) {
             plotsControls = (<SortablePlotsGridComponent axis="xy" onSortEnd={this.handlePlotSort} useDragHandle>{localPlotsControls}</SortablePlotsGridComponent>);
         }
 
-        return (<div>{plotsControls}</div>);
+        return (<div>
+            <div>
+                <p className="text-muted" style={{margin: `0px`}}>{__(`Timeseries total`)}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}</p>
+            </div>
+            <div>{plotsControls}</div>
+        </div>);
     }
 }
 
 PlotsGridComponent.propTypes = {
     initialPlots: PropTypes.array.isRequired,
     onPlotsChange: PropTypes.func.isRequired,
+    onActivePlotsChange: PropTypes.func.isRequired,
+    onHighlightedPlotChange: PropTypes.func.isRequired,
 };
 
 export default PlotsGridComponent;

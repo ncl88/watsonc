@@ -255,7 +255,6 @@ module.exports = module.exports = {
                 if (plotsGridComponentInstance) {
                     let plots = plotsGridComponentInstance.getPlots();
                     plots = _self.syncPlotData(plots, e);
-                    _self.setStyleForParticipatingMeasurements(plots);
                     plotsGridComponentInstance.setPlots(plots);
                 }
             }
@@ -335,12 +334,28 @@ module.exports = module.exports = {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
 
                             if (plots) {
-                                _self.setStyleForParticipatingMeasurements(plots);
+                                if (menuTimeSeriesComponentInstance) {
+                                    menuTimeSeriesComponentInstance.setPlots(plots);
+                                }
 
                                 // Plots were updated from the PlotsGridComponent component
                                 if (modalComponentInstance) {
                                     _self.createModal(false, plots);
                                 }
+                            }
+                        }}
+                        onActivePlotsChange={(activePlots) => {
+                            backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
+
+                            if (menuTimeSeriesComponentInstance) {
+                                menuTimeSeriesComponentInstance.setActivePlots(activePlots);
+                            }
+                        }}
+                        onHighlightedPlotChange={(plotId, plots) => {
+                            _self.setStyleForHighlightedPlot(plotId, plots);
+
+                            if (menuTimeSeriesComponentInstance) {
+                                menuTimeSeriesComponentInstance.setHighlightedPlot(plotId);
                             }
                         }}/>, document.getElementById(FORM_PLOTS_CONTAINER_ID));
                 } catch (e) {
@@ -455,6 +470,7 @@ module.exports = module.exports = {
                 try {
                     menuTimeSeriesComponentInstance = ReactDOM.render(<MenuTimeSeriesComponent
                         initialPlots={plotsGridComponentInstance.getPlots()}
+                        onPlotCreate={plotsGridComponentInstance.handleCreatePlot}
                         onPlotDelete={plotsGridComponentInstance.handleDeletePlot}
                         onPlotHighlight={plotsGridComponentInstance.handleHighlightPlot}
                         onPlotShow={plotsGridComponentInstance.handleShowPlot}
@@ -840,7 +856,6 @@ module.exports = module.exports = {
             if (document.getElementById(FORM_FEATURE_CONTAINER_ID)) {
                 try {
                     let existingPlots = (plots ? plots : plotsGridComponentInstance.getPlots());
-                    _self.setStyleForParticipatingMeasurements(existingPlots);
                     setTimeout(() => {
                         ReactDOM.unmountComponentAtNode(document.getElementById(FORM_FEATURE_CONTAINER_ID));
                         modalComponentInstance = ReactDOM.render(<ModalComponent
@@ -868,13 +883,14 @@ module.exports = module.exports = {
     },
 
     /**
-     * Sets style for measurements vector features that participate in any of plots
+     * Sets style for highlighted plot
      * 
-     * @param {Array} plots Current plots
+     * @param {Number} plotId Plot identifier
+     * @param {Array}  plots  Existing plots
      * 
      * @return {void}
      */
-    setStyleForParticipatingMeasurements: (plots) => {
+    setStyleForHighlightedPlot: (plotId, plots) => {
         // If specific chemical is activated, then do not style
         if (lastSelectedChemical === false) {
             let icons = {};
@@ -907,13 +923,15 @@ module.exports = module.exports = {
 
             let participatingIds = [];
             plots.map(plot => {
-                plot.measurements.map(measurement => {
-                    let splitMeasurement = measurement.split(`:`);
-                    if (splitMeasurement.length === 3) {
-                        let id = parseInt(splitMeasurement[0]);
-                        if (participatingIds.indexOf(id) === -1) participatingIds.push(id);
-                    }
-                });
+                if (plot.id === plotId) {
+                    plot.measurements.map(measurement => {
+                        let splitMeasurement = measurement.split(`:`);
+                        if (splitMeasurement.length === 3) {
+                            let id = parseInt(splitMeasurement[0]);
+                            if (participatingIds.indexOf(id) === -1) participatingIds.push(id);
+                        }
+                    });
+                }
             });
 
             let mapLayers = layers.getMapLayers();
