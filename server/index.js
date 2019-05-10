@@ -9,6 +9,8 @@ var request = require('request');
 var router = express.Router();
 var moment = require('moment');
 var config = require('./../../../config/config');
+var moduleConfig = require('./../config/config');
+const spawn = require("child_process").spawn;
 
 moment.locale("da_DK");
 
@@ -28,6 +30,24 @@ router.post('/api/extension/watsonc', function (req, res) {
     };
 
     request.post({url, form: data}, function (err, localRes, body) {
+
+
+        console.log(body);
+
+
+        const pythonProcess = spawn('python3.6', [moduleConfig.scriptPath]);
+        
+        pythonProcess.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        pythonProcess.stderr.on('data', (data) => {
+            console.log(`stderr: ${data}`);
+        });
+
+
+
+
         res.send(body);
     }); 
 });
