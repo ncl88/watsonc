@@ -8,7 +8,6 @@ import { LAYER_NAMES, WATER_LEVEL_KEY } from './../constants';
 const MODE_INDEX = 0;
 const MODE_NEW = 1;
 const MODE_SELECT = 2;
-const MODE_REGISTER_NEW_DATA = 3;
 
 /**
  * Intro modal window content

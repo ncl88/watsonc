@@ -85,7 +85,11 @@ let dataSource = [];
 let boreholesDataSource = [];
 let waterLevelDataSource = [];
 
-let lastEnabledLayers = [];
+let lastEnabledMapState = {
+    layers: [],
+    chemical: false
+};
+
 let previousZoom = -1;
 
 let bufferSlider, bufferValue;
@@ -159,7 +163,7 @@ module.exports = module.exports = {
 
         cloud.get().on(`moveend`, () => {
             if (previousZoom === -1 && cloud.get().getZoom() < 15 || previousZoom >= 15 && cloud.get().getZoom() < 15) {
-                lastEnabledLayers = layerTree.getActiveLayers();
+                lastEnabledMapState.layers = layerTree.getActiveLayers();
             }
 
             if (cloud.get().getZoom() < 15) {
@@ -177,16 +181,21 @@ module.exports = module.exports = {
                     jquery("#snackbar-watsonc").snackbar("hide");
                 }, 200);
 
-                console.log(`### lastEnabledLayers`, lastEnabledLayers);
-
-                if (lastEnabledLayers.length > 0) {
-                    lastEnabledLayers.map(item => {
-                        if (item.indexOf(`v:`) === 0) {
-                            switchLayer.init(item, true, true, false);
-                        }
-                    });
-
-                    lastEnabledLayers = [];
+                if (lastEnabledMapState.layers.length > 0) {
+                    if (lastEnabledMapState.chemical) {
+                        _self.enableChemical(lastEnabledMapState.chemical, lastEnabledMapState.layers, () => {
+                            lastEnabledMapState.layers = [];
+                            lastEnabledMapState.chemical = false;
+                        });
+                    } else {
+                        lastEnabledMapState.layers.map(item => {
+                            if (item.indexOf(`v:`) === 0) {
+                                switchLayer.init(item, true, true, false);
+                            }
+                        });
+    
+                        lastEnabledMapState.layers = [];
+                    }
                 }
             }
 
@@ -222,6 +231,7 @@ module.exports = module.exports = {
 
                     categoriesOverall = {};
                     categoriesOverall[LAYER_NAMES[0]] = categories;
+                    categoriesOverall[LAYER_NAMES[0]]["Vandstand"] = {"0": WATER_LEVEL_KEY};
                     categoriesOverall[LAYER_NAMES[2]] = {"Vandstand": {"0": WATER_LEVEL_KEY}};
                     if (infoModalInstance) {
                         infoModalInstance.setCategories(categoriesOverall);
@@ -605,15 +615,16 @@ module.exports = module.exports = {
                 switchLayer.init(layerNameToEnable, false);
             });
 
-            if (parameters.chemical) {
-                _self.enableChemical(parameters.chemical, parameters.layers);
+            if (cloud.get().getZoom() < 15) {
+                lastEnabledMapState = parameters;
             } else {
-
-// ###
-                
-                parameters.layers.map(layerName => {
-                    layerTree.reloadLayer(layerName);
-                });
+                if (parameters.chemical) {
+                    _self.enableChemical(parameters.chemical, parameters.layers);
+                } else {
+                    parameters.layers.map(layerName => {
+                        layerTree.reloadLayer(layerName);
+                    });
+                }
             }
         };
 
@@ -838,15 +849,14 @@ module.exports = module.exports = {
         };
     },
 
-    enableChemical(chemicalId, layersToEnable = []) {
+    enableChemical(chemicalId, layersToEnable = [], onComplete = false) {
         if (!chemicalId) throw new Error(`Chemical identifier was not provided`);
-
         if (categoriesOverall) {
             for (let layerName in categoriesOverall) {
                 for (let key in categoriesOverall[layerName]) {
                     for (let key2 in categoriesOverall[layerName][key]) {
-                        if (key2.toString() === chemicalId.toString()) {
-                            if (layersToEnable.indexOf(layerName) === -1) layersToEnable.push(layerName);
+                        if (key2.toString() === chemicalId.toString() || categoriesOverall[layerName][key][key2] === chemicalId.toString()) {
+                            if (layersToEnable.indexOf(layerName) === -1) layersToEnable.push(layerName);                            
                             _self.buildBreadcrumbs(key, categoriesOverall[layerName][key][key2], layerName === LAYER_NAMES[2]);
                             break;
                         }
@@ -929,6 +939,8 @@ module.exports = module.exports = {
         layersToEnable.map(layerName => {
             layerTree.reloadLayer(layerName);
         });
+
+        if (onComplete) onComplete();
     },
 
     /**
