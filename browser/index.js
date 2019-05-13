@@ -477,21 +477,6 @@ module.exports = module.exports = {
             bottom: 0px;
         `);
 
-        // Initializing TitleField component
-        try {
-            $(`#watsonc-plots-dialog-title-input`).css(`display`, `inline`);
-            ReactDOM.render(<TitleFieldComponent
-                saveButtonText={__(`Save`)}
-                layout="dense"
-                onAdd={(title) => {
-                    if (plotsGridComponentInstance) {
-                        plotsGridComponentInstance.handleCreatePlot(title);
-                    }
-                }} type="userOwned"/>, document.getElementById(`watsonc-plots-dialog-title-input`));
-        } catch (e) {
-            console.log(e);
-        }
-
         // Initializing TimeSeries management component
         $(`[data-module-id="profile-drawing"]`).click(() => {
             if ($(`#watsonc-timeseries`).children().length === 0) {
