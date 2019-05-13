@@ -70,7 +70,7 @@ const STYLES = {
 };
 
 let plotsGridComponentInstance = false, modalComponentInstance = false, infoModalInstance = false,
-    titleFieldComponentInstance = false, menuTimeSeriesComponentInstance = false, menuProfilesComponentInstance = false;
+    menuTimeSeriesComponentInstance = false, menuProfilesComponentInstance = false;
 
 let lastSelectedChemical = false, categoriesOverall = false;
 
@@ -173,6 +173,12 @@ module.exports = module.exports = {
                     timeout: 1000000
                 });
             } else {
+                setTimeout(function () {
+                    jquery("#snackbar-watsonc").snackbar("hide");
+                }, 200);
+
+                console.log(`### lastEnabledLayers`, lastEnabledLayers);
+
                 if (lastEnabledLayers.length > 0) {
                     lastEnabledLayers.map(item => {
                         if (item.indexOf(`v:`) === 0) {
@@ -464,7 +470,7 @@ module.exports = module.exports = {
         // Initializing TitleField component
         try {
             $(`#watsonc-plots-dialog-title-input`).css(`display`, `inline`);
-            titleFieldComponentInstance = ReactDOM.render(<TitleFieldComponent
+            ReactDOM.render(<TitleFieldComponent
                 saveButtonText={__(`Save`)}
                 layout="dense"
                 onAdd={(title) => {
@@ -602,6 +608,9 @@ module.exports = module.exports = {
             if (parameters.chemical) {
                 _self.enableChemical(parameters.chemical, parameters.layers);
             } else {
+
+// ###
+                
                 parameters.layers.map(layerName => {
                     layerTree.reloadLayer(layerName);
                 });
