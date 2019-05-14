@@ -880,7 +880,7 @@ module.exports = module.exports = {
                         return L.circleMarker(layer.getLatLng());
                     }
 
-                    if (featureData !== null) {
+                    if (featureData !== null && json) {
                         let measurementData = evaluateMeasurement(json, limits, chem);
                         maxColor = measurementData.maxColor;
                         latestColor = measurementData.latestColor;
