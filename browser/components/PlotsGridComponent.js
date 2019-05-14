@@ -55,7 +55,7 @@ class PlotsGridComponent extends React.Component {
     handleCreatePlot(title, activateOnCreate = false) {
         this.plotManager.create(title).then(newPlot => {
             let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
-            plotsCopy.push(newPlot);
+            plotsCopy.unshift(newPlot);
 
             if (activateOnCreate) {
                 let activePlotsCopy = JSON.parse(JSON.stringify(this.state.activePlots));

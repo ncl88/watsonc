@@ -963,6 +963,18 @@
         background-color: #1380c4;
         color: #fff;
     }
+
+    #watsonc-plots-dialog-controls .modal-header-content {
+        position: relative; height: 30px;
+    }
+
+    #watsonc-plots-dialog-controls .modal-header-content__title {
+        position: absolute;
+    }
+
+    #watsonc-plots-dialog-controls .modal-header-content__controls {
+        position: absolute; left: calc(50% - 25px);
+    }
 </style>
 <!-- map -->
 <div id="pane">
@@ -1111,11 +1123,11 @@
 
     <div id="watsonc-plots-dialog" class="dialog-bottom fade-then-dragging dialog-bottom-wide">
         <div class="modal-header" id="watsonc-plots-dialog-controls">
-            <div style="display: flex;">
-                <div>
+            <div class="modal-header-content">
+                <div class="modal-header-content__title">
                     <h3 class="modal-title"><span class="js-modal-title-text"></span></h3>
                 </div>
-                <div style="flex-grow: 1;">
+                <div class="modal-header-content__controls">
                     <div>
                         <button type="button" class="close expand-more" aria-hidden="true">
                             <i class="material-icons">expand_less</i>
@@ -1410,7 +1422,7 @@
                     <!-- Nav tabs -->
                     <ul class="" role="tablist" id="main-tabs">
                         <li role="presentation">
-                            <a href="#" class="js-data-sources" aria-controls="" role="tab" data-toggle="tab">
+                            <a href="javascript:void(0)" class="js-data-sources" aria-controls="" role="tab" data-toggle="tab">
                                 <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{Data sources and -types}}" class="fas fa-database fas-material-adapt"></i>
                                 <span class="module-title">{{Data sources and -types}}</span>
                             </a>
