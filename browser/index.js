@@ -483,6 +483,7 @@ module.exports = module.exports = {
                 try {
                     menuTimeSeriesComponentInstance = ReactDOM.render(<MenuTimeSeriesComponent
                         initialPlots={plotsGridComponentInstance.getPlots()}
+                        initialActivePlots={plotsGridComponentInstance.getActivePlots()}
                         onPlotCreate={plotsGridComponentInstance.handleCreatePlot}
                         onPlotDelete={plotsGridComponentInstance.handleDeletePlot}
                         onPlotHighlight={plotsGridComponentInstance.handleHighlightPlot}
@@ -728,7 +729,7 @@ module.exports = module.exports = {
                             onDeleteMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
                                 plotsGridComponentInstance.deleteMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
                             }}
-                            onPlotAdd={((newPlotTitle) => { plotsGridComponentInstance.addPlot(newPlotTitle); })}/>, document.getElementById(FORM_FEATURE_CONTAINER_ID));
+                            onPlotAdd={((newPlotTitle) => { plotsGridComponentInstance.addPlot(newPlotTitle, true); })}/>, document.getElementById(FORM_FEATURE_CONTAINER_ID));
                     }, 100);
                 } catch (e) {
                     console.log(e);

@@ -1111,16 +1111,24 @@
 
     <div id="watsonc-plots-dialog" class="dialog-bottom fade-then-dragging dialog-bottom-wide">
         <div class="modal-header" id="watsonc-plots-dialog-controls">
-            <button type="button" class="close expand-more" aria-hidden="true">
-                <i class="material-icons">expand_less</i>
-            </button>
-            <button type="button" class="close expand-half" aria-hidden="true">
-                <i class="material-icons">swap_vert</i>
-            </button>
-            <button type="button" class="close expand-less" aria-hidden="true">
-                <i class="material-icons">expand_more</i>
-            </button>
-            <h3 class="modal-title"><span class="js-modal-title-text"></span></h3>
+            <div style="display: flex;">
+                <div>
+                    <h3 class="modal-title"><span class="js-modal-title-text"></span></h3>
+                </div>
+                <div style="flex-grow: 1;">
+                    <div>
+                        <button type="button" class="close expand-more" aria-hidden="true">
+                            <i class="material-icons">expand_less</i>
+                        </button>
+                        <button type="button" class="close expand-half" aria-hidden="true">
+                            <i class="material-icons">swap_vert</i>
+                        </button>
+                        <button type="button" class="close expand-less" aria-hidden="true">
+                            <i class="material-icons">expand_more</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="modal-body">
             <div class="form-group" id="watsonc-plots-dialog-form"></div>

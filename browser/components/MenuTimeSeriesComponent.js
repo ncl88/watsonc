@@ -14,7 +14,7 @@ class MenuTimeSeriesComponent extends React.Component {
 
         this.state = {
             plots: this.props.initialPlots,
-            activePlots: [],
+            activePlots: this.props.initialActivePlots,
             highlightedPlot: false
         };
     }
@@ -98,6 +98,7 @@ class MenuTimeSeriesComponent extends React.Component {
 
 MenuTimeSeriesComponent.propTypes = {
     initialPlots: PropTypes.array.isRequired,
+    initialActivePlots: PropTypes.array.isRequired,
 };
 
 export default MenuTimeSeriesComponent;

@@ -40,19 +40,37 @@ class PlotsGridComponent extends React.Component {
         return JSON.parse(JSON.stringify(this.state.plots));
     }
 
-    addPlot(newPlotName) {
-        this.handleCreatePlot(newPlotName);
+    getActivePlots() {
+        return JSON.parse(JSON.stringify(this.state.activePlots));
+    }
+
+    addPlot(newPlotName, activateOnCreate = false) {
+        this.handleCreatePlot(newPlotName, activateOnCreate);
     }
 
     setPlots(plots) {
         this.setState({ plots });
     }
 
-    handleCreatePlot(title) {
+    handleCreatePlot(title, activateOnCreate = false) {
         this.plotManager.create(title).then(newPlot => {
             let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
             plotsCopy.push(newPlot);
-            this.setState({ plots: plotsCopy });
+
+            if (activateOnCreate) {
+                let activePlotsCopy = JSON.parse(JSON.stringify(this.state.activePlots));
+                if (activePlotsCopy.indexOf(newPlot.id) === -1) activePlotsCopy.push(newPlot.id);
+
+                this.setState({
+                    plots: plotsCopy,
+                    activePlots: activePlotsCopy
+                });
+
+                this.props.onActivePlotsChange(activePlotsCopy);                
+            } else {
+                this.setState({ plots: plotsCopy });
+            }
+
             this.props.onPlotsChange(plotsCopy);
         }).catch(error => {
             console.error(`Error occured while creating plot (${error})`)
