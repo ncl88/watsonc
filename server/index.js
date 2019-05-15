@@ -17,6 +17,8 @@ moment.locale("da_DK");
 router.post('/api/extension/watsonc', function (req, res) {
     if (!config.gc2.host) throw new Error(`GC2 host has to be specified`);
 
+    console.log(`### data from the profile drawing tool`, req.body);
+
     let table = `chemicals.boreholes_time_series_with_chemicals`;
     let sql = `SELECT * FROM ${table} WHERE ST_Intersects(ST_Transform(ST_geomfromtext('${req.body.data}', 4326), 25832), the_geom)`;
 
@@ -32,17 +34,17 @@ router.post('/api/extension/watsonc', function (req, res) {
     request.post({url, form: data}, function (err, localRes, body) {
 
 
-        console.log(body);
+        //console.log(body);
 
 
         const pythonProcess = spawn('python3.6', [moduleConfig.scriptPath]);
         
         pythonProcess.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
+            //console.log(`stdout: ${data}`);
         });
 
         pythonProcess.stderr.on('data', (data) => {
-            console.log(`stderr: ${data}`);
+            //console.log(`stderr: ${data}`);
         });
 
 

@@ -59,7 +59,7 @@ class MenuPanelPlotComponent extends React.Component {
                     }
 
                     data.push({
-                        name: (`${measurementData.title} (${measurementData.unit}, ${__(`updated at`)} ${createdAt})`),
+                        name: (`DGU ${feature.properties.boreholeno} - ${measurementData.title} (${measurementData.unit}${createdAt ? `, ` + __(`updated at`) + ` ` + moment(createdAt).format(`D MMM YYYY`) : ``})`),
                         x: measurementData.timeOfMeasurement[intakeIndex],
                         y: measurementData.measurements[intakeIndex],
                         type: 'scattergl',

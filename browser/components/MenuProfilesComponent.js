@@ -3,17 +3,14 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import Slider from 'rc-slider';
 
-import PlotComponent from './PlotComponent';
-import { isNumber } from 'util';
-import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
+import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
 const wkt = require('terraformer-wkt-parser');
 
 const STEP_NOT_READY = 0;
 const STEP_BEING_DRAWN = 1;
 const STEP_READY_TO_LOAD = 2;
 
-let drawnItems = new L.FeatureGroup(), embedDrawControl = false, bufferedProfile = false;
-let bufferSlider = false, bufferValue = false;
+let drawnItems = new L.FeatureGroup(), embedDrawControl = false;
 
 /**
  * Component for creating profiles
@@ -23,6 +20,7 @@ class MenuProfilesComponent extends React.Component {
         super(props);
 
         this.state = {
+            loading: false,
             showDrawingForm: false,
             step: STEP_NOT_READY,
             bufferedProfile: false,
@@ -43,9 +41,16 @@ class MenuProfilesComponent extends React.Component {
     search() {
         this.setState({step: STEP_NOT_READY}, () => {
             this.stopDrawing();
-            axios.post(`/api/extension/watsonc`, {data: wkt.convert(this.state.bufferedProfile)}).then(response => {
+            this.setState({loading: true});
+            axios.post(`/api/extension/watsonc`, {
+                data: wkt.convert(this.state.bufferedProfile),
+                bufferRadius: this.state.buffer,
+                profileDepth: this.state.profileBottom
+            }).then(response => {
+                this.setState({loading: false});
                 console.log(response);
             }).catch(error => {
+                this.setState({loading: false});
                 console.log(`### error`, error);
             });
         });
@@ -110,7 +115,16 @@ class MenuProfilesComponent extends React.Component {
     }
 
     render() {
-       return (<div id="profile-drawing-buffer" style={{borderBottom: `1px solid lightgray`}}>
+        let overlay = false;
+        if (this.state.loading) {
+            overlay = (<LoadingOverlay/>);
+        }
+
+        return (<div id="profile-drawing-buffer" style={{
+            borderBottom: `1px solid lightgray`,
+            position: `relative`
+        }}>
+            {overlay}
             <div style={{fontSize: `20px`, padding: `14px`}}>
                 <a href="javascript:void(0)" onClick={() => { this.setState({showDrawingForm: !this.state.showDrawingForm})}}>{__(`Create new profile`)} 
                     {this.state.showDrawingForm ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
@@ -122,7 +136,7 @@ class MenuProfilesComponent extends React.Component {
                         <p>{__(`Adjust buffer`)}</p>
                     </div>
                     <div className="col-md-5" style={{paddingTop: `14px`}}>
-                        <Slider value={this.state.buffer} min={0} max={500} onChange={(value) => { this.setState({buffer: value}); }}/>
+                        <Slider value={this.state.buffer ? parseInt(this.state.buffer) : 0} min={0} max={500} onChange={(value) => { this.setState({buffer: value}); }}/>
                     </div>
                     <div className="col-md-3">
                         <input
@@ -147,7 +161,7 @@ class MenuProfilesComponent extends React.Component {
                 </div>
 
                <div className="row">
-                    <div className="col-md-6">
+                    <div className="col-md-6" style={{textAlign: `center`}}>
                         {this.state.step === STEP_READY_TO_LOAD || this.state.step === STEP_BEING_DRAWN ? (<a
                             href="javascript:void(0)"
                             className="btn btn-primary"
@@ -167,7 +181,7 @@ class MenuProfilesComponent extends React.Component {
                                 });
                         }}><i className="material-icons">linear_scale</i> {__(`Draw profile`)}</a>)}
                     </div>
-                    <div className="col-md-6">
+                    <div className="col-md-6" style={{textAlign: `center`}}>
                         <a
                             href="javascript:void(0)"
                             className="btn"
