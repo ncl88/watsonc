@@ -22,6 +22,9 @@ class MenuProfilesComponent extends React.Component {
         this.state = {
             loading: false,
             showDrawingForm: false,
+            showExistingProfiles: false,
+            layers: [],
+            profile: false,
             step: STEP_NOT_READY,
             bufferedProfile: false,
             profileBottom: -100,
@@ -39,16 +42,22 @@ class MenuProfilesComponent extends React.Component {
     }
 
     search() {
-        this.setState({step: STEP_NOT_READY}, () => {
+        this.setState({
+            step: STEP_NOT_READY,
+            layers: []
+        }, () => {
             this.stopDrawing();
             this.setState({loading: true});
             axios.post(`/api/extension/watsonc`, {
                 data: wkt.convert(this.state.bufferedProfile),
                 bufferRadius: this.state.buffer,
-                profileDepth: this.state.profileBottom
+                profileDepth: this.state.profileBottom,
+                profile: this.state.profile
             }).then(response => {
-                this.setState({loading: false});
-                console.log(response);
+                this.setState({
+                    loading: false,
+                    layers: response.data
+                });
             }).catch(error => {
                 this.setState({loading: false});
                 console.log(`### error`, error);
@@ -103,7 +112,8 @@ class MenuProfilesComponent extends React.Component {
 
                 this.setState({
                     step: STEP_READY_TO_LOAD,
-                    bufferedProfile: buffer4326
+                    bufferedProfile: buffer4326,
+                    profile: primitive
                 });
             }
         });
@@ -120,6 +130,36 @@ class MenuProfilesComponent extends React.Component {
             overlay = (<LoadingOverlay/>);
         }
 
+        let availableLayers = (<p>{__(`No layers found`)}</p>);;
+        if (this.state.layers && this.state.layers.length > 0) {
+            availableLayers = [];
+
+            const generateLayerRecord = (item, index, prefix) => {
+
+                let points = [];
+                item.intersectionSegments.map(item => {
+                    points.push(`${Math.round(item[0] / 1000)}km - ${Math.round(item[1] / 1000)}km`);
+                });
+
+                return (<div className="form-group" key={`${prefix}${index}`}>
+                    <div className="checkbox">
+                        <label>
+                            <input type="checkbox"/> {item.title}
+                        </label>
+                    </div>
+                    <div>
+                        {item.subtitle}
+                        <br/>
+                        {__(`Stationing points`) + ': ' + points.join(', ')}
+                    </div>
+                </div>);
+            };
+
+            this.state.layers.filter(item => item.type !== `geology`).map((item, index) => { availableLayers.push(generateLayerRecord(item, index, `non_geology_layer_`)); });
+            if (availableLayers.length > 0) availableLayers.push(<hr style={{margin: `10px`}} key={`layer_divider`}/>);
+            this.state.layers.filter(item => item.type === `geology`).map((item, index) => { availableLayers.push(generateLayerRecord(item, index, `geology_layer_`)); });
+        }
+
         return (<div id="profile-drawing-buffer" style={{
             borderBottom: `1px solid lightgray`,
             position: `relative`
@@ -129,8 +169,8 @@ class MenuProfilesComponent extends React.Component {
                 <a href="javascript:void(0)" onClick={() => { this.setState({showDrawingForm: !this.state.showDrawingForm})}}>{__(`Create new profile`)} 
                     {this.state.showDrawingForm ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
                 </a>
-           </div>
-           {this.state.showDrawingForm ? (<div className="container">
+            </div>
+            {this.state.showDrawingForm ? (<div className="container">
                 <div className="row">
                     <div className="col-md-4" style={{paddingTop: `12px`}}>
                         <p>{__(`Adjust buffer`)}</p>
@@ -196,9 +236,36 @@ class MenuProfilesComponent extends React.Component {
                     <div className="col-md-12">
                         <div className="js-results"></div>
                     </div>
-               </div>
-           </div>) : false}
-       </div>);
+                </div>
+
+                <div className="row">
+                    <div className="col-md-12">
+                        {availableLayers}
+                    </div>
+                </div>
+            </div>) : false}
+            <div style={{fontSize: `20px`, padding: `14px`}}>
+                <a href="javascript:void(0)" onClick={() => { this.setState({showExistingProfiles: !this.state.showExistingProfiles})}}>{__(`Select previously created profile`)} 
+                    {this.state.showExistingProfiles ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
+                </a>
+            </div>
+            {this.state.showExistingProfiles ? (<div className="container">
+                <div className="row">
+                    <div className="col-md-12">
+                        LOAD_AND_DISPLAY
+                    </div>
+                </div>
+            </div>) : false}
+
+
+
+
+
+
+            
+
+
+        </div>);
     }
 }
 

@@ -1,0 +1,5 @@
+module.exports = {
+    // Location of the Python scripts
+    intersectionsScriptPath: '/root/vidi/ProfileTool/intersectiontool.py',
+    profileScriptPath: '/root/vidi/ProfileTool/profiletool.py',
+};

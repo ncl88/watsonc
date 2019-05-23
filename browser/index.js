@@ -5,7 +5,6 @@ import PlotsGridComponent from './components/PlotsGridComponent';
 import MenuTimeSeriesComponent from './components/MenuTimeSeriesComponent';
 import MenuProfilesComponent from './components/MenuProfilesComponent';
 import IntroModal from './components/IntroModal';
-import TitleFieldComponent from './../../../browser/modules/shared/TitleFieldComponent';
 import { LAYER_NAMES, WATER_LEVEL_KEY } from './constants';
 
 var wkt = require('terraformer-wkt-parser');
