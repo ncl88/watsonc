@@ -3,12 +3,15 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import Slider from 'rc-slider';
 
+import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
 const wkt = require('terraformer-wkt-parser');
 
 const STEP_NOT_READY = 0;
 const STEP_BEING_DRAWN = 1;
 const STEP_READY_TO_LOAD = 2;
+
+const DEFAULT_API_URL = `/api/key-value`;
 
 let drawnItems = new L.FeatureGroup(), embedDrawControl = false;
 
@@ -20,10 +23,14 @@ class MenuProfilesComponent extends React.Component {
         super(props);
 
         this.state = {
+            apiUrl: (props.apiUrl ? props.apiUrl : DEFAULT_API_URL),
             loading: false,
             showDrawingForm: false,
             showExistingProfiles: false,
+            boreholeNames: [],
             layers: [],
+            selectedLayers: [],
+            existingProfiles: [],
             profile: false,
             step: STEP_NOT_READY,
             bufferedProfile: false,
@@ -34,11 +41,106 @@ class MenuProfilesComponent extends React.Component {
         this.search = this.search.bind(this);
         this.startDrawing = this.startDrawing.bind(this);
         this.stopDrawing = this.stopDrawing.bind(this);
+        this.saveProfile = this.saveProfile.bind(this);
+        this.handleLayerSelect = this.handleLayerSelect.bind(this);
 
         props.cloud.get().map.addLayer(drawnItems);
 
         this.bufferSliderRef = React.createRef();
         this.bufferValueRef = React.createRef();
+    }
+
+    componentWillMount() {
+        this.refreshProfilesList();
+    }
+
+    /**
+     * Retrives state snapshots list from server
+     */
+    refreshProfilesList() {
+        let _self = this;
+
+        this.setState({ loading: true });
+        $.ajax({
+            url: `${this.state.apiUrl}/${vidiConfig.appDatabase}?like=watsonc_profiles_`,
+            method: 'GET',
+            dataType: 'json'
+        }).then(existingProfiles => {
+
+
+
+            _self.setState({ existingProfiles, loading: false });
+        }, (jqXHR) => {
+            console.error(`Error occured while refreshing profiles list`);
+            _self.setState({loading: false});
+        });
+    }
+
+    saveProfile(title) {
+        if (!title) throw new Error(`Profile name should not be empty`);
+
+        let layers = [];
+        this.state.layers.map(item => {
+            if (this.state.selectedLayers.indexOf(item.id) > -1) {
+                layers.push(item);
+            }
+        });
+
+        let savedProfile = {
+            title,
+            profile: this.state.profile,
+            buffer: this.state.buffer,
+            depth: this.state.profileBottom,
+            boreholeNames: this.state.boreholeNames,
+            layers
+        };
+
+        axios.post(`/api/extension/watsonc/profile`, savedProfile).then(response => {
+            this.setState({
+                loading: false,
+            });
+        }).catch(error => {
+            this.setState({loading: false});
+            console.log(`### error`, error);
+        });
+
+        /*
+        let _self = this;
+        _self.setState({ loading: true });
+        $.ajax({
+            url: `${this.state.apiUrl}/${vidiConfig.appDatabase}`,
+            method: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            data: JSON.stringify(savedProfile)
+        }).then(response => {
+            _self.setState({ loading: false });
+            _self.refreshProfilesList();
+        }, error => {
+            console.error(error);
+            _self.setState({ loading: false });
+            _self.refreshProfilesList();
+        });
+
+
+
+        console.log(`### 1`, title);
+        */
+    }
+
+    handleLayerSelect(checked, layer) {
+        let layesrCopy = JSON.parse(JSON.stringify(this.state.selectedLayers));
+        if (checked) {
+            if (layesrCopy.indexOf(layer.id) === -1) {
+                layesrCopy.push(layer.id);
+            }
+        } else {
+            if (layesrCopy.indexOf(layer.id) > -1) {
+                layesrCopy.splice(layesrCopy.indexOf(layer.id), 1);
+            }
+        }
+
+        this.setState({selectedLayers: layesrCopy})
     }
 
     search() {
@@ -48,15 +150,21 @@ class MenuProfilesComponent extends React.Component {
         }, () => {
             this.stopDrawing();
             this.setState({loading: true});
-            axios.post(`/api/extension/watsonc`, {
+            axios.post(`/api/extension/watsonc/intersection`, {
                 data: wkt.convert(this.state.bufferedProfile),
                 bufferRadius: this.state.buffer,
                 profileDepth: this.state.profileBottom,
                 profile: this.state.profile
             }).then(response => {
+                let responseCopy = JSON.parse(JSON.stringify(response.data.result));
+                response.data.result.map((item, index) => {
+                    responseCopy[index].id = btoa(item.title);
+                });
+
                 this.setState({
                     loading: false,
-                    layers: response.data
+                    layers: responseCopy,
+                    boreholeNames: response.data.boreholeNames
                 });
             }).catch(error => {
                 this.setState({loading: false});
@@ -144,7 +252,10 @@ class MenuProfilesComponent extends React.Component {
                 return (<div className="form-group" key={`${prefix}${index}`}>
                     <div className="checkbox">
                         <label>
-                            <input type="checkbox"/> {item.title}
+                            <input
+                                type="checkbox"
+                                checked={this.state.selectedLayers.indexOf(item.id) > -1}
+                                onChange={(event) => { this.handleLayerSelect(event.target.checked, item); }}/> {item.title}
                         </label>
                     </div>
                     <div>
@@ -160,111 +271,116 @@ class MenuProfilesComponent extends React.Component {
             this.state.layers.filter(item => item.type === `geology`).map((item, index) => { availableLayers.push(generateLayerRecord(item, index, `geology_layer_`)); });
         }
 
-        return (<div id="profile-drawing-buffer" style={{
-            borderBottom: `1px solid lightgray`,
-            position: `relative`
-        }}>
+        let existingProfilesControls = [];
+
+        return (<div id="profile-drawing-buffer" style={{position: `relative`}}>
             {overlay}
-            <div style={{fontSize: `20px`, padding: `14px`}}>
-                <a href="javascript:void(0)" onClick={() => { this.setState({showDrawingForm: !this.state.showDrawingForm})}}>{__(`Create new profile`)} 
-                    {this.state.showDrawingForm ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
-                </a>
+            <div style={{borderBottom: `1px solid lightgray`}}>
+                <div style={{fontSize: `20px`, padding: `14px`}}>
+                    <a href="javascript:void(0)" onClick={() => { this.setState({showDrawingForm: !this.state.showDrawingForm})}}>{__(`Create new profile`)} 
+                        {this.state.showDrawingForm ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
+                    </a>
+                </div>
+                {this.state.showDrawingForm ? (<div className="container">
+                    <div className="row">
+                        <div className="col-md-4" style={{paddingTop: `12px`}}>
+                            <p>{__(`Adjust buffer`)}</p>
+                        </div>
+                        <div className="col-md-5" style={{paddingTop: `14px`}}>
+                            <Slider value={this.state.buffer ? parseInt(this.state.buffer) : 0} min={0} max={500} onChange={(value) => { this.setState({buffer: value}); }}/>
+                        </div>
+                        <div className="col-md-3">
+                            <input
+                                type="number"
+                                className="form-control"
+                                onChange={(event) => { this.setState({buffer: event.target.value}); }}
+                                value={this.state.buffer}/>
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-md-4" style={{paddingTop: `12px`}}>
+                            <p>{__(`Adjust profile bottom`)}</p>
+                        </div>
+                        <div className="col-md-8">
+                            <input
+                                type="number"
+                                className="form-control"
+                                onChange={(event) => { this.setState({profileBottom: event.target.value}); }}
+                                value={this.state.profileBottom}/>
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-md-6" style={{textAlign: `center`}}>
+                            {this.state.step === STEP_READY_TO_LOAD || this.state.step === STEP_BEING_DRAWN ? (<a
+                                href="javascript:void(0)"
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    this.setState({
+                                        step: STEP_NOT_READY,
+                                        bufferedProfile: false
+                                    }, () => {
+                                        this.stopDrawing();
+                                    });
+                            }}><i className="material-icons">block</i> {__(`Cancel`)}</a>) : (<a
+                                href="javascript:void(0)"
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    this.setState({step: STEP_BEING_DRAWN}, () => {
+                                        this.startDrawing();
+                                    });
+                            }}><i className="material-icons">linear_scale</i> {__(`Draw profile`)}</a>)}
+                        </div>
+                        <div className="col-md-6" style={{textAlign: `center`}}>
+                            <a
+                                href="javascript:void(0)"
+                                className="btn"
+                                disabled={this.state.step !== STEP_READY_TO_LOAD}
+                                onClick={() => {
+                                    this.search();
+                                }}>{__(`Continue`)}</a>
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-md-12">
+                            <div className="js-results"></div>
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-md-12">
+                            {availableLayers}
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-md-12">
+                            <TitleFieldComponent
+                                disabled={this.state.selectedLayers.length === 0}
+                                onAdd={(newTitle) => { this.saveProfile(newTitle) }}
+                                type="browserOwned"
+                                customStyle={{width: `100%`}}/>
+                        </div>
+                    </div>
+                </div>) : false}
             </div>
-            {this.state.showDrawingForm ? (<div className="container">
-                <div className="row">
-                    <div className="col-md-4" style={{paddingTop: `12px`}}>
-                        <p>{__(`Adjust buffer`)}</p>
-                    </div>
-                    <div className="col-md-5" style={{paddingTop: `14px`}}>
-                        <Slider value={this.state.buffer ? parseInt(this.state.buffer) : 0} min={0} max={500} onChange={(value) => { this.setState({buffer: value}); }}/>
-                    </div>
-                    <div className="col-md-3">
-                        <input
-                            type="number"
-                            className="form-control"
-                            onChange={(event) => { this.setState({buffer: event.target.value}); }}
-                            value={this.state.buffer}/>
-                    </div>
-                </div>
 
-                <div className="row">
-                    <div className="col-md-4" style={{paddingTop: `12px`}}>
-                        <p>{__(`Adjust profile bottom`)}</p>
-                    </div>
-                    <div className="col-md-8">
-                        <input
-                            type="number"
-                            className="form-control"
-                            onChange={(event) => { this.setState({profileBottom: event.target.value}); }}
-                            value={this.state.profileBottom}/>
-                    </div>
+            <div style={{borderBottom: `1px solid lightgray`}}>
+                <div style={{fontSize: `20px`, padding: `14px`}}>
+                    <a href="javascript:void(0)" onClick={() => { this.setState({showExistingProfiles: !this.state.showExistingProfiles})}}>{__(`Select previously created profile`)} 
+                        {this.state.showExistingProfiles ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
+                    </a>
                 </div>
-
-               <div className="row">
-                    <div className="col-md-6" style={{textAlign: `center`}}>
-                        {this.state.step === STEP_READY_TO_LOAD || this.state.step === STEP_BEING_DRAWN ? (<a
-                            href="javascript:void(0)"
-                            className="btn btn-primary"
-                            onClick={() => {
-                                this.setState({
-                                    step: STEP_NOT_READY,
-                                    bufferedProfile: false
-                                }, () => {
-                                    this.stopDrawing();
-                                });
-                        }}><i className="material-icons">block</i> {__(`Cancel`)}</a>) : (<a
-                            href="javascript:void(0)"
-                            className="btn btn-primary"
-                            onClick={() => {
-                                this.setState({step: STEP_BEING_DRAWN}, () => {
-                                    this.startDrawing();
-                                });
-                        }}><i className="material-icons">linear_scale</i> {__(`Draw profile`)}</a>)}
+                {this.state.showExistingProfiles ? (<div className="container">
+                    <div className="row">
+                        <div className="col-md-12">
+                            {existingProfilesControls}
+                        </div>
                     </div>
-                    <div className="col-md-6" style={{textAlign: `center`}}>
-                        <a
-                            href="javascript:void(0)"
-                            className="btn"
-                            disabled={this.state.step !== STEP_READY_TO_LOAD}
-                            onClick={() => {
-                                this.search();
-                            }}>{__(`Continue`)}</a>
-                    </div>
-                </div>
-
-                <div className="row">
-                    <div className="col-md-12">
-                        <div className="js-results"></div>
-                    </div>
-                </div>
-
-                <div className="row">
-                    <div className="col-md-12">
-                        {availableLayers}
-                    </div>
-                </div>
-            </div>) : false}
-            <div style={{fontSize: `20px`, padding: `14px`}}>
-                <a href="javascript:void(0)" onClick={() => { this.setState({showExistingProfiles: !this.state.showExistingProfiles})}}>{__(`Select previously created profile`)} 
-                    {this.state.showExistingProfiles ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
-                </a>
+                </div>) : false}
             </div>
-            {this.state.showExistingProfiles ? (<div className="container">
-                <div className="row">
-                    <div className="col-md-12">
-                        LOAD_AND_DISPLAY
-                    </div>
-                </div>
-            </div>) : false}
-
-
-
-
-
-
-            
-
-
         </div>);
     }
 }

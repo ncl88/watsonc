@@ -16,7 +16,7 @@ const spawn = require("child_process").spawn;
 
 moment.locale("da_DK");
 
-router.post('/api/extension/watsonc', function (req, res) {
+router.post('/api/extension/watsonc/intersection', function (req, res) {
     if (!config.gc2.host) throw new Error(`GC2 host has to be specified`);
 
     if (req.body.profile && req.body.profile.type) {
@@ -64,7 +64,10 @@ router.post('/api/extension/watsonc', function (req, res) {
                 }
 
                 if (error === false) {
-                    res.send(parsedData);
+                    res.send({
+                        result: parsedData,
+                        boreholeNames
+                    });
                 } else {
                     res.status(400);
                     res.send({
@@ -90,6 +93,59 @@ router.post('/api/extension/watsonc', function (req, res) {
             message: `Profile GeoJSON is not provided`
         });
     }
+});
+
+router.post('/api/extension/watsonc/profile', function (req, res) {
+    if (!config.gc2.host) throw new Error(`GC2 host has to be specified`);
+
+    let zone = utmZone.getZone(req.body.profile.geometry.coordinates[0][1], req.body.profile.geometry.coordinates[0][0]);
+    let crss = {"EPSG:25832": "+proj=utm +zone=" + zone + " +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs "};
+    let reprojectedProfile = reproject.reproject(req.body.profile, 'EPSG:4326', 'EPSG:25832', crss);
+
+
+    console.log(req.body);
+
+    
+    let inputJSON = {
+        configFolder: './data',
+        coordinates: reprojectedProfile.geometry.coordinates,
+        DGU_nr: req.body.boreholeNames,
+        Profile_depth: parseInt(req.body.depth)
+    };
+
+
+
+    console.log(JSON.stringify(inputJSON));
+    const pythonProcess = spawn('python3.6', [moduleConfig.profileScriptPath, JSON.stringify(inputJSON)]);
+    pythonProcess.stdout.on('data', (data) => {
+        let parsedData = data.toString();
+        let error = false;
+        try {
+            let localParsedData = JSON.parse(data.toString());
+            parsedData = localParsedData;
+        } catch(e) {
+            error = e.toString();
+        }
+
+        if (error === false) {
+            res.send(parsedData);
+        } else {
+            res.status(400);
+            res.send({
+                status: `error`,
+                message: error,
+                result: parsedData
+            });
+        }
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        res.status(400);
+        res.send({
+            status: `error`,
+            message: data.toString()
+        });
+    });
 });
 
 module.exports = router;
