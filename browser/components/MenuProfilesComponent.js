@@ -6,6 +6,7 @@ import Slider from 'rc-slider';
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
 const wkt = require('terraformer-wkt-parser');
+const uuidv1 = require('uuid/v1');
 
 const STEP_NOT_READY = 0;
 const STEP_BEING_DRAWN = 1;
@@ -62,14 +63,19 @@ class MenuProfilesComponent extends React.Component {
 
         this.setState({ loading: true });
         $.ajax({
-            url: `${this.state.apiUrl}/${vidiConfig.appDatabase}?like=watsonc_profiles_`,
+            url: `${this.state.apiUrl}/${vidiConfig.appDatabase}?like=watsonc_profile_%`,
             method: 'GET',
             dataType: 'json'
-        }).then(existingProfiles => {
-
-
-
-            _self.setState({ existingProfiles, loading: false });
+        }).then(response => {
+            let parsedData = [];
+            response.data.map(item => { parsedData.push({
+                key: item.key,
+                value: JSON.parse(item.value)
+            }); });
+            _self.setState({
+                existingProfiles: parsedData,
+                loading: false
+            });
         }, (jqXHR) => {
             console.error(`Error occured while refreshing profiles list`);
             _self.setState({loading: false});
@@ -95,37 +101,35 @@ class MenuProfilesComponent extends React.Component {
             layers
         };
 
-        axios.post(`/api/extension/watsonc/profile`, savedProfile).then(response => {
-            this.setState({
-                loading: false,
-            });
-        }).catch(error => {
-            this.setState({loading: false});
-            console.log(`### error`, error);
-        });
-
-        /*
         let _self = this;
         _self.setState({ loading: true });
-        $.ajax({
-            url: `${this.state.apiUrl}/${vidiConfig.appDatabase}`,
-            method: 'POST',
-            contentType: 'application/json; charset=utf-8',
-            dataType: 'json',
-            data: JSON.stringify(savedProfile)
-        }).then(response => {
-            _self.setState({ loading: false });
-            _self.refreshProfilesList();
-        }, error => {
-            console.error(error);
-            _self.setState({ loading: false });
-            _self.refreshProfilesList();
+        axios.post(`/api/extension/watsonc/profile`, savedProfile).then(response => {
+            if (response.data) {            
+                savedProfile.data = response.data;
+
+                const key = `watsonc_profile_` + uuidv1();
+                axios.post(`${this.state.apiUrl}/${vidiConfig.appDatabase}/${key}`, savedProfile).then(response => {
+                    _self.setState({
+                        loading: false,
+                        layers: [],
+                        selectedLayers: []
+                    });
+
+                    _self.refreshProfilesList();
+                }).catch(error => {
+                    console.error(error);
+                    _self.setState({
+                        loading: false});
+                    _self.refreshProfilesList();
+                });
+            } else {
+                console.log(`Unable to generate plot data`);
+                this.setState({loading: false});
+            }
+        }).catch(error => {
+            console.log(`Error occured during plot generation`, error);
+            this.setState({loading: false});
         });
-
-
-
-        console.log(`### 1`, title);
-        */
     }
 
     handleLayerSelect(checked, layer) {
@@ -146,7 +150,8 @@ class MenuProfilesComponent extends React.Component {
     search() {
         this.setState({
             step: STEP_NOT_READY,
-            layers: []
+            layers: [],
+            selectedLayers: []
         }, () => {
             this.stopDrawing();
             this.setState({loading: true});
@@ -232,18 +237,41 @@ class MenuProfilesComponent extends React.Component {
         if (embedDrawControl) embedDrawControl.disable();
     }
 
+    handleProfileSelect(profile) {
+        console.log(`### profile select`, profile);
+    }
+
+    handleProfileDelete(profile) {
+
+        console.log(`### profile delete`, profile);
+
+        if (confirm(__(`Delete`) + ' ' + profile.value.title + '?')) {
+            this.setState({loading: true});
+            axios.post(`${this.state.apiUrl}/${vidiConfig.appDatabase}/${profile.key}`).then(() => {
+                _self.setState({loading: false});
+                _self.refreshProfilesList();
+            }).catch(error => {
+                console.error(error);
+                _self.setState({loading: false});
+                _self.refreshProfilesList();
+            });
+        }
+    }
+
     render() {
         let overlay = false;
         if (this.state.loading) {
             overlay = (<LoadingOverlay/>);
         }
 
-        let availableLayers = (<p>{__(`No layers found`)}</p>);;
+        let availableLayers = (<div style={{textAlign: `center`}}>
+            <p>{__(`No layers found`)}</p>
+        </div>);
+
         if (this.state.layers && this.state.layers.length > 0) {
             availableLayers = [];
 
             const generateLayerRecord = (item, index, prefix) => {
-
                 let points = [];
                 item.intersectionSegments.map(item => {
                     points.push(`${Math.round(item[0] / 1000)}km - ${Math.round(item[1] / 1000)}km`);
@@ -271,7 +299,55 @@ class MenuProfilesComponent extends React.Component {
             this.state.layers.filter(item => item.type === `geology`).map((item, index) => { availableLayers.push(generateLayerRecord(item, index, `geology_layer_`)); });
         }
 
-        let existingProfilesControls = [];
+        let existingProfilesControls = (<div style={{textAlign: `center`}}>
+            <p>{__(`No profiles found`)}</p>
+        </div>);
+    
+        let plotRows = [];
+        this.state.existingProfiles.map((item, index) => {
+            let data = item.value;
+            plotRows.push(<tr key={`existing_profile_${index}`}>
+                <td>{data.title}</td>
+                <td style={{textAlign: `right`}}>
+                    <div className="checkbox">
+                        <label>
+                            <input
+                                type="radio"
+                                name="selected_profile"
+                                onChange={(event) => { this.handleProfileSelect(item); }}/>
+                        </label>
+                    </div>
+                </td>
+                <td style={{textAlign: `right`}}>
+                    <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        title={__(`Delete profile`)}
+                        onClick={(event) => { this.handleProfileDelete(item); }}
+                        style={{padding: `4px`, margin: `0px`}}>
+                        <i className="material-icons">delete</i>
+                    </button>
+                </td>
+            </tr>);
+        });
+
+        if (plotRows.length > 0) {
+            existingProfilesControls = (<table className="table table-striped">
+                <thead style={{color: `rgb(0, 150, 136)`}}>
+                    <tr>
+                        <th>
+                            <div style={{float: `left`}}><i style={{fontSize: `20px`}} className="material-icons">grid_on</i></div>
+                            <div>{__(`Title`)}</div>
+                        </th>
+                        <th style={{textAlign: `right`, paddingRight: `10px`}}><i style={{fontSize: `20px`}} className="material-icons">map</i></th>
+                        <th style={{textAlign: `right`, paddingRight: `10px`}}><i style={{fontSize: `20px`}} className="material-icons">delete</i></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {plotRows}
+                </tbody>
+            </table>);
+        }
 
         return (<div id="profile-drawing-buffer" style={{position: `relative`}}>
             {overlay}
@@ -354,8 +430,8 @@ class MenuProfilesComponent extends React.Component {
                             {availableLayers}
                         </div>
                     </div>
-
-                    <div className="row">
+                    
+                    {this.state.layers && this.state.layers.length > 0 ? (<div className="row">
                         <div className="col-md-12">
                             <TitleFieldComponent
                                 disabled={this.state.selectedLayers.length === 0}
@@ -363,13 +439,13 @@ class MenuProfilesComponent extends React.Component {
                                 type="browserOwned"
                                 customStyle={{width: `100%`}}/>
                         </div>
-                    </div>
+                    </div>) : false}
                 </div>) : false}
             </div>
 
             <div style={{borderBottom: `1px solid lightgray`}}>
                 <div style={{fontSize: `20px`, padding: `14px`}}>
-                    <a href="javascript:void(0)" onClick={() => { this.setState({showExistingProfiles: !this.state.showExistingProfiles})}}>{__(`Select previously created profile`)} 
+                    <a href="javascript:void(0)" onClick={() => { this.setState({showExistingProfiles: !this.state.showExistingProfiles})}}>{__(`Select previously created profile`)} ({this.state.existingProfiles.length})
                         {this.state.showExistingProfiles ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
                     </a>
                 </div>

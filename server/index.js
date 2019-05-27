@@ -101,10 +101,6 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
     let zone = utmZone.getZone(req.body.profile.geometry.coordinates[0][1], req.body.profile.geometry.coordinates[0][0]);
     let crss = {"EPSG:25832": "+proj=utm +zone=" + zone + " +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs "};
     let reprojectedProfile = reproject.reproject(req.body.profile, 'EPSG:4326', 'EPSG:25832', crss);
-
-
-    console.log(req.body);
-
     
     let inputJSON = {
         configFolder: './data',
@@ -113,15 +109,18 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
         Profile_depth: parseInt(req.body.depth)
     };
 
-
-
     console.log(JSON.stringify(inputJSON));
-    const pythonProcess = spawn('python3.6', [moduleConfig.profileScriptPath, JSON.stringify(inputJSON)]);
+
+    let result = '';
+    const pythonProcess = spawn('python3.6', [moduleConfig.profileScriptPath, JSON.stringify(inputJSON)], {cwd: require('path').dirname(moduleConfig.profileScriptPath)});
     pythonProcess.stdout.on('data', (data) => {
-        let parsedData = data.toString();
+        result += data.toString();
+    });
+
+    pythonProcess.stdout.on('close', function(code) {
         let error = false;
         try {
-            let localParsedData = JSON.parse(data.toString());
+            let localParsedData = JSON.parse(result);
             parsedData = localParsedData;
         } catch(e) {
             error = e.toString();
@@ -140,6 +139,9 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
     });
 
     pythonProcess.stderr.on('data', (data) => {
+
+        console.log(`### error 2`, data.toString());
+
         res.status(400);
         res.send({
             status: `error`,
