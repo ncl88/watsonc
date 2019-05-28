@@ -242,12 +242,10 @@ class MenuProfilesComponent extends React.Component {
     }
 
     handleProfileDelete(profile) {
-
-        console.log(`### profile delete`, profile);
-
+        let _self = this;
         if (confirm(__(`Delete`) + ' ' + profile.value.title + '?')) {
-            this.setState({loading: true});
-            axios.post(`${this.state.apiUrl}/${vidiConfig.appDatabase}/${profile.key}`).then(() => {
+            _self.setState({loading: true});
+            axios.delete(`${this.state.apiUrl}/${vidiConfig.appDatabase}/${profile.key}`).then(() => {
                 _self.setState({loading: false});
                 _self.refreshProfilesList();
             }).catch(error => {

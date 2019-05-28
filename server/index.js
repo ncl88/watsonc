@@ -46,7 +46,7 @@ router.post('/api/extension/watsonc/intersection', function (req, res) {
             let reprojectedProfile = reproject.reproject(req.body.profile, 'EPSG:4326', 'EPSG:25832', crss);
 
             let inputJSON = {
-                configFolder: './data',
+                configFolder: require('path').dirname(moduleConfig.intersectionsScriptPath) + '/data',
                 coordinates: reprojectedProfile.geometry.coordinates,
                 DGU_nr: boreholeNames,
                 Profile_depth: parseInt(req.body.profileDepth)
@@ -112,7 +112,10 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
     console.log(JSON.stringify(inputJSON));
 
     let result = '';
-    const pythonProcess = spawn('python3.6', [moduleConfig.profileScriptPath, JSON.stringify(inputJSON)], {cwd: require('path').dirname(moduleConfig.profileScriptPath)});
+    const pythonProcess = spawn('python3.6', [moduleConfig.profileScriptPath, JSON.stringify(inputJSON)], {
+        cwd: require('path').dirname(moduleConfig.profileScriptPath)
+    });
+
     pythonProcess.stdout.on('data', (data) => {
         result += data.toString();
     });
