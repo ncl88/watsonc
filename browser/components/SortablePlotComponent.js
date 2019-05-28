@@ -10,13 +10,13 @@ import PlotComponent from './PlotComponent';
 const SortablePlotComponent = (props) => {
     return (<li  className="list-group-item col-sm-12 col-md-12 col-lg-6">
         <div>
-            <PlotComponent onDelete={(id) => { props.handleDeletePlot(id)}} plotMeta={props.meta}/>
+            <PlotComponent onDelete={(id) => { props.handleDelete(id)}} plotMeta={props.meta}/>
         </div>
     </li>);
 }
 
 SortablePlotComponent.propTypes = {
-    handleDeletePlot: PropTypes.func.isRequired,
+    handleDelete: PropTypes.func.isRequired,
     meta: PropTypes.object.isRequired,
 };
 

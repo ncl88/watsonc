@@ -354,36 +354,38 @@ module.exports = module.exports = {
                     initialPlots = applicationState.modules[MODULE_NAME].plots;
                 }
 
+                let initialProfiles = [];
+                if (applicationState && `modules` in applicationState && MODULE_NAME in applicationState.modules && `profiles` in applicationState.modules[MODULE_NAME]) {
+                    initialProfiles = applicationState.modules[MODULE_NAME].profiles;
+                }
+
                 try {
                     plotsGridComponentInstance = ReactDOM.render(<PlotsGridComponent
                         initialPlots={initialPlots}
+                        initialProfiles={initialProfiles}
                         onPlotsChange={(plots = false) => {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-
                             if (plots) {
-                                if (menuTimeSeriesComponentInstance) {
-                                    menuTimeSeriesComponentInstance.setPlots(plots);
-                                }
-
+                                if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setPlots(plots);
                                 // Plots were updated from the PlotsGridComponent component
-                                if (modalComponentInstance) {
-                                    _self.createModal(false, plots);
-                                }
+                                if (modalComponentInstance) _self.createModal(false, plots);
                             }
+                        }}
+                        onProfilesChange={(profiles = false) => {
+                            backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
+                            if (profiles && menuProfilesComponentInstance) menuProfilesComponentInstance.setProfiles(profiles);
                         }}
                         onActivePlotsChange={(activePlots) => {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-
-                            if (menuTimeSeriesComponentInstance) {
-                                menuTimeSeriesComponentInstance.setActivePlots(activePlots);
-                            }
+                            if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setActivePlots(activePlots);
+                        }}
+                        onActiveProfilesChange={(activeProfiles) => {
+                            backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
+                            if (menuProfilesComponentInstance) menuProfilesComponentInstance.setActiveProfiles(activeProfiles);
                         }}
                         onHighlightedPlotChange={(plotId, plots) => {
                             _self.setStyleForHighlightedPlot(plotId, plots);
-
-                            if (menuTimeSeriesComponentInstance) {
-                                menuTimeSeriesComponentInstance.setHighlightedPlot(plotId);
-                            }
+                            if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setHighlightedPlot(plotId);
                         }}/>, document.getElementById(FORM_PLOTS_CONTAINER_ID));
                 } catch (e) {
                     console.log(e);
@@ -477,7 +479,7 @@ module.exports = module.exports = {
         `);
 
         // Initializing TimeSeries management component
-        $(`[data-module-id="profile-drawing"]`).click(() => {
+        $(`[data-module-id="timeseries"]`).click(() => {
             if ($(`#watsonc-timeseries`).children().length === 0) {
                 try {
                     menuTimeSeriesComponentInstance = ReactDOM.render(<MenuTimeSeriesComponent
@@ -496,16 +498,27 @@ module.exports = module.exports = {
 
         // Initializing profiles tab
         if ($(`#profile-drawing-content`).length === 0) throw new Error(`Unable to get the profile drawing tab`);
-        try {
-            menuProfilesComponentInstance = ReactDOM.render(<MenuProfilesComponent
-                cloud={cloud}/>, document.getElementById(`profile-drawing-content`));
 
-            backboneEvents.get().on(`reset:all reset:profile-drawing off:all` , () => {
-                menuProfilesComponentInstance.stopDrawing();
-            });
-        } catch (e) {
-            console.log(e);
-        }
+        // Initializing TimeSeries management component
+        $(`[data-module-id="profile-drawing"]`).click(() => {
+            try {
+                menuProfilesComponentInstance = ReactDOM.render(<MenuProfilesComponent
+                    cloud={cloud}
+                    initialProfiles={plotsGridComponentInstance.getProfiles()}
+                    initialActiveProfiles={plotsGridComponentInstance.getActiveProfiles()}
+                    onProfileCreate={plotsGridComponentInstance.handleCreateProfile}
+                    onProfileDelete={plotsGridComponentInstance.handleDeleteProfile}
+                    onProfileHighlight={plotsGridComponentInstance.handleHighlightProfile}
+                    onProfileShow={plotsGridComponentInstance.handleShowProfile}
+                    onProfileHide={plotsGridComponentInstance.handleHideProfile}/>, document.getElementById(`profile-drawing-content`));
+
+                backboneEvents.get().on(`reset:all reset:profile-drawing off:all` , () => {
+                    menuProfilesComponentInstance.stopDrawing();
+                });
+            } catch (e) {
+                console.log(e);
+            }
+        });
 
         $(plotsId).find(`.expand-less`).trigger(`click`);
         $(plotsId).find(`.js-modal-title-text`).text(__(`Calypso dashboard`));
@@ -713,6 +726,7 @@ module.exports = module.exports = {
             if (document.getElementById(FORM_FEATURE_CONTAINER_ID)) {
                 try {
                     let existingPlots = (plots ? plots : plotsGridComponentInstance.getPlots());
+                    
                     setTimeout(() => {
                         ReactDOM.unmountComponentAtNode(document.getElementById(FORM_FEATURE_CONTAINER_ID));
                         modalComponentInstance = ReactDOM.render(<ModalComponent

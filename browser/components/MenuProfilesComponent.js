@@ -31,7 +31,8 @@ class MenuProfilesComponent extends React.Component {
             boreholeNames: [],
             layers: [],
             selectedLayers: [],
-            existingProfiles: [],
+            profiles: (props.initialProfiles ? props.initialProfiles : []),
+            activeProfiles: (props.initialActiveProfiles ? props.initialActiveProfiles : []),
             profile: false,
             step: STEP_NOT_READY,
             bufferedProfile: false,
@@ -51,35 +52,12 @@ class MenuProfilesComponent extends React.Component {
         this.bufferValueRef = React.createRef();
     }
 
-    componentWillMount() {
-        this.refreshProfilesList();
+    setProfiles(profiles) {
+        this.setState({profiles});
     }
 
-    /**
-     * Retrives state snapshots list from server
-     */
-    refreshProfilesList() {
-        let _self = this;
-
-        this.setState({ loading: true });
-        $.ajax({
-            url: `${this.state.apiUrl}/${vidiConfig.appDatabase}?like=watsonc_profile_%`,
-            method: 'GET',
-            dataType: 'json'
-        }).then(response => {
-            let parsedData = [];
-            response.data.map(item => { parsedData.push({
-                key: item.key,
-                value: JSON.parse(item.value)
-            }); });
-            _self.setState({
-                existingProfiles: parsedData,
-                loading: false
-            });
-        }, (jqXHR) => {
-            console.error(`Error occured while refreshing profiles list`);
-            _self.setState({loading: false});
-        });
+    setActiveProfiles(activeProfiles) {
+        this.setState({activeProfiles});
     }
 
     saveProfile(title) {
@@ -92,44 +70,26 @@ class MenuProfilesComponent extends React.Component {
             }
         });
 
-        let savedProfile = {
+        this.setState({loading: true});
+        this.props.onProfileCreate({
             title,
             profile: this.state.profile,
             buffer: this.state.buffer,
             depth: this.state.profileBottom,
             boreholeNames: this.state.boreholeNames,
             layers
-        };
-
-        let _self = this;
-        _self.setState({ loading: true });
-        axios.post(`/api/extension/watsonc/profile`, savedProfile).then(response => {
-            if (response.data) {            
-                savedProfile.data = response.data;
-
-                const key = `watsonc_profile_` + uuidv1();
-                axios.post(`${this.state.apiUrl}/${vidiConfig.appDatabase}/${key}`, savedProfile).then(response => {
-                    _self.setState({
-                        loading: false,
-                        layers: [],
-                        selectedLayers: []
-                    });
-
-                    _self.refreshProfilesList();
-                }).catch(error => {
-                    console.error(error);
-                    _self.setState({
-                        loading: false});
-                    _self.refreshProfilesList();
-                });
-            } else {
-                console.log(`Unable to generate plot data`);
-                this.setState({loading: false});
-            }
-        }).catch(error => {
-            console.log(`Error occured during plot generation`, error);
+        }, true, () => {
             this.setState({loading: false});
         });
+    }
+
+    handleProfileDelete(profile) {
+        if (confirm(__(`Delete`) + ' ' + profile.value.title + '?')) {
+            this.setState({loading: true});
+            this.props.onProfileDelete(profile.key, () => {
+                this.setState({loading: false});
+            });
+        }
     }
 
     handleLayerSelect(checked, layer) {
@@ -173,17 +133,19 @@ class MenuProfilesComponent extends React.Component {
                 });
             }).catch(error => {
                 this.setState({loading: false});
-                console.log(`### error`, error);
+                console.log(`Error occured`, error);
             });
         });
     }
 
-    startDrawing() {
+    clearDrawnLayers() {
         drawnItems.eachLayer(layer => {
-            if (layer && layer.feature && layer.feature.properties && layer.feature.properties.type ===`polyline`) {
-                drawnItems.removeLayer(layer);
-            }
+            drawnItems.removeLayer(layer);
         });
+    }
+
+    startDrawing() {
+        this.clearDrawnLayers();
 
         if (embedDrawControl) embedDrawControl.disable();
         embedDrawControl = new L.Draw.Polyline(this.props.cloud.get().map);
@@ -238,21 +200,39 @@ class MenuProfilesComponent extends React.Component {
     }
 
     handleProfileSelect(profile) {
-        console.log(`### profile select`, profile);
+        this.clearDrawnLayers();
+
+        // Get utm zone
+        let profileLine = profile.value.profile;
+
+        var zone = utmZone.getZone(profileLine.geometry.coordinates[0][1], profileLine.geometry.coordinates[0][0]);
+        var crss = {
+            "proj": "+proj=utm +zone=" + zone + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+            "unproj": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+        };
+
+        let reader = new jsts.io.GeoJSONReader();
+        let writer = new jsts.io.GeoJSONWriter();
+        let geom = reader.read(reproject.reproject(profileLine, "unproj", "proj", crss));
+        let buffer4326 = reproject.reproject(writer.write(geom.geometry.buffer(profile.value.buffer)), "proj", "unproj", crss);
+
+        L.geoJson(buffer4326, {
+            "color": "#ff7800",
+            "weight": 1,
+            "opacity": 1,
+            "fillOpacity": 0.1,
+            "dashArray": '5,3'
+        }).addTo(drawnItems);
+
+        var profileLayer = new L.geoJSON(profileLine);
+        profileLayer.addTo(drawnItems);
     }
 
-    handleProfileDelete(profile) {
-        let _self = this;
-        if (confirm(__(`Delete`) + ' ' + profile.value.title + '?')) {
-            _self.setState({loading: true});
-            axios.delete(`${this.state.apiUrl}/${vidiConfig.appDatabase}/${profile.key}`).then(() => {
-                _self.setState({loading: false});
-                _self.refreshProfilesList();
-            }).catch(error => {
-                console.error(error);
-                _self.setState({loading: false});
-                _self.refreshProfilesList();
-            });
+    handleProfileToggle(checked, profile) {
+        if (checked) {
+            this.props.onProfileShow(profile.key);
+        } else {
+            this.props.onProfileHide(profile.key);
         }
     }
 
@@ -300,12 +280,31 @@ class MenuProfilesComponent extends React.Component {
         let existingProfilesControls = (<div style={{textAlign: `center`}}>
             <p>{__(`No profiles found`)}</p>
         </div>);
+
+        console.log(`### this.state.activeProfiles`, this.state.activeProfiles);
     
         let plotRows = [];
-        this.state.existingProfiles.map((item, index) => {
+        this.state.profiles.map((item, index) => {
             let data = item.value;
             plotRows.push(<tr key={`existing_profile_${index}`}>
-                <td>{data.title}</td>
+                <td>
+                    <div>
+                        <div style={{float: `left`}}>
+                            <div className="checkbox">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="enabled_profile"
+                                        checked={this.state.activeProfiles.indexOf(item.key) > -1}
+                                        onChange={(event) => { this.handleProfileToggle(event.target.checked, item); }}/>
+                                </label>
+                            </div>
+                        </div>
+                        <div style={{float: `left`, paddingLeft: `8px`, paddingTop: `2px`}}>
+                            {data.title}
+                        </div>
+                    </div>
+                </td>
                 <td style={{textAlign: `right`}}>
                     <div className="checkbox">
                         <label>
@@ -335,7 +334,7 @@ class MenuProfilesComponent extends React.Component {
                     <tr>
                         <th>
                             <div style={{float: `left`}}><i style={{fontSize: `20px`}} className="material-icons">grid_on</i></div>
-                            <div>{__(`Title`)}</div>
+                            <div style={{float: `left`, paddingLeft: `10px`}}>{__(`Title`)}</div>
                         </th>
                         <th style={{textAlign: `right`, paddingRight: `10px`}}><i style={{fontSize: `20px`}} className="material-icons">map</i></th>
                         <th style={{textAlign: `right`, paddingRight: `10px`}}><i style={{fontSize: `20px`}} className="material-icons">delete</i></th>
@@ -443,7 +442,7 @@ class MenuProfilesComponent extends React.Component {
 
             <div style={{borderBottom: `1px solid lightgray`}}>
                 <div style={{fontSize: `20px`, padding: `14px`}}>
-                    <a href="javascript:void(0)" onClick={() => { this.setState({showExistingProfiles: !this.state.showExistingProfiles})}}>{__(`Select previously created profile`)} ({this.state.existingProfiles.length})
+                    <a href="javascript:void(0)" onClick={() => { this.setState({showExistingProfiles: !this.state.showExistingProfiles})}}>{__(`Select previously created profile`)} ({this.state.profiles.length})
                         {this.state.showExistingProfiles ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
                     </a>
                 </div>

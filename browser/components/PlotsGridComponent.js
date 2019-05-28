@@ -2,7 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import PlotManager from './../PlotManager';
+import ProfileManager from './../ProfileManager';
 import SortablePlotComponent from './SortablePlotComponent';
+import SortableProfileComponent from './SortableProfileComponent';
 import SortablePlotsGridComponent from './SortablePlotsGridComponent';
 import { isNumber } from 'util';
 import arrayMove from 'array-move';
@@ -17,24 +19,125 @@ class PlotsGridComponent extends React.Component {
         this.state = {
             newPlotName: ``,
             plots: this.props.initialPlots,
+            profiles: [],
             activePlots: [],
+            activeProfiles: [],
             dataSource: [],
             highlightedPlot: false
         };
 
         this.plotManager = new PlotManager();
+        this.profileManager = new ProfileManager();
+
         this.handleShowPlot = this.handleShowPlot.bind(this);
         this.handleHidePlot = this.handleHidePlot.bind(this);
         this.handleCreatePlot = this.handleCreatePlot.bind(this);
         this.handleDeletePlot = this.handleDeletePlot.bind(this);
         this.handleHighlightPlot = this.handleHighlightPlot.bind(this);
+
+        this.handleShowProfile = this.handleShowProfile.bind(this);
+        this.handleHideProfile = this.handleHideProfile.bind(this);
+        this.handleCreateProfile = this.handleCreateProfile.bind(this);
+        this.handleDeleteProfile = this.handleDeleteProfile.bind(this);
+
         this.getFeatureByGidFromDataSource = this.getFeatureByGidFromDataSource.bind(this);
         this.handleNewPlotNameChange = this.handleNewPlotNameChange.bind(this);
         this.handlePlotSort = this.handlePlotSort.bind(this);
     }
 
+    componentWillMount() {
+        this.profileManager.getAll().then(profiles => {
+            this.setState({profiles});
+        });
+    }
+
     dehydratePlots(plots) { return this.plotManager.dehydratePlots(plots); }
     hydratePlots(plots) { return this.plotManager.hydratePlots(plots); }
+
+    getProfiles() {
+        return JSON.parse(JSON.stringify(this.state.profiles));
+    }
+
+    getActiveProfiles() {
+        return JSON.parse(JSON.stringify(this.state.activeProfiles));
+    }
+
+    handleCreateProfile(data, activateOnCreate = true, callback = false) {
+        this.profileManager.create(data).then(newProfile => {
+            let profilesCopy = JSON.parse(JSON.stringify(this.state.profiles));
+            profilesCopy.unshift(newProfile);
+
+            if (activateOnCreate) {
+                let activeProfilesCopy = JSON.parse(JSON.stringify(this.state.activeProfiles));
+                if (activeProfilesCopy.indexOf(newProfile.key) === -1) activeProfilesCopy.push(newProfile.key);
+
+                this.setState({
+                    profiles: profilesCopy,
+                    activeProfiles: activeProfilesCopy
+                });
+
+                this.props.onActiveProfilesChange(activeProfilesCopy);                
+            } else {
+                this.setState({profiles: profilesCopy});
+            }
+
+            if (callback) callback();
+
+            this.props.onProfilesChange(profilesCopy);
+        }).catch(error => {
+            console.error(`Error occured while creating profile (${error})`)
+        });
+    }
+
+    handleDeleteProfile(profileKey, callback = false) {
+        this.profileManager.delete(profileKey).then(() => {
+            let profilesCopy = JSON.parse(JSON.stringify(this.state.profiles));
+            let profileWasDeleted = false;
+            profilesCopy.map((profile, index) => {
+                if (profile.key === profileKey) {
+                    profilesCopy.splice(index, 1);
+                    profileWasDeleted = true;
+                    return false;
+                }
+            });
+
+            if (profileWasDeleted === false) {
+                console.warn(`Profile ${profileKey} was deleted only from backend storage`);
+            }
+   
+            if (callback) callback();
+
+            this.setState({profiles: profilesCopy});
+            this.props.onProfilesChange(profilesCopy);
+        }).catch(error => {
+            console.error(`Error occured while deleting profile (${error})`)
+        });
+    }
+
+    handleShowProfile(profileId) {
+        if (!profileId) throw new Error(`Empty profile identifier`);
+
+        let activeProfiles = JSON.parse(JSON.stringify(this.state.activeProfiles));
+        if (activeProfiles.indexOf(profileId) === -1) activeProfiles.push(profileId);
+        this.setState({activeProfiles}, () => {
+            console.log(`### activeProfiles 1`, activeProfiles);
+            this.props.onActiveProfilesChange(this.state.activeProfiles);
+        });
+    }
+
+    handleHideProfile(profileId) {
+        if (!profileId) throw new Error(`Empty profile identifier`);
+
+        let activeProfiles = JSON.parse(JSON.stringify(this.state.activeProfiles));
+        if (activeProfiles.indexOf(profileId) > -1) activeProfiles.splice(activeProfiles.indexOf(profileId), 1);
+        this.setState({activeProfiles}, () => {
+            
+
+
+
+            this.props.onActiveProfilesChange(this.state.activeProfiles);
+        });
+    }
 
     getPlots() {
         return JSON.parse(JSON.stringify(this.state.plots));
@@ -77,6 +180,33 @@ class PlotsGridComponent extends React.Component {
         });
     }
 
+    handleDeletePlot(id, name) {
+        if (!id) throw new Error(`Empty plot identifier`);
+
+        if (confirm(__(`Delete plot`) + ` ${name ? name : id}?`)) {
+            this.plotManager.delete(id).then(() => {
+                let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
+                let plotWasDeleted = false;
+                plotsCopy.map((plot, index) => {
+                    if (plot.id === id) {
+                        plotsCopy.splice(index, 1);
+                        plotWasDeleted = true;
+                        return false;
+                    }
+                });
+        
+                if (plotWasDeleted === false) {
+                    console.warn(`Plot ${id} was deleted only from backend storage`);
+                }
+        
+                this.setState({ plots: plotsCopy });
+                this.props.onPlotsChange(plotsCopy);
+            }).catch(error => {
+                console.error(`Error occured while creating plot (${error})`)
+            });
+        }
+    }
+
     handleHighlightPlot(plotId) {
         if (!plotId) throw new Error(`Empty plot identifier`);
 
@@ -103,33 +233,6 @@ class PlotsGridComponent extends React.Component {
         this.setState({activePlots}, () => {
             this.props.onActivePlotsChange(this.state.activePlots);
         });
-    }
-
-    handleDeletePlot(id, name) {
-        if (!id) throw new Error(`Empty plot identifier`);
-
-        if (confirm(__(`Delete plot`) + ` ${name ? name : id}?`)) {
-            this.plotManager.delete(id).then(() => {
-                let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
-                let plotWasDeleted = false;
-                plotsCopy.map((plot, index) => {
-                    if (plot.id === id) {
-                        plotsCopy.splice(index, 1);
-                        plotWasDeleted = true;
-                        return false;
-                    }
-                });
-        
-                if (plotWasDeleted === false) {
-                    console.warn(`Plot ${id} was deleted only from backend storage`);
-                }
-        
-                this.setState({ plots: plotsCopy });
-                this.props.onPlotsChange(plotsCopy);
-            }).catch(error => {
-                console.error(`Error occured while creating plot (${error})`)
-            });
-        }
     }
 
     handleNewPlotNameChange(event) {
@@ -268,9 +371,20 @@ class PlotsGridComponent extends React.Component {
         this.state.plots.map((plot, index) => {
             if (this.state.activePlots.indexOf(plot.id) > -1) {
                 localPlotsControls.push(<SortablePlotComponent
-                    key={`borehole_plot_${index}`} index={index}
-                    handleDeletePlot={this.handleDeletePlot}
+                    key={`borehole_plot_${index}`}
+                    index={index}
+                    handleDelete={this.handleDeletePlot}
                     meta={plot}/>);
+            }
+        });
+
+        this.state.profiles.map((profile, index) => {
+            if (this.state.activeProfiles.indexOf(profile.key) > -1) {
+                localPlotsControls.push(<SortableProfileComponent
+                    key={`borehole_profile_${index}`}
+                    index={index}
+                    handleDelete={this.handleDeleteProfile}
+                    meta={profile}/>);
             }
         });
 
@@ -280,7 +394,9 @@ class PlotsGridComponent extends React.Component {
 
         return (<div>
             <div>
-                <p className="text-muted" style={{margin: `0px`}}>{__(`Timeseries total`)}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}</p>
+                <p className="text-muted" style={{margin: `0px`}}>
+                    {__(`Timeseries total`)}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}; {__(`Profiles total`)}: {this.state.profiles.length}, {__(`profiles active`)}: {this.state.activeProfiles.length}
+                </p>
             </div>
             <div>{plotsControls}</div>
         </div>);
