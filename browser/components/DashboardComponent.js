@@ -12,6 +12,9 @@ import arrayMove from 'array-move';
 const VIEW_MATRIX = 0;
 const VIEW_ROW = 1;
 
+const DASHBOARD_ITEM_PLOT = 0;
+const DASHBOARD_ITEM_PROFILE = 1;
+
 /**
  * Component creates plots management form and is the source of truth for plots overall
  */
@@ -19,9 +22,20 @@ class DashboardComponent extends React.Component {
     constructor(props) {
         super(props);
 
+        let dashboardItems = [];
+        if (this.props.initialPlots) {
+            this.props.initialPlots.map(item => {
+                dashboardItems.push({
+                    type: DASHBOARD_ITEM_PLOT,
+                    item
+                });
+            });
+        }
+
         this.state = {
             view: VIEW_MATRIX,
             newPlotName: ``,
+            dashboardItems,
             plots: this.props.initialPlots,
             profiles: [],
             activePlots: [],
@@ -51,7 +65,18 @@ class DashboardComponent extends React.Component {
 
     componentWillMount() {
         this.profileManager.getAll().then(profiles => {
-            this.setState({profiles});
+            let dashboardItemsCopy = JSON.parse(JSON.stringify(this.state.dashboardItems));
+            profiles.map(item => {
+                dashboardItemsCopy.push({
+                    type: DASHBOARD_ITEM_PROFILE,
+                    item
+                });
+            });
+
+            this.setState({
+                profiles,
+                dashboardItems: dashboardItemsCopy
+            });
         });
     }
 
@@ -151,7 +176,21 @@ class DashboardComponent extends React.Component {
     }
 
     setPlots(plots) {
-        this.setState({ plots });
+        let dashboardItemsCopy = [];
+        this.state.dashboardItems.map(item => {
+            if (item.type !== DASHBOARD_ITEM_PLOT) {
+                dashboardItemsCopy.push(item);
+            }
+        });
+
+        plots.map(item => {
+            dashboardItemsCopy.push({
+                type: DASHBOARD_ITEM_PLOT,
+                item
+            });
+        });
+
+        this.setState({ plots, dashboardItems: dashboardItemsCopy});
     }
 
     handleCreatePlot(title, activateOnCreate = false) {
@@ -159,18 +198,28 @@ class DashboardComponent extends React.Component {
             let plotsCopy = JSON.parse(JSON.stringify(this.state.plots));
             plotsCopy.unshift(newPlot);
 
+            let dashboardItemsCopy = JSON.parse(JSON.stringify(this.state.dashboardItems));
+            dashboardItemsCopy.push({
+                type: DASHBOARD_ITEM_PLOT,
+                item: newPlot
+            });
+
             if (activateOnCreate) {
-                let activePlotsCopy = JSON.parse(JSON.stringify(this.state.activePlots));
+                let activePlotsCopy = JSON.parse(JSON.stringify(this.state.activePlots));                
                 if (activePlotsCopy.indexOf(newPlot.id) === -1) activePlotsCopy.push(newPlot.id);
 
                 this.setState({
                     plots: plotsCopy,
+                    dashboardItems: dashboardItemsCopy,
                     activePlots: activePlotsCopy
                 });
 
                 this.props.onActivePlotsChange(activePlotsCopy);                
             } else {
-                this.setState({ plots: plotsCopy });
+                this.setState({
+                    plots: plotsCopy,
+                    dashboardItems: dashboardItemsCopy
+                });
             }
 
             this.props.onPlotsChange(plotsCopy);
@@ -193,12 +242,25 @@ class DashboardComponent extends React.Component {
                         return false;
                     }
                 });
-        
+
+                let dashboardItemsCopy = JSON.parse(JSON.stringify(this.state.dashboardItems));
+                dashboardItemsCopy.map((item, index) => {
+                    if (item.type === DASHBOARD_ITEM_PLOT) {
+                        if (item.item.id === id) {
+                            dashboardItemsCopy.splice(index, 1);
+                            return false;
+                        }
+                    }
+                });
+
                 if (plotWasDeleted === false) {
                     console.warn(`Plot ${id} was deleted only from backend storage`);
                 }
         
-                this.setState({ plots: plotsCopy });
+                this.setState({
+                    plots: plotsCopy,
+                    dashboardItems: dashboardItemsCopy
+                });
                 this.props.onPlotsChange(plotsCopy);
             }).catch(error => {
                 console.error(`Error occured while creating plot (${error})`)
@@ -284,9 +346,23 @@ class DashboardComponent extends React.Component {
         }
 
         plots[correspondingPlotIndex] = correspondingPlot;
-        
+
+        let dashboardItemsCopy = JSON.parse(JSON.stringify(this.state.dashboardItems));
+        dashboardItemsCopy.map((item, index) => {
+            if (item.type === DASHBOARD_ITEM_PLOT) {
+                if (item.item.id === correspondingPlot.id) {
+                    dashboardItemsCopy[index].item = correspondingPlot;
+                    return false;
+                }
+            }
+        });
+
         this.plotManager.update(correspondingPlot).then(() => {
-            this.setState({ plots });
+            this.setState({
+                plots,
+                dashboardItems: dashboardItemsCopy
+            });
+
             this.props.onPlotsChange(plots);
         }).catch(error => {
             console.error(`Error occured while updating plot (${error})`)
@@ -327,7 +403,19 @@ class DashboardComponent extends React.Component {
         });
 
         Promise.all(updatePlotsPromises).then(() => {
-            this.setState({ dataSource, plots });
+            let dashboardItemsCopy = JSON.parse(JSON.stringify(this.state.dashboardItems));
+            dashboardItemsCopy.map((item, index) => {
+                if (item.type === DASHBOARD_ITEM_PLOT) {
+                    plots.map(updatedPlot => {
+                        if (item.item.id === updatedPlot.id) {
+                            dashboardItemsCopy[index].item = updatedPlot;
+                            return false;
+                        }
+                    });
+                }
+            });
+
+            this.setState({ dataSource, plots, dashboardItems: dashboardItemsCopy });
         }).catch(errors => {
             console.error(`Unable to update measurement data upon updating the data source`, errors);
         });
@@ -358,39 +446,43 @@ class DashboardComponent extends React.Component {
     }
 
     handlePlotSort({oldIndex, newIndex}) {
-        this.setState(({plots}) => ({
-            plots: arrayMove(plots, oldIndex, newIndex)
+        this.setState(({dashboardItems}) => ({
+            dashboardItems: arrayMove(dashboardItems, oldIndex, newIndex)
         }));
     };
 
     render() {
         let plotsControls = (<p style={{textAlign: `center`}}>{__(`No timeseries were created or set as active yet`)}</p>);
-
         let containerClass = `list-group-item col-sm-12 col-md-12 col-lg-6`;
         if (this.state.view === VIEW_ROW) {
             containerClass = `list-group-item col-sm-12 col-md-12 col-lg-12`;
         }
 
         let localPlotsControls = [];
-        this.state.plots.map((plot, index) => {
-            if (this.state.activePlots.indexOf(plot.id) > -1) {
-                localPlotsControls.push(<SortablePlotComponent
-                    key={`borehole_plot_${index}`}
-                    containerClass={containerClass}
-                    index={index}
-                    handleDelete={this.handleDeletePlot}
-                    meta={plot}/>);
-            }
-        });
 
-        this.state.profiles.map((profile, index) => {
-            if (this.state.activeProfiles.indexOf(profile.key) > -1) {
-                localPlotsControls.push(<SortableProfileComponent
-                    key={`borehole_profile_${index}`}
-                    containerClass={containerClass}
-                    index={index}
-                    handleDelete={this.handleDeleteProfile}
-                    meta={profile}/>);
+        this.state.dashboardItems.map((item, index) => {
+            if (item.type === DASHBOARD_ITEM_PLOT) {
+                let plot = item.item;
+                if (this.state.activePlots.indexOf(plot.id) > -1) {
+                    localPlotsControls.push(<SortablePlotComponent
+                        key={`sortable_${index}`}
+                        containerClass={containerClass}
+                        index={index}
+                        handleDelete={this.handleDeletePlot}
+                        meta={plot}/>);
+                }
+            } else if (item.type === DASHBOARD_ITEM_PROFILE) {
+                let profile = item.item;
+                if (this.state.activeProfiles.indexOf(profile.key) > -1) {
+                    localPlotsControls.push(<SortableProfileComponent
+                        key={`sortable_${index}`}
+                        containerClass={containerClass}
+                        index={index}
+                        handleDelete={this.handleDeleteProfile}
+                        meta={profile}/>);
+                }
+            } else {
+                throw new Error(`Unrecognized dashboard item type ${item.type}`);
             }
         });
 

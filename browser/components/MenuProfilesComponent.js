@@ -281,8 +281,6 @@ class MenuProfilesComponent extends React.Component {
             <p>{__(`No profiles found`)}</p>
         </div>);
 
-        console.log(`### this.state.activeProfiles`, this.state.activeProfiles);
-    
         let plotRows = [];
         this.state.profiles.map((item, index) => {
             let data = item.value;

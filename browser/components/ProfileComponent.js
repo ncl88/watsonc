@@ -30,10 +30,10 @@ class ProfileComponent extends React.Component {
         return (<div>
             <div style={{height: `40px`}}>
                 <div style={{float: `left`}}>
-                    <h4>{this.props.plotMeta.title}</h4>
+                    <h4>{this.props.plotMeta.value.title}</h4>
                 </div>
                 <div style={{float: `right`}}>
-                    <SortableHandleComponent title={this.props.plotMeta.title}/> <a
+                    <SortableHandleComponent title={this.props.plotMeta.value.title}/> <a
                         className="btn"
                         href="javascript:void(0)"
                         title={__(`Delete`) + ` ` + this.props.plotMeta.value.title}
