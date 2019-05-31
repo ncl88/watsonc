@@ -1,7 +1,7 @@
 'use strict';
 
 import ModalComponent from './components/ModalComponent';
-import PlotsGridComponent from './components/PlotsGridComponent';
+import DashboardComponent from './components/DashboardComponent';
 import MenuTimeSeriesComponent from './components/MenuTimeSeriesComponent';
 import MenuProfilesComponent from './components/MenuProfilesComponent';
 import IntroModal from './components/IntroModal';
@@ -68,7 +68,7 @@ const STYLES = {
         xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" id="svg8" version="1.1" viewBox="0 0 40 40" height="40" width="40">CONTENT</svg>`
 };
 
-let plotsGridComponentInstance = false, modalComponentInstance = false, infoModalInstance = false,
+let dashboardComponentInstance = false, modalComponentInstance = false, infoModalInstance = false,
     menuTimeSeriesComponentInstance = false, menuProfilesComponentInstance = false;
 
 let lastSelectedChemical = false, categoriesOverall = false;
@@ -263,26 +263,22 @@ module.exports = module.exports = {
                 boreholesDataSource = layers.getMapLayers(false, LAYER_NAMES[0])[0].toGeoJSON().features;
                 dataSource = dataSource.concat(waterLevelDataSource);
                 dataSource = dataSource.concat(boreholesDataSource);
-                if (plotsGridComponentInstance) {
-                    plotsGridComponentInstance.setDataSource(dataSource);
-                }
+                if (dashboardComponentInstance) dashboardComponentInstance.setDataSource(dataSource);
             } else if (e === LAYER_NAMES[2]) {
                 dataSource = [];
                 waterLevelDataSource = layers.getMapLayers(false, LAYER_NAMES[2])[0].toGeoJSON().features;
                 dataSource = dataSource.concat(waterLevelDataSource);
                 dataSource = dataSource.concat(boreholesDataSource);
-                if (plotsGridComponentInstance) {
-                    plotsGridComponentInstance.setDataSource(dataSource);
-                }
+                if (dashboardComponentInstance) dashboardComponentInstance.setDataSource(dataSource);
             }
         });
 
         backboneEvents.get().on(`doneLoading:layers`, e => {
             if ([LAYER_NAMES[0], LAYER_NAMES[2]].indexOf(e) > -1) {
-                if (plotsGridComponentInstance) {
-                    let plots = plotsGridComponentInstance.getPlots();
+                if (dashboardComponentInstance) {
+                    let plots = dashboardComponentInstance.getPlots();
                     plots = _self.syncPlotData(plots, e);
-                    plotsGridComponentInstance.setPlots(plots);
+                    dashboardComponentInstance.setPlots(plots);
                 }
             }
         });
@@ -304,7 +300,7 @@ module.exports = module.exports = {
                         }
 
                         _self.createModal(feature, false, titleAsLink);
-                        if (!plotsGridComponentInstance) {
+                        if (!dashboardComponentInstance) {
                             throw new Error(`Unable to find the component instance`);
                         }
                     });
@@ -360,14 +356,14 @@ module.exports = module.exports = {
                 }
 
                 try {
-                    plotsGridComponentInstance = ReactDOM.render(<PlotsGridComponent
+                    dashboardComponentInstance = ReactDOM.render(<DashboardComponent
                         initialPlots={initialPlots}
                         initialProfiles={initialProfiles}
                         onPlotsChange={(plots = false) => {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
                             if (plots) {
                                 if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setPlots(plots);
-                                // Plots were updated from the PlotsGridComponent component
+                                // Plots were updated from the DashboardComponent component
                                 if (modalComponentInstance) _self.createModal(false, plots);
                             }
                         }}
@@ -483,13 +479,13 @@ module.exports = module.exports = {
             if ($(`#watsonc-timeseries`).children().length === 0) {
                 try {
                     menuTimeSeriesComponentInstance = ReactDOM.render(<MenuTimeSeriesComponent
-                        initialPlots={plotsGridComponentInstance.getPlots()}
-                        initialActivePlots={plotsGridComponentInstance.getActivePlots()}
-                        onPlotCreate={plotsGridComponentInstance.handleCreatePlot}
-                        onPlotDelete={plotsGridComponentInstance.handleDeletePlot}
-                        onPlotHighlight={plotsGridComponentInstance.handleHighlightPlot}
-                        onPlotShow={plotsGridComponentInstance.handleShowPlot}
-                        onPlotHide={plotsGridComponentInstance.handleHidePlot}/>, document.getElementById(`watsonc-timeseries`));
+                        initialPlots={dashboardComponentInstance.getPlots()}
+                        initialActivePlots={dashboardComponentInstance.getActivePlots()}
+                        onPlotCreate={dashboardComponentInstance.handleCreatePlot}
+                        onPlotDelete={dashboardComponentInstance.handleDeletePlot}
+                        onPlotHighlight={dashboardComponentInstance.handleHighlightPlot}
+                        onPlotShow={dashboardComponentInstance.handleShowPlot}
+                        onPlotHide={dashboardComponentInstance.handleHidePlot}/>, document.getElementById(`watsonc-timeseries`));
                 } catch (e) {
                     console.log(e);
                 }
@@ -504,13 +500,13 @@ module.exports = module.exports = {
             try {
                 menuProfilesComponentInstance = ReactDOM.render(<MenuProfilesComponent
                     cloud={cloud}
-                    initialProfiles={plotsGridComponentInstance.getProfiles()}
-                    initialActiveProfiles={plotsGridComponentInstance.getActiveProfiles()}
-                    onProfileCreate={plotsGridComponentInstance.handleCreateProfile}
-                    onProfileDelete={plotsGridComponentInstance.handleDeleteProfile}
-                    onProfileHighlight={plotsGridComponentInstance.handleHighlightProfile}
-                    onProfileShow={plotsGridComponentInstance.handleShowProfile}
-                    onProfileHide={plotsGridComponentInstance.handleHideProfile}/>, document.getElementById(`profile-drawing-content`));
+                    initialProfiles={dashboardComponentInstance.getProfiles()}
+                    initialActiveProfiles={dashboardComponentInstance.getActiveProfiles()}
+                    onProfileCreate={dashboardComponentInstance.handleCreateProfile}
+                    onProfileDelete={dashboardComponentInstance.handleDeleteProfile}
+                    onProfileHighlight={dashboardComponentInstance.handleHighlightProfile}
+                    onProfileShow={dashboardComponentInstance.handleShowProfile}
+                    onProfileHide={dashboardComponentInstance.handleHideProfile}/>, document.getElementById(`profile-drawing-content`));
 
                 backboneEvents.get().on(`reset:all reset:profile-drawing off:all` , () => {
                     menuProfilesComponentInstance.stopDrawing();
@@ -725,7 +721,7 @@ module.exports = module.exports = {
 
             if (document.getElementById(FORM_FEATURE_CONTAINER_ID)) {
                 try {
-                    let existingPlots = (plots ? plots : plotsGridComponentInstance.getPlots());
+                    let existingPlots = (plots ? plots : dashboardComponentInstance.getPlots());
                     
                     setTimeout(() => {
                         ReactDOM.unmountComponentAtNode(document.getElementById(FORM_FEATURE_CONTAINER_ID));
@@ -737,12 +733,12 @@ module.exports = module.exports = {
                             limits={limits}
                             initialPlots={(existingPlots ? existingPlots : [])}
                             onAddMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
-                                plotsGridComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
+                                dashboardComponentInstance.addMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
                             }}
                             onDeleteMeasurement={(plotId, featureGid, featureKey, featureIntakeIndex) => {
-                                plotsGridComponentInstance.deleteMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
+                                dashboardComponentInstance.deleteMeasurement(plotId, featureGid, featureKey, featureIntakeIndex);
                             }}
-                            onPlotAdd={((newPlotTitle) => { plotsGridComponentInstance.addPlot(newPlotTitle, true); })}/>, document.getElementById(FORM_FEATURE_CONTAINER_ID));
+                            onPlotAdd={((newPlotTitle) => { dashboardComponentInstance.addPlot(newPlotTitle, true); })}/>, document.getElementById(FORM_FEATURE_CONTAINER_ID));
                     }, 100);
                 } catch (e) {
                     console.log(e);
@@ -841,7 +837,7 @@ module.exports = module.exports = {
      * Returns current module state
      */
     getState: () => {
-        let plots = plotsGridComponentInstance.dehydratePlots(_self.getExistingPlots());
+        let plots = dashboardComponentInstance.dehydratePlots(_self.getExistingPlots());
         return {
             plots,
             selectedChemical: lastSelectedChemical
@@ -954,7 +950,7 @@ module.exports = module.exports = {
 
             const continueWithInitialization = (populatedPlots) => {
                 if (populatedPlots) {
-                    plotsGridComponentInstance.setPlots(populatedPlots);
+                    dashboardComponentInstance.setPlots(populatedPlots);
                 }
 
                 if (newState.selectedChemical) {
@@ -981,7 +977,7 @@ module.exports = module.exports = {
             }
 
             if (plotsWereProvided) {
-                plotsGridComponentInstance.hydratePlots(newState.plots).then(continueWithInitialization).catch(error => {
+                dashboardComponentInstance.hydratePlots(newState.plots).then(continueWithInitialization).catch(error => {
                     console.error(`Error occured while hydrating plots at state application`, error);
                 });
             } else {
@@ -991,8 +987,8 @@ module.exports = module.exports = {
     },
 
     getExistingPlots: () => {
-        if (plotsGridComponentInstance) {
-            return plotsGridComponentInstance.getPlots();
+        if (dashboardComponentInstance) {
+            return dashboardComponentInstance.getPlots();
         } else {
             throw new Error(`Unable to find the component instance`);
         }

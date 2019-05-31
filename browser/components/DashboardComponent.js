@@ -9,14 +9,18 @@ import SortablePlotsGridComponent from './SortablePlotsGridComponent';
 import { isNumber } from 'util';
 import arrayMove from 'array-move';
 
+const VIEW_MATRIX = 0;
+const VIEW_ROW = 1;
+
 /**
  * Component creates plots management form and is the source of truth for plots overall
  */
-class PlotsGridComponent extends React.Component {
+class DashboardComponent extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
+            view: VIEW_MATRIX,
             newPlotName: ``,
             plots: this.props.initialPlots,
             profiles: [],
@@ -120,7 +124,6 @@ class PlotsGridComponent extends React.Component {
         let activeProfiles = JSON.parse(JSON.stringify(this.state.activeProfiles));
         if (activeProfiles.indexOf(profileId) === -1) activeProfiles.push(profileId);
         this.setState({activeProfiles}, () => {
-            console.log(`### activeProfiles 1`, activeProfiles);
             this.props.onActiveProfilesChange(this.state.activeProfiles);
         });
     }
@@ -131,10 +134,6 @@ class PlotsGridComponent extends React.Component {
         let activeProfiles = JSON.parse(JSON.stringify(this.state.activeProfiles));
         if (activeProfiles.indexOf(profileId) > -1) activeProfiles.splice(activeProfiles.indexOf(profileId), 1);
         this.setState({activeProfiles}, () => {
-            
-
-
-
             this.props.onActiveProfilesChange(this.state.activeProfiles);
         });
     }
@@ -367,11 +366,17 @@ class PlotsGridComponent extends React.Component {
     render() {
         let plotsControls = (<p style={{textAlign: `center`}}>{__(`No timeseries were created or set as active yet`)}</p>);
 
+        let containerClass = `list-group-item col-sm-12 col-md-12 col-lg-6`;
+        if (this.state.view === VIEW_ROW) {
+            containerClass = `list-group-item col-sm-12 col-md-12 col-lg-12`;
+        }
+
         let localPlotsControls = [];
         this.state.plots.map((plot, index) => {
             if (this.state.activePlots.indexOf(plot.id) > -1) {
                 localPlotsControls.push(<SortablePlotComponent
                     key={`borehole_plot_${index}`}
+                    containerClass={containerClass}
                     index={index}
                     handleDelete={this.handleDeletePlot}
                     meta={plot}/>);
@@ -382,6 +387,7 @@ class PlotsGridComponent extends React.Component {
             if (this.state.activeProfiles.indexOf(profile.key) > -1) {
                 localPlotsControls.push(<SortableProfileComponent
                     key={`borehole_profile_${index}`}
+                    containerClass={containerClass}
                     index={index}
                     handleDelete={this.handleDeleteProfile}
                     meta={profile}/>);
@@ -393,21 +399,37 @@ class PlotsGridComponent extends React.Component {
         }
 
         return (<div>
-            <div>
-                <p className="text-muted" style={{margin: `0px`}}>
-                    {__(`Timeseries total`)}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}; {__(`Profiles total`)}: {this.state.profiles.length}, {__(`profiles active`)}: {this.state.activeProfiles.length}
-                </p>
+            <div style={{height: `40px`}}>
+                <div style={{float: `left`}}>
+                    <p className="text-muted" style={{margin: `0px`}}>
+                        {__(`Timeseries total`)}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}; {__(`Profiles total`)}: {this.state.profiles.length}, {__(`profiles active`)}: {this.state.activeProfiles.length}
+                    </p>
+                </div>
+                <div style={{float: `right`}}>
+                    <div className="btn-group btn-group-raised" role="group" style={{margin: `0px`}}>
+                        <button
+                            type="button"
+                            disabled={this.state.view === VIEW_MATRIX}
+                            onClick={() => { this.setState({view: VIEW_MATRIX}); }}
+                            className="btn btn-sm btn-primary btn-default">{__(`Matrix view`)}</button>
+                        <button
+                            type="button"
+                            disabled={this.state.view === VIEW_ROW}
+                            onClick={() => { this.setState({view: VIEW_ROW}); }}
+                            className="btn btn-sm btn-primary btn-default">{__(`Row view`)}</button>
+                    </div>
+                </div>
             </div>
             <div>{plotsControls}</div>
         </div>);
     }
 }
 
-PlotsGridComponent.propTypes = {
+DashboardComponent.propTypes = {
     initialPlots: PropTypes.array.isRequired,
     onPlotsChange: PropTypes.func.isRequired,
     onActivePlotsChange: PropTypes.func.isRequired,
     onHighlightedPlotChange: PropTypes.func.isRequired,
 };
 
-export default PlotsGridComponent;
+export default DashboardComponent;

@@ -28,8 +28,12 @@ class ProfileComponent extends React.Component {
         }
 
         return (<div>
-            <div>
-                <h5>{this.props.plotMeta.title} <SortableHandleComponent title={this.props.plotMeta.title}/> <a
+            <div style={{height: `40px`}}>
+                <div style={{float: `left`}}>
+                    <h4>{this.props.plotMeta.title}</h4>
+                </div>
+                <div style={{float: `right`}}>
+                    <SortableHandleComponent title={this.props.plotMeta.title}/> <a
                         className="btn"
                         href="javascript:void(0)"
                         title={__(`Delete`) + ` ` + this.props.plotMeta.value.title}
@@ -37,7 +41,7 @@ class ProfileComponent extends React.Component {
                         style={{padding: `0px`, marginLeft: `10px`}}>
                         <i className="fa fa-remove"></i> {__(`Delete`)}
                     </a>
-                </h5>
+                </div>
             </div>
             <div>{plot}</div>
         </div>);
