@@ -7,9 +7,8 @@ import MenuProfilesComponent from './components/MenuProfilesComponent';
 import IntroModal from './components/IntroModal';
 import { LAYER_NAMES, WATER_LEVEL_KEY } from './constants';
 
-var wkt = require('terraformer-wkt-parser');
+var svgCollection = require('./svgCollection');
 
-const utmZone = require('./../../../browser/modules/utmZone.js');
 const evaluateMeasurement = require('./evaluateMeasurement');
 const measurementIcon = require('./measurementIcon');
 
@@ -615,7 +614,16 @@ module.exports = module.exports = {
                 if (parameters.chemical) {
                     _self.enableChemical(parameters.chemical, parameters.layers);
                 } else {
+                    let filteredLayers = [];
                     parameters.layers.map(layerName => {
+                        if (layerName.indexOf(`#`) > -1) {
+                            if (filteredLayers.indexOf(layerName.split(`#`)[0]) === -1) filteredLayers.push(layerName.split(`#`)[0]);
+                        } else {
+                            if (filteredLayers.indexOf(layerName) === -1) filteredLayers.push(layerName);
+                        }
+                    });
+
+                    filteredLayers.map(layerName => {
                         layerTree.reloadLayer(layerName);
                     });
                 }
@@ -635,11 +643,21 @@ module.exports = module.exports = {
                     urlparser={urlparser}
                     backboneEvents={backboneEvents}
                     layers={[{
-                        id: LAYER_NAMES[0],
-                        title: __(`boreholes_time_series_with_chemicals`)
+                        originalLayerKey: LAYER_NAMES[0],
+                        additionalKey: ``,
+                        title: __(`Jupiter drilling`)
                     }, {
-                        id: LAYER_NAMES[2],
-                        title: __(`sensordata_with_correction`)
+                        originalLayerKey: LAYER_NAMES[2],
+                        additionalKey: `1`,
+                        title: __(`CALYPSO stations`)
+                    }, {
+                        originalLayerKey: LAYER_NAMES[2],
+                        additionalKey: `3`,
+                        title: __(`CALYPSO stations`)
+                    }, {
+                        originalLayerKey: LAYER_NAMES[2],
+                        additionalKey: `4`,
+                        title: __(`CALYPSO stations`)
                     }]}
                     categories={categoriesOverall ? categoriesOverall : []}
                     onApply={onApplyHandler}

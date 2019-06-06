@@ -37,12 +37,13 @@ class IntroModal extends React.Component {
         this.setState({searchTerm});
     }
 
-    toggleLayer(layerName) {
+    toggleLayer(originalLayerKey, additionalKey = ``) {
+        let compoundLayerKey = originalLayerKey + (additionalKey ? `#${additionalKey}` : ``);
         let selectedLayers = this.state.selectedLayers.slice(0);
-        if (selectedLayers.indexOf(layerName) === -1) {
-            selectedLayers.push(layerName);
+        if (selectedLayers.indexOf(compoundLayerKey) === -1) {
+            selectedLayers.push(compoundLayerKey);
         } else {
-            selectedLayers.splice(selectedLayers.indexOf(layerName), 1);
+            selectedLayers.splice(selectedLayers.indexOf(compoundLayerKey), 1);
         }
 
         this.setState({selectedLayers});
@@ -112,6 +113,11 @@ class IntroModal extends React.Component {
 
     render() {
         let layerGroupsList = false;
+
+
+        console.log(`###`, this.state.selectedLayers);
+
+
         if (this.state.mode === MODE_NEW) {
             layerGroupsList = [];
 
@@ -159,6 +165,19 @@ class IntroModal extends React.Component {
             zIndex: 1000
         };
 
+        const generateLayerRecord = (key, item) => {
+            return (<div key={key}>
+                <div className="checkbox">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={this.state.selectedLayers.indexOf(item.originalLayerKey + (item.additionalKey ? `#${item.additionalKey}` : ``)) !== -1}
+                            onChange={() => { this.toggleLayer(item.originalLayerKey, item.additionalKey); }}/> {item.title}
+                    </label>
+                </div>
+            </div>);
+        };
+
         return (<div className="modal-content" style={{minWidth: `1000px`, marginTop: `20%`, borderRadius: `40px`}}>
             <div className="modal-header" style={{color: `#009688`, textAlign: `center`, paddingTop: `35px`}}>
                 <h4 className="modal-title" style={{fontSize: `34px`, textTransform: `uppercase`, fontWeight: `700`}}>
@@ -190,16 +209,13 @@ class IntroModal extends React.Component {
                         <div className="col-md-6">
                             <p>{__(`Please select at least one layer`)}</p>
                             <div>
-                                {this.state.layers.map((item, index) => (<div key={`layer_${index}`}>
-                                    <div className="checkbox">
-                                        <label>
-                                            <input
-                                                type="checkbox"
-                                                checked={this.state.selectedLayers.indexOf(item.id) !== -1}
-                                                onChange={() => { this.toggleLayer(item.id); }}/> {item.title}
-                                        </label>
-                                    </div>
-                                </div>))}
+                                <h4>{__(`Groundwater`)}</h4>
+                                {generateLayerRecord(`key0`, this.state.layers[0])}
+                                {generateLayerRecord(`key1`, this.state.layers[1])}
+                                <h4>{__(`Streams`)}</h4>
+                                {generateLayerRecord(`key2`, this.state.layers[2])}
+                                <h4>{__(`Rain`)}</h4>
+                                {generateLayerRecord(`key3`, this.state.layers[3])}
                             </div>
                         </div>
                         <div className="col-md-6">
