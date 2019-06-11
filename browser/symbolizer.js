@@ -2,6 +2,8 @@
  * Provides tools for generating measurements icons
  */
 
+import {LAYER_NAMES} from './constants';
+
 const svgCollection = require('./svgCollection');
 
 /*
@@ -46,16 +48,14 @@ const getSymbol = (layerName, options) => {
     let online = (options && `online` in options ? options.online : false);
 
     let result = false;
-    if (layerName.indexOf(`boreholes_time_series_with_chemicals`) > -1) {
+    if (layerName === LAYER_NAMES[0]) {
         result = svgCollection.circle;
 
         // Change color to orange
         result = result.replace(`LEFT_HALF_STYLING`, `fill:#bf8c00;`);
         result = result.replace(`RIGHT_HALF_STYLING`, `fill:#bf8c00;`);
-    } else if (layerName.indexOf(`sensordata_with_correction`) > -1) {
-
+    } else if (layerName === LAYER_NAMES[2]) {
         // @todo Symbol shape depends on location type, omitting for now
-
         result = svgCollection.circle;
 
         // Change color to blue
