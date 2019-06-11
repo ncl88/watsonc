@@ -7,9 +7,8 @@ import MenuProfilesComponent from './components/MenuProfilesComponent';
 import IntroModal from './components/IntroModal';
 import { LAYER_NAMES, WATER_LEVEL_KEY } from './constants';
 
-var wkt = require('terraformer-wkt-parser');
+const symbolizer = require('./symbolizer');
 
-const utmZone = require('./../../../browser/modules/utmZone.js');
 const evaluateMeasurement = require('./evaluateMeasurement');
 const measurementIcon = require('./measurementIcon');
 
@@ -55,23 +54,10 @@ var React = require('react');
 
 var ReactDOM = require('react-dom');
 
-const STYLES = {
-    "v:chemicals.boreholes_time_series_with_chemicals": {
-        default: `<circle cx="14" cy="14" r="10" stroke="purple" stroke-width="4" fill="purple" fill-opacity="0.4" />`,
-        highlighted: `<circle cx="14" cy="14" r="10" stroke="purple" stroke-width="4" fill="red" fill-opacity="1" />`
-    },
-    "v:sensor.sensordata_with_correction": {
-        default: `<circle cx="14" cy="14" r="10" stroke="blue" stroke-width="4" fill="blue" fill-opacity="0.4" />`,
-        highlighted: `<circle cx="14" cy="14" r="10" stroke="blue" stroke-width="4" fill="red" fill-opacity="1" />`,
-    },
-    wrapper: `<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" id="svg8" version="1.1" viewBox="0 0 40 40" height="40" width="40">CONTENT</svg>`
-};
-
 let dashboardComponentInstance = false, modalComponentInstance = false, infoModalInstance = false,
     menuTimeSeriesComponentInstance = false, menuProfilesComponentInstance = false;
 
-let lastSelectedChemical = false, categoriesOverall = false;
+let lastSelectedChemical = false, categoriesOverall = false, additionalFiltersForSensors = [];
 
 let _self = false;
 
@@ -91,15 +77,11 @@ let lastEnabledMapState = {
 
 let previousZoom = -1;
 
-let bufferSlider, bufferValue;
-
 let store;
 
 let categories = {};
 let limits = {};
 let names = {};
-
-let drawnItems = new L.FeatureGroup(), embedDrawControl = false, bufferedProfile = false;
 
 var jquery = require('jquery');
 require('snackbarjs');
@@ -306,16 +288,10 @@ module.exports = module.exports = {
                     });
                 }, "watsonc");
 
-                let svgCirclePart = false;
-                if (layerName === `v:chemicals.boreholes_time_series_with_chemicals`) {
-                    svgCirclePart = STYLES[layerName].default;
-                } else if (layerName === `v:sensor.sensordata_with_correction`) {
-                    svgCirclePart = STYLES[layerName].default;
-                }
-
+                let svgCirclePart = symbolizer.getSymbol(layerName);
                 if (svgCirclePart) {
                     let icon = L.icon({
-                        iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, svgCirclePart)),
+                        iconUrl: 'data:image/svg+xml;base64,' + btoa(svgCirclePart),
                         iconAnchor: [14, 14],
                         watsoncStatus: `default`
                     });
@@ -615,7 +591,20 @@ module.exports = module.exports = {
                 if (parameters.chemical) {
                     _self.enableChemical(parameters.chemical, parameters.layers);
                 } else {
+                    let filteredLayers = [];
+                    additionalFiltersForSensors = [];
                     parameters.layers.map(layerName => {
+                        if (layerName.indexOf(`#`) > -1) {
+                            if (filteredLayers.indexOf(layerName.split(`#`)[0]) === -1) filteredLayers.push(layerName.split(`#`)[0]);
+                            additionalFiltersForSensors.push(layerName.split(`#`)[1]);
+                        } else {
+                            if (filteredLayers.indexOf(layerName) === -1) filteredLayers.push(layerName);
+                        }
+                    });
+
+                    console.log(`### additionalFiltersForSensors`, additionalFiltersForSensors);
+
+                    filteredLayers.map(layerName => {
                         layerTree.reloadLayer(layerName);
                     });
                 }
@@ -635,11 +624,21 @@ module.exports = module.exports = {
                     urlparser={urlparser}
                     backboneEvents={backboneEvents}
                     layers={[{
-                        id: LAYER_NAMES[0],
-                        title: __(`boreholes_time_series_with_chemicals`)
+                        originalLayerKey: LAYER_NAMES[0],
+                        additionalKey: ``,
+                        title: __(`Jupiter drilling`)
                     }, {
-                        id: LAYER_NAMES[2],
-                        title: __(`sensordata_with_correction`)
+                        originalLayerKey: LAYER_NAMES[2],
+                        additionalKey: `1`,
+                        title: __(`CALYPSO stations`)
+                    }, {
+                        originalLayerKey: LAYER_NAMES[2],
+                        additionalKey: `3`,
+                        title: __(`CALYPSO stations`)
+                    }, {
+                        originalLayerKey: LAYER_NAMES[2],
+                        additionalKey: `4`,
+                        title: __(`CALYPSO stations`)
                     }]}
                     categories={categoriesOverall ? categoriesOverall : []}
                     onApply={onApplyHandler}
@@ -764,12 +763,12 @@ module.exports = module.exports = {
 
             icons[LAYER_NAMES[0]] = {
                 highlighted: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, STYLES[LAYER_NAMES[0]].highlighted)),
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[0], {highlighted: true})),
                     iconAnchor: [14, 14],
                     watsoncStatus: `highlighted`
                 }),
                 default: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, STYLES[LAYER_NAMES[0]].default)),
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[0])),
                     iconAnchor: [14, 14],
                     watsoncStatus: `default`
                 }),
@@ -777,12 +776,12 @@ module.exports = module.exports = {
 
             icons[LAYER_NAMES[2]] = {
                 highlighted: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, STYLES[LAYER_NAMES[2]].highlighted)),
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[2], {highlighted: true})),
                     iconAnchor: [14, 14],
                     watsoncStatus: `highlighted`
                 }),
                 default: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(STYLES.wrapper.replace(`CONTENT`, STYLES[LAYER_NAMES[2]].default)),
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[2])),
                     iconAnchor: [14, 14],
                     watsoncStatus: `default`
                 }),

@@ -17,4 +17,4 @@ WatsonC Vidi extension
 
 `test.py` - runs tests for the `intersectiontool.py`
 
-The `scripts/data` folder and the `FOHM_layers_v2.npy` was not added to repo.
+The `FOHM_layers_v2.npy` was not added to repo, please download it from https://s3-eu-west-1.amazonaws.com/mapcentia-tmp/ProfileTool.zip and put in `/extensions/watsonc/scripts` folder.

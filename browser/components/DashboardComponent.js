@@ -100,8 +100,15 @@ class DashboardComponent extends React.Component {
                 let activeProfilesCopy = JSON.parse(JSON.stringify(this.state.activeProfiles));
                 if (activeProfilesCopy.indexOf(newProfile.key) === -1) activeProfilesCopy.push(newProfile.key);
 
+                let dashboardItemsCopy = JSON.parse(JSON.stringify(this.state.dashboardItems));
+                dashboardItemsCopy.push({
+                    type: DASHBOARD_ITEM_PROFILE,
+                    item: newProfile
+                });
+
                 this.setState({
                     profiles: profilesCopy,
+                    dashboardItems: dashboardItemsCopy,
                     activeProfiles: activeProfilesCopy
                 });
 
@@ -121,6 +128,7 @@ class DashboardComponent extends React.Component {
     handleDeleteProfile(profileKey, callback = false) {
         this.profileManager.delete(profileKey).then(() => {
             let profilesCopy = JSON.parse(JSON.stringify(this.state.profiles));
+
             let profileWasDeleted = false;
             profilesCopy.map((profile, index) => {
                 if (profile.key === profileKey) {
@@ -134,9 +142,32 @@ class DashboardComponent extends React.Component {
                 console.warn(`Profile ${profileKey} was deleted only from backend storage`);
             }
    
+            let dashboardItemsCopy = JSON.parse(JSON.stringify(this.state.dashboardItems));
+            dashboardItemsCopy.map((item, index) => {
+                if (item.type === DASHBOARD_ITEM_PROFILE) {
+                    if (item.key === profileKey) {
+                        dashboardItemsCopy.splice(index, 1);
+                        return false;
+                    }
+                }
+            });
+
+            let activeProfilesCopy = JSON.parse(JSON.stringify(this.state.activeProfiles));
+            activeProfilesCopy.map((profile, index) => {
+                if (profile === profileKey) {
+                    activeProfilesCopy.splice(index, 1);
+                    return false;
+                }
+            });
+
             if (callback) callback();
 
-            this.setState({profiles: profilesCopy});
+            this.setState({
+                profiles: profilesCopy,
+                activeProfiles: activeProfilesCopy,
+                dashboardItems: dashboardItemsCopy
+            });
+
             this.props.onProfilesChange(profilesCopy);
         }).catch(error => {
             console.error(`Error occured while deleting profile (${error})`)
@@ -459,7 +490,6 @@ class DashboardComponent extends React.Component {
         }
 
         let localPlotsControls = [];
-
         this.state.dashboardItems.map((item, index) => {
             if (item.type === DASHBOARD_ITEM_PLOT) {
                 let plot = item.item;
