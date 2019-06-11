@@ -77,15 +77,11 @@ let lastEnabledMapState = {
 
 let previousZoom = -1;
 
-let bufferSlider, bufferValue;
-
 let store;
 
 let categories = {};
 let limits = {};
 let names = {};
-
-let drawnItems = new L.FeatureGroup(), embedDrawControl = false, bufferedProfile = false;
 
 var jquery = require('jquery');
 require('snackbarjs');
@@ -292,16 +288,10 @@ module.exports = module.exports = {
                     });
                 }, "watsonc");
 
-                let svgCirclePart = false;
-                if (layerName === `v:chemicals.boreholes_time_series_with_chemicals`) {
-                    svgCirclePart = symbolizer.styles[layerName].default;
-                } else if (layerName === `v:sensor.sensordata_with_correction`) {
-                    svgCirclePart = symbolizer.styles[layerName].default;
-                }
-
+                let svgCirclePart = symbolizer.getSymbol(layerName);
                 if (svgCirclePart) {
                     let icon = L.icon({
-                        iconUrl: 'data:image/svg+xml;base64,' + btoa(symbolizer.wrapper.replace(`CONTENT`, svgCirclePart)),
+                        iconUrl: 'data:image/svg+xml;base64,' + btoa(svgCirclePart),
                         iconAnchor: [14, 14],
                         watsoncStatus: `default`
                     });
@@ -773,12 +763,12 @@ module.exports = module.exports = {
 
             icons[LAYER_NAMES[0]] = {
                 highlighted: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(symbolizer.wrapper.replace(`CONTENT`, symbolizer.styles[LAYER_NAMES[0]].highlighted)),
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[0], {highlighted: true})),
                     iconAnchor: [14, 14],
                     watsoncStatus: `highlighted`
                 }),
                 default: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(symbolizer.wrapper.replace(`CONTENT`, symbolizer.styles[LAYER_NAMES[0]].default)),
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[0])),
                     iconAnchor: [14, 14],
                     watsoncStatus: `default`
                 }),
@@ -786,12 +776,12 @@ module.exports = module.exports = {
 
             icons[LAYER_NAMES[2]] = {
                 highlighted: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(symbolizer.wrapper.replace(`CONTENT`, symbolizer.styles[LAYER_NAMES[2]].highlighted)),
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[2], {highlighted: true})),
                     iconAnchor: [14, 14],
                     watsoncStatus: `highlighted`
                 }),
                 default: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(symbolizer.wrapper.replace(`CONTENT`, symbolizer.styles[LAYER_NAMES[2]].default)),
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[2])),
                     iconAnchor: [14, 14],
                     watsoncStatus: `default`
                 }),

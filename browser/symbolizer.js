@@ -4,19 +4,6 @@
 
 const svgCollection = require('./svgCollection');
 
-const wrapper = `<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" id="svg8" version="1.1" viewBox="0 0 40 40" height="40" width="40">CONTENT</svg>`;
-const styles = {
-    "v:chemicals.boreholes_time_series_with_chemicals": {
-        default: `<circle cx="14" cy="14" r="10" stroke="purple" stroke-width="4" fill="purple" fill-opacity="0.4" />`,
-        highlighted: `<circle cx="14" cy="14" r="10" stroke="purple" stroke-width="4" fill="red" fill-opacity="1" />`
-    },
-    "v:sensor.sensordata_with_correction": {
-        default: `<circle cx="14" cy="14" r="10" stroke="blue" stroke-width="4" fill="blue" fill-opacity="0.4" />`,
-        highlighted: `<circle cx="14" cy="14" r="10" stroke="blue" stroke-width="4" fill="red" fill-opacity="1" />`,
-    }
-};
-
 /*
 Deciding what symbol the measurement should have
 
@@ -46,4 +33,42 @@ Questions:
 
 */
 
-module.exports = {styles, wrapper};
+/**
+ * Generates symbol
+ * 
+ * @param {*} layerName 
+ * @param {*} options 
+ * 
+ * @returns {String}
+ */
+const getSymbol = (layerName, options) => {
+    let highlighted = (options && `highlighted` in options ? options.highlighted : false);
+    let online = (options && `online` in options ? options.online : false);
+
+    let result = false;
+    if (layerName.indexOf(`boreholes_time_series_with_chemicals`) > -1) {
+        result = svgCollection.circle;
+
+        // Change color to orange
+        result = result.replace(`LEFT_HALF_STYLING`, `fill:#bf8c00;`);
+        result = result.replace(`RIGHT_HALF_STYLING`, `fill:#bf8c00;`);
+    } else if (layerName.indexOf(`sensordata_with_correction`) > -1) {
+
+        // @todo Symbol shape depends on location type, omitting for now
+
+        result = svgCollection.circle;
+
+        // Change color to blue
+        result = result.replace(`LEFT_HALF_STYLING`, `fill:#1380c4;`);
+        result = result.replace(`RIGHT_HALF_STYLING`, `fill:#1380c4;`);
+    }
+
+    if (result) {
+        result = result.replace(`WIFI_SYMBOL_STYLING`, (online ? `fill:#77cbe7;` : `fill:#bababa;`));
+        result = result.replace(`STROKE_STYLING`, (highlighted ? `stroke:#000;stroke-miterlimit:10;stroke-width:20px;` : ``));
+    }
+
+    return result;
+};
+
+module.exports = {getSymbol};
