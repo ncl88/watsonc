@@ -113,11 +113,6 @@ class IntroModal extends React.Component {
 
     render() {
         let layerGroupsList = false;
-
-
-        console.log(`###`, this.state.selectedLayers);
-
-
         if (this.state.mode === MODE_NEW) {
             layerGroupsList = [];
 
