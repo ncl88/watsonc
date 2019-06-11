@@ -7,6 +7,7 @@ import TitleFieldComponent from './../../../../browser/modules/shared/TitleField
 import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
 const wkt = require('terraformer-wkt-parser');
 const uuidv1 = require('uuid/v1');
+const utmZone = require('./../../../../browser/modules/utmZone');
 
 const STEP_NOT_READY = 0;
 const STEP_BEING_DRAWN = 1;
