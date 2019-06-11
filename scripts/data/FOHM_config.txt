@@ -1,0 +1,12 @@
+Title: FOHM
+Subtitle: Geologisk model for Jylland
+Type (geology, terrain, potential): geology
+layerfile: FOHM_layers_v2.npy
+layerinfo: inventory.txt
+Dataextend: FOHM_extent.shp
+Upperleft x: 438450.0
+Upperleft y: 6413550.0
+Cell size: 100
+Nx: 2251
+Ny: 3501
+Nz: 46
