@@ -588,21 +588,23 @@ module.exports = module.exports = {
             if (cloud.get().getZoom() < 15) {
                 lastEnabledMapState = parameters;
             } else {
-                if (parameters.chemical) {
-                    _self.enableChemical(parameters.chemical, parameters.layers);
-                } else {
-                    let filteredLayers = [];
-                    additionalFiltersForSensors = [];
-                    parameters.layers.map(layerName => {
-                        if (layerName.indexOf(`#`) > -1) {
-                            if (filteredLayers.indexOf(layerName.split(`#`)[0]) === -1) filteredLayers.push(layerName.split(`#`)[0]);
-                            additionalFiltersForSensors.push(layerName.split(`#`)[1]);
-                        } else {
-                            if (filteredLayers.indexOf(layerName) === -1) filteredLayers.push(layerName);
-                        }
-                    });
+                let filteredLayers = [];
+                additionalFiltersForSensors = [];
+                parameters.layers.map(layerName => {
+                    if (layerName.indexOf(`#`) > -1) {
+                        if (filteredLayers.indexOf(layerName.split(`#`)[0]) === -1) filteredLayers.push(layerName.split(`#`)[0]);
+                        additionalFiltersForSensors.push(layerName.split(`#`)[1]);
+                    } else {
+                        if (filteredLayers.indexOf(layerName) === -1) filteredLayers.push(layerName);
+                    }
+                });
 
-                    console.log(`### additionalFiltersForSensors`, additionalFiltersForSensors);
+                if (parameters.chemical) {
+                    _self.enableChemical(parameters.chemical, filteredLayers);
+                } else {
+
+                    // @todo New map symbols
+                    //console.log(`### additionalFiltersForSensors`, additionalFiltersForSensors);
 
                     filteredLayers.map(layerName => {
                         layerTree.reloadLayer(layerName);
