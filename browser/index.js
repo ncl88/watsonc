@@ -61,7 +61,7 @@ let lastSelectedChemical = false, categoriesOverall = false, additionalFiltersFo
 
 let _self = false;
 
-let lastFeature = false;
+let lastFeatures = false;
 
 let lastTitleAsLink = null;
 
@@ -267,7 +267,7 @@ module.exports = module.exports = {
 
         state.getState().then(applicationState => {
             LAYER_NAMES.map(layerName => {
-                layerTree.setOnEachFeature(layerName, (feature, layer) => {
+                layerTree.setOnEachFeature(layerName, (clickedFeature, layer) => {
                     layer.on("click", function (e) {
                         $("#" + FEATURE_CONTAINER_ID).animate({
                             bottom: "0"
@@ -276,12 +276,53 @@ module.exports = module.exports = {
                             $("#" + FEATURE_CONTAINER_ID).find(".expand-more").hide();
                         });
 
+                        var clickBounds = L.latLngBounds(e.latlng, e.latlng), intersectingFeatures = [],
+
+                        res = [156543.033928, 78271.516964, 39135.758482, 19567.879241, 9783.9396205,
+                            4891.96981025, 2445.98490513, 1222.99245256, 611.496226281, 305.748113141, 152.87405657,
+                            76.4370282852, 38.2185141426, 19.1092570713, 9.55462853565, 4.77731426782, 2.38865713391,
+                            1.19432856696, 0.597164283478, 0.298582141739, 0.149291, 0.074645535];
+
+                        let distance = 10 * res[cloud.get().getZoom()];
+
+                        let mapObj = cloud.get().map;
+                        for (var l in mapObj._layers) {
+                            var overlay = mapObj._layers[l];
+                            if (overlay._layers) {
+                                for (var f in overlay._layers) {
+                                    var feature = overlay._layers[f];
+                                    var bounds;
+                                    if (feature.getBounds) {
+                                        bounds = feature.getBounds();
+                                    } else if (feature._latlng) {
+                                        let circle = new L.circle(feature._latlng, {radius: distance});
+                                        // DIRTY HACK
+                                        circle.addTo(mapObj);
+                                        bounds = circle.getBounds();
+                                        circle.removeFrom(mapObj);
+                                    }
+
+                                    if (bounds && clickBounds.intersects(bounds) && overlay.id) {
+                                        intersectingFeatures.push(feature.feature);
+                                    }
+                                }
+                            }
+                        }
+
                         let titleAsLink = false;
                         if (layerName.indexOf(`chemicals.boreholes_time_series_with_chemicals`) > -1) {
                             titleAsLink = true;
                         }
 
-                        _self.createModal(feature, false, titleAsLink);
+                        let clickedFeatureAlreadyDetected = false;
+                        intersectingFeatures.map(feature => {
+                            if (feature.properties.boreholeno === clickedFeature.properties.boreholeno) {
+                                clickedFeatureAlreadyDetected = true;
+                            }
+                        });
+
+                        if (clickedFeatureAlreadyDetected === false) intersectingFeatures.unshift(clickedFeature);
+                        _self.createModal(intersectingFeatures, false, titleAsLink);
                         if (!dashboardComponentInstance) {
                             throw new Error(`Unable to find the component instance`);
                         }
@@ -696,10 +737,10 @@ module.exports = module.exports = {
         return plots;
     },
 
-    createModal: (feature = false, plots = false, titleAsLink = null) => {
-        if (!feature) {
-            if (lastFeature) {
-                feature = lastFeature;
+    createModal: (features, plots = false, titleAsLink = null) => {
+        if (features === false) {
+            if (lastFeatures) {
+                features = lastFeatures;
             }
         }
 
@@ -711,13 +752,23 @@ module.exports = module.exports = {
             lastTitleAsLink = titleAsLink;
         }
 
-        if (feature) {
-            lastFeature = feature;
-            if (titleAsLink) {
-                let link = `http://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${encodeURIComponent(feature.properties.boreholeno)}`
-                $("#" + FEATURE_CONTAINER_ID).find(`.modal-title`).html(`<a href="${link}" target="_blank" title="${feature.properties.boreholeno} @ data.geus.dk">${feature.properties.boreholeno}</a>`);
+        if (features !== false) {
+            lastFeatures = features;
+
+            let titles = [];
+            features.map(item => {
+                if (titleAsLink) {
+                    let link = `http://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${encodeURIComponent(item.properties.boreholeno)}`;
+                    titles.push(`<a href="${link}" target="_blank" title="${item.properties.boreholeno} @ data.geus.dk">${item.properties.boreholeno}</a>`);
+                } else {
+                    titles.push(`${item.properties.boreholeno}`);
+                }
+            });
+
+            if (titles.length === 1) {
+                $("#" + FEATURE_CONTAINER_ID).find(`.modal-title`).html(titles[0]);
             } else {
-                $("#" + FEATURE_CONTAINER_ID).find(`.modal-title`).html(`${feature.properties.boreholeno}`);
+                $("#" + FEATURE_CONTAINER_ID).find(`.modal-title`).html(`${__(`Boreholes`)} (${titles.join(`, `)})`);
             }
 
             if (document.getElementById(FORM_FEATURE_CONTAINER_ID)) {
@@ -727,7 +778,7 @@ module.exports = module.exports = {
                     setTimeout(() => {
                         ReactDOM.unmountComponentAtNode(document.getElementById(FORM_FEATURE_CONTAINER_ID));
                         modalComponentInstance = ReactDOM.render(<ModalComponent
-                            feature={feature}
+                            features={features}
                             categories={categories}
                             dataSource={dataSource}
                             names={names}
