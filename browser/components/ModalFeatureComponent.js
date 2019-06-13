@@ -221,7 +221,7 @@ class ModalFeatureComponent extends React.Component {
                     </div>
                 </div>
             </div>
-            <div style={{ height: `calc(100% - 74px)` }}>
+            <div style={{ height: `calc(100% - 74px)`, display: `flex` }}>
                 <div className="measurements-modal_left-column measurements-modal_scrollable">{propertiesControls}</div>
                 <div className="measurements-modal_right-column measurements-modal_scrollable">{plotsControls}</div>
             </div>

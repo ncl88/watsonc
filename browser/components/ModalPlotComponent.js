@@ -49,7 +49,7 @@ class ModalPlotComponent extends React.Component {
             className="well well-sm js-plot"
             data-id="{this.props.plot.id}"
             style={{
-                marginBottom: `4px`,
+                marginBottom: `18px`,
                 boxShadow: `0 4px 12px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19)`,
                 backgroundColor: (isOver ? `darkgreen` : ``),
                 color: (isOver ? `white` : ``),
