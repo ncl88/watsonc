@@ -331,13 +331,17 @@ module.exports = module.exports = {
 
                 let svgCirclePart = symbolizer.getSymbol(layerName);
                 if (svgCirclePart) {
-                    let icon = L.icon({
-                        iconUrl: 'data:image/svg+xml;base64,' + btoa(svgCirclePart),
-                        iconAnchor: [14, 14],
-                        watsoncStatus: `default`
-                    });
-
                     layerTree.setPointToLayer(layerName, (feature, latlng) => {
+                        let localSvgCirclePart = symbolizer.getSymbol(layerName, {
+                            online: feature.properties.status
+                        });
+
+                        let icon = L.icon({
+                            iconUrl: 'data:image/svg+xml;base64,' + btoa(localSvgCirclePart),
+                            iconAnchor: [14, 14],
+                            watsoncStatus: `default`
+                        });
+
                         return L.marker(latlng, { icon });
                     });
                 }
@@ -812,34 +816,6 @@ module.exports = module.exports = {
     setStyleForHighlightedPlot: (plotId, plots) => {
         // If specific chemical is activated, then do not style
         if (lastSelectedChemical === false) {
-            let icons = {};
-
-            icons[LAYER_NAMES[0]] = {
-                highlighted: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[0], {highlighted: true})),
-                    iconAnchor: [14, 14],
-                    watsoncStatus: `highlighted`
-                }),
-                default: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[0])),
-                    iconAnchor: [14, 14],
-                    watsoncStatus: `default`
-                }),
-            }
-
-            icons[LAYER_NAMES[2]] = {
-                highlighted: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[2], {highlighted: true})),
-                    iconAnchor: [14, 14],
-                    watsoncStatus: `highlighted`
-                }),
-                default: L.icon({
-                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(LAYER_NAMES[2])),
-                    iconAnchor: [14, 14],
-                    watsoncStatus: `default`
-                }),
-            }
-
             let participatingIds = [];
             plots.map(plot => {
                 if (plot.id === plotId) {
@@ -861,9 +837,23 @@ module.exports = module.exports = {
                         if (featureLayer.feature && featureLayer.feature.properties && featureLayer.feature.properties.gid) {
                             let icon = false;
                             if (participatingIds.indexOf(featureLayer.feature.properties.gid) > -1) {
-                                icon = icons[layer.id].highlighted;
+                                icon = L.icon({
+                                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(layer.id, {
+                                        online: featureLayer.feature.properties.status,
+                                        highlighted: true
+                                    })),
+                                    iconAnchor: [14, 14],
+                                    watsoncStatus: `highlighted`
+                                });
                             } else {
-                                icon = icons[layer.id].default;
+                                icon = L.icon({
+                                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(layer.id, {
+                                        online: featureLayer.feature.properties.status,
+                                        highlighted: false
+                                    })),
+                                    iconAnchor: [14, 14],
+                                    watsoncStatus: `default`
+                                });
                             }
 
                             if (icon && `setIcon` in featureLayer) {

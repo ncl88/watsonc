@@ -22,6 +22,11 @@ Vandløb: if it is "sensordata_with_correction" (is it the same as "CALYPSO stat
 Nedbør: if it is "sensordata_with_correction" (is it the same as "CALYPSO stationer"?) with loctypeid=4
 - raindrops
 
+2 step - decide if the station is online
+if status = 0
+if status = 1
+if status = 2
+
 2 step - decide on color
 By default own stations are colored in orange, others in blue
 If chemical is selected and station has this chemical, then color it as chemical (green, red and yellow), otherwise gray
@@ -35,6 +40,10 @@ Questions:
 
 */
 
+const WI_FI_NO_DATA = 0;
+const WI_FI_OFFLINE = 1;
+const WI_FI_ONLINE = 2;
+
 /**
  * Generates symbol
  * 
@@ -45,7 +54,7 @@ Questions:
  */
 const getSymbol = (layerName, options) => {
     let highlighted = (options && `highlighted` in options ? options.highlighted : false);
-    let online = (options && `online` in options ? options.online : false);
+    let online = (options && `online` in options && parseInt(options.online) >= 0 ? parseInt(options.online) : WI_FI_NO_DATA);
 
     let result = false;
     if (layerName === LAYER_NAMES[0]) {
@@ -64,7 +73,17 @@ const getSymbol = (layerName, options) => {
     }
 
     if (result) {
-        result = result.replace(`WIFI_SYMBOL_STYLING`, (online ? `fill:#77cbe7;` : `fill:#bababa;`));
+        if (online === WI_FI_ONLINE || online === WI_FI_OFFLINE) {
+            result = result.replace(`WIFI_SYMBOL_PLACEHOLDER`, svgCollection.wifiSymbol);
+            if (online === WI_FI_ONLINE) {
+                result = result.replace(`WIFI_SYMBOL_STYLING`, `fill:#77cbe7;` );
+            } else if (online === WI_FI_OFFLINE) {
+                result = result.replace(`WIFI_SYMBOL_STYLING`, `fill:#bababa;`);
+            }
+        } else {
+            result = result.replace(`WIFI_SYMBOL_PLACEHOLDER`, ``);
+        }
+
         result = result.replace(`STROKE_STYLING`, (highlighted ? `stroke:#000;stroke-miterlimit:10;stroke-width:20px;` : ``));
     }
 
