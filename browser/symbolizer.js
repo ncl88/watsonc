@@ -44,6 +44,14 @@ const WI_FI_NO_DATA = 0;
 const WI_FI_OFFLINE = 1;
 const WI_FI_ONLINE = 2;
 
+const SHAPE_CIRCLE = 1;
+const SHAPE_DIAMOND = 3;
+const SHAPE_RAINDROP = 4;
+const SHAPE_TRIANGLE = 5;
+
+const ORANGE_FILL = `fill:#bf8c00;`
+const BLUE_FILL = `fill:#1380c4;`
+
 /**
  * Generates symbol
  * 
@@ -53,30 +61,76 @@ const WI_FI_ONLINE = 2;
  * @returns {String}
  */
 const getSymbol = (layerName, options) => {
+
+console.log(`### options`, options);
+
     let highlighted = (options && `highlighted` in options ? options.highlighted : false);
     let online = (options && `online` in options && parseInt(options.online) >= 0 ? parseInt(options.online) : WI_FI_NO_DATA);
-
-    let result = false;
+    let shape = (options && `shape` in options && parseInt(options.shape) >= 0 ? parseInt(options.shape) : SHAPE_CIRCLE);
+    
+    let leftPartColor = false;
+    let rightPartColor = false;
     if (layerName === LAYER_NAMES[0]) {
-        result = svgCollection.circle;
-
-        // Change color to orange
-        result = result.replace(`LEFT_HALF_STYLING`, `fill:#bf8c00;`);
-        result = result.replace(`RIGHT_HALF_STYLING`, `fill:#bf8c00;`);
-    } else if (layerName === LAYER_NAMES[2]) {
-        // @todo Symbol shape depends on location type, omitting for now
-        result = svgCollection.circle;
-
-        // Change color to blue
-        result = result.replace(`LEFT_HALF_STYLING`, `fill:#1380c4;`);
-        result = result.replace(`RIGHT_HALF_STYLING`, `fill:#1380c4;`);
+        leftPartColor = ORANGE_FILL;
+        rightPartColor = ORANGE_FILL;
+    } else {
+        leftPartColor = BLUE_FILL;
+        rightPartColor = BLUE_FILL;
     }
+
+    if (options && `leftPartColor` in options && options.leftPartColor) {
+        if (options.leftPartColor) {
+            leftPartColor = `fill:${options.leftPartColor}`;
+        }
+    }
+
+    if (options && `rightPartColor` in options && options.rightPartColor) {
+        if (options.rightPartColor) {
+            rightPartColor = `fill:${options.rightPartColor}`;
+        }
+    }
+
+    // Selecting shape
+    let result = false;
+    switch (shape) {
+        case SHAPE_CIRCLE:
+            result = svgCollection.circle;
+            break;
+        case SHAPE_DIAMOND:
+            result = svgCollection.diamond;
+            break;
+        case SHAPE_RAINDROP:
+            result = svgCollection.raindrop;
+            break;
+        case SHAPE_TRIANGLE:
+            result = svgCollection.triangle;
+            break;
+        default:
+            throw new Error(`Invalid shape value ${shape}`); 
+    }
+
+    result = result.replace(`LEFT_HALF_STYLING`, leftPartColor);
+    result = result.replace(`RIGHT_HALF_STYLING`, rightPartColor);
 
     if (result) {
         if (online === WI_FI_ONLINE || online === WI_FI_OFFLINE) {
-            result = result.replace(`WIFI_SYMBOL_PLACEHOLDER`, svgCollection.wifiSymbol);
+            switch (shape) {
+                case SHAPE_CIRCLE:
+                    result = result.replace(`WIFI_SYMBOL_PLACEHOLDER`, svgCollection.wifiSymbolCircle);
+                    break;
+                case SHAPE_DIAMOND:
+                    result = result.replace(`WIFI_SYMBOL_PLACEHOLDER`, svgCollection.wifiSymbolDiamond);
+                    break;  
+                case SHAPE_RAINDROP:
+                    result = result.replace(`WIFI_SYMBOL_PLACEHOLDER`, svgCollection.wifiSymbolRaindrop);
+                    break;
+                case SHAPE_TRIANGLE:
+                    result = result.replace(`WIFI_SYMBOL_PLACEHOLDER`, svgCollection.wifiSymbolTriangle);
+                    break;
+            }
+
             if (online === WI_FI_ONLINE) {
-                result = result.replace(`WIFI_SYMBOL_STYLING`, `fill:#77cbe7;` );
+                result = result.replace(`WIFI_SYMBOL_STYLING`, `fill:#00587a;` );
             } else if (online === WI_FI_OFFLINE) {
                 result = result.replace(`WIFI_SYMBOL_STYLING`, `fill:#bababa;`);
             }

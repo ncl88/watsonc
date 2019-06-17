@@ -10,7 +10,6 @@ import { LAYER_NAMES, WATER_LEVEL_KEY } from './constants';
 const symbolizer = require('./symbolizer');
 
 const evaluateMeasurement = require('./evaluateMeasurement');
-const measurementIcon = require('./measurementIcon');
 
 const MODULE_NAME = `watsonc`;
 
@@ -57,7 +56,7 @@ var ReactDOM = require('react-dom');
 let dashboardComponentInstance = false, modalComponentInstance = false, infoModalInstance = false,
     menuTimeSeriesComponentInstance = false, menuProfilesComponentInstance = false;
 
-let lastSelectedChemical = false, categoriesOverall = false, additionalFiltersForSensors = [];
+let lastSelectedChemical = false, categoriesOverall = false, enabledLoctypeIds = [];
 
 let _self = false;
 
@@ -107,6 +106,7 @@ module.exports = module.exports = {
         state.listenTo(MODULE_NAME, _self);
         state.listen(MODULE_NAME, `plotsUpdate`);
         state.listen(MODULE_NAME, `chemicalChange`);
+        state.listen(MODULE_NAME, `enabledLoctypeIdsChange`);
 
         this.initializeSearchBar();
 
@@ -149,7 +149,7 @@ module.exports = module.exports = {
 
             if (cloud.get().getZoom() < 15) {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
-                switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
+                //switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
 
                 jquery.snackbar({
                     id: "snackbar-watsonc",
@@ -332,17 +332,30 @@ module.exports = module.exports = {
                 let svgCirclePart = symbolizer.getSymbol(layerName);
                 if (svgCirclePart) {
                     layerTree.setPointToLayer(layerName, (feature, latlng) => {
-                        let localSvgCirclePart = symbolizer.getSymbol(layerName, {
-                            online: feature.properties.status
-                        });
+                        let renderIcon = true;
+                        if (layerName === LAYER_NAMES[2]) {
+                            if (feature.properties.loctypeid &&
+                                (enabledLoctypeIds.indexOf(parseInt(feature.properties.loctypeid) + '') === -1 && enabledLoctypeIds.indexOf(parseInt(feature.properties.loctypeid)) === -1)) {
+                                renderIcon = false;
+                            }
+                        }
 
-                        let icon = L.icon({
-                            iconUrl: 'data:image/svg+xml;base64,' + btoa(localSvgCirclePart),
-                            iconAnchor: [14, 14],
-                            watsoncStatus: `default`
-                        });
+                        if (renderIcon) {
+                            let localSvgCirclePart = symbolizer.getSymbol(layerName, {
+                                online: feature.properties.status,
+                                shape: feature.properties.loctypeid,
+                            });
 
-                        return L.marker(latlng, { icon });
+                            let icon = L.icon({
+                                iconUrl: 'data:image/svg+xml;base64,' + btoa(localSvgCirclePart),
+                                iconAnchor: [14, 14],
+                                watsoncStatus: `default`
+                            });
+
+                            return L.marker(latlng, { icon });
+                        } else {
+                            return null;
+                        }
                     });
                 }
             });
@@ -634,23 +647,21 @@ module.exports = module.exports = {
                 lastEnabledMapState = parameters;
             } else {
                 let filteredLayers = [];
-                additionalFiltersForSensors = [];
+                enabledLoctypeIds = [];
                 parameters.layers.map(layerName => {
                     if (layerName.indexOf(`#`) > -1) {
                         if (filteredLayers.indexOf(layerName.split(`#`)[0]) === -1) filteredLayers.push(layerName.split(`#`)[0]);
-                        additionalFiltersForSensors.push(layerName.split(`#`)[1]);
+                        enabledLoctypeIds.push(layerName.split(`#`)[1]);
                     } else {
                         if (filteredLayers.indexOf(layerName) === -1) filteredLayers.push(layerName);
                     }
                 });
 
+                backboneEvents.get().trigger(`${MODULE_NAME}:enabledLoctypeIdsChange`);
+
                 if (parameters.chemical) {
                     _self.enableChemical(parameters.chemical, filteredLayers);
                 } else {
-
-                    // @todo New map symbols
-                    //console.log(`### additionalFiltersForSensors`, additionalFiltersForSensors);
-
                     filteredLayers.map(layerName => {
                         layerTree.reloadLayer(layerName);
                     });
@@ -840,6 +851,7 @@ module.exports = module.exports = {
                                 icon = L.icon({
                                     iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(layer.id, {
                                         online: featureLayer.feature.properties.status,
+                                        shape: featureLayer.feature.properties.loctypeid,
                                         highlighted: true
                                     })),
                                     iconAnchor: [14, 14],
@@ -849,6 +861,7 @@ module.exports = module.exports = {
                                 icon = L.icon({
                                     iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(layer.id, {
                                         online: featureLayer.feature.properties.status,
+                                        shape: featureLayer.feature.properties.loctypeid,
                                         highlighted: false
                                     })),
                                     iconAnchor: [14, 14],
@@ -875,25 +888,19 @@ module.exports = module.exports = {
         }
     },
 
-    /**
-     * Returns current module state
-     */
-    getState: () => {
-        let plots = dashboardComponentInstance.dehydratePlots(_self.getExistingPlots());
-        return {
-            plots,
-            selectedChemical: lastSelectedChemical
-        };
-    },
-
     enableChemical(chemicalId, layersToEnable = [], onComplete = false) {
         if (!chemicalId) throw new Error(`Chemical identifier was not provided`);
+
+        let layersToEnableWereProvided = (layersToEnable.length > 0);
         if (categoriesOverall) {
             for (let layerName in categoriesOverall) {
                 for (let key in categoriesOverall[layerName]) {
                     for (let key2 in categoriesOverall[layerName][key]) {
                         if (key2.toString() === chemicalId.toString() || categoriesOverall[layerName][key][key2] === chemicalId.toString()) {
-                            if (layersToEnable.indexOf(layerName) === -1) layersToEnable.push(layerName);                            
+                            if (layersToEnableWereProvided === false) {
+                                if (layersToEnable.indexOf(layerName) === -1) layersToEnable.push(layerName);
+                            }
+
                             _self.buildBreadcrumbs(key, categoriesOverall[layerName][key][key2], layerName === LAYER_NAMES[2]);
                             break;
                         }
@@ -914,8 +921,7 @@ module.exports = module.exports = {
 
                     let maxColor;
                     let latestColor;
-                    let iconSize;
-                    let iconAnchor;
+                    let zIndexOffset;
 
                     let featureData = false;
                     if (chem in feature.properties) {
@@ -938,34 +944,36 @@ module.exports = module.exports = {
 
                         let html = [];
                         for (let i = 0; i < measurementData.numberOfIntakes; i++) {
-                            html.push(`
-                            <b style="color: rgb(16, 174, 140)">Intag: ${i + 1}</b><br>
+                            html.push(`<b style="color: rgb(16, 174, 140)">Intag: ${i + 1}</b><br>
                             Max: ${measurementData.maxMeasurementIntakes[i]}<br>
-                            Seneste: ${measurementData.latestMeasurementIntakes[i]}<br>
-                        `)
+                            Seneste: ${measurementData.latestMeasurementIntakes[i]}<br>`);
                         }
 
                         layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
                         <b style="color: rgb(16, 174, 140)">${names[chemicalId]} (${json.unit})</b><br>${html.join('<br>')}`);
 
-                        iconSize = [30, 30];
-                        iconAnchor = [15, 15];
-                        layer.setZIndexOffset(10000);
+                        zIndexOffset = 10000;
                     } else {
                         maxColor = latestColor = "#cccccc";
-                        iconSize = [20, 20];
-                        iconAnchor = [10, 10];
-                        layer.setZIndexOffset(1);
+                        zIndexOffset = 1;
                     }
 
+                    let localSvg = symbolizer.getSymbol(stores[store.id].layer.id, {
+                        online: feature.properties.status,
+                        shape: feature.properties.loctypeid,
+                        leftPartColor: maxColor,
+                        rightPartColor: latestColor
+                    });
+
                     let icon = L.icon({
-                        iconUrl: measurementIcon.generate(maxColor, latestColor),
-                        iconSize: iconSize,
-                        iconAnchor: iconAnchor,
-                        popupAnchor: iconAnchor,
+                        iconUrl: 'data:image/svg+xml;base64,' + btoa(localSvg),
+                        iconAnchor: [15, 15],
+                        popupAnchor: [15, 15],
+                        watsoncStatus: `default`
                     });
 
                     layer.setIcon(icon);
+                    layer.setZIndexOffset(zIndexOffset);
                 });
             }
         };
@@ -978,6 +986,26 @@ module.exports = module.exports = {
         });
 
         if (onComplete) onComplete();
+    },
+
+    getExistingPlots: () => {
+        if (dashboardComponentInstance) {
+            return dashboardComponentInstance.getPlots();
+        } else {
+            throw new Error(`Unable to find the component instance`);
+        }
+    },
+
+    /**
+     * Returns current module state
+     */
+    getState: () => {
+        let plots = dashboardComponentInstance.dehydratePlots(_self.getExistingPlots());
+        return {
+            plots,
+            selectedChemical: lastSelectedChemical,
+            enabledLoctypeIds
+        };
     },
 
     /**
@@ -993,6 +1021,10 @@ module.exports = module.exports = {
             const continueWithInitialization = (populatedPlots) => {
                 if (populatedPlots) {
                     dashboardComponentInstance.setPlots(populatedPlots);
+                }
+
+                if (newState.enabledLoctypeIds && Array.isArray(newState.enabledLoctypeIds)) {
+                    enabledLoctypeIds = newState.enabledLoctypeIds;
                 }
 
                 if (newState.selectedChemical) {
@@ -1026,14 +1058,6 @@ module.exports = module.exports = {
                 continueWithInitialization();
             }
         });
-    },
-
-    getExistingPlots: () => {
-        if (dashboardComponentInstance) {
-            return dashboardComponentInstance.getPlots();
-        } else {
-            throw new Error(`Unable to find the component instance`);
-        }
     }
 };
 
