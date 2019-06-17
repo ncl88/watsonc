@@ -149,7 +149,7 @@ module.exports = module.exports = {
 
             if (cloud.get().getZoom() < 15) {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
-                //switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
+                switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
 
                 jquery.snackbar({
                     id: "snackbar-watsonc",
