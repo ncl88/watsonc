@@ -105,6 +105,7 @@ class ModalFeatureComponent extends React.Component {
                     onAddMeasurement={this.props.onAddMeasurement}
                     gid={this.props.feature.properties.gid}
                     itemKey={item.key}
+                    intakeIndex={item.intakeIndex}
                     intakeName={intakeName}
                     title={item.title}/>);
             }

@@ -57,6 +57,7 @@ const collect = (connect, monitor) => {
 ModalMeasurementComponent.propTypes = {
     gid: PropTypes.number.isRequired,
     itemKey: PropTypes.string.isRequired,
+    intakeIndex: PropTypes.number.isRequired,
     intakeName: PropTypes.string.isRequired,
     onAddMeasurement: PropTypes.func.isRequired,
 };
