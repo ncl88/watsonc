@@ -2,14 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import withDragDropContext from './withDragDropContext';
-import ModalMeasurementComponent from './ModalMeasurementComponent';
-import ModalPlotComponent from './ModalPlotComponent';
 import ModalFeatureComponent from './ModalFeatureComponent';
-import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
-import SearchFieldComponent from './../../../../browser/modules/shared/SearchFieldComponent';
-
-const evaluateMeasurement = require('./../evaluateMeasurement');
-const measurementIcon = require('./../measurementIcon');
 
 /**
  * Creates borehole parameters display and visualization panel

@@ -20,7 +20,15 @@ class ModalPlotComponent extends React.Component {
             if (this.props.dataSource && this.props.dataSource.length > 0) {
                 this.props.dataSource.map(item => {
                     if (item.properties.gid === gid) {
-                        measurementDisplayTitle = (`${item.properties.boreholeno}, ${JSON.parse(item.properties[splitMeasurementId[1]]).title} (#${ (parseInt(splitMeasurementId[2]) + 1) })`);
+                        let parsedData = JSON.parse(item.properties[splitMeasurementId[1]]);
+                        let intakeName = `#` + (parseInt(splitMeasurementId[2]) + 1);
+                        if (`intakes` in parsedData && Array.isArray(parsedData.intakes)) {
+                            intakeName = parsedData.intakes[parseInt(splitMeasurementId[2])];
+                        }
+
+                        console.log(`### intakeName`, intakeName, parsedData);
+
+                        measurementDisplayTitle = (`${item.properties.boreholeno}, ${parsedData.title} (${intakeName})`);
                         return false;
                     }
                 });

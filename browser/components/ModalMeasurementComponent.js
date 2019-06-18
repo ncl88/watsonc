@@ -31,7 +31,7 @@ class ModalMeasurementComponent extends React.Component {
                 backgroundColor: (isDragging ? `darkgreen` : ``),
                 color: (isDragging ? `white` : ``)
             }}>
-            <i className="fa fa-arrows-alt"></i> {circleIcon} {this.props.title} (#{this.props.intakeIndex + 1})
+            <i className="fa fa-arrows-alt"></i> {circleIcon} {this.props.title} ({this.props.intakeName})
         </div>);
     }
 }
@@ -57,7 +57,7 @@ const collect = (connect, monitor) => {
 ModalMeasurementComponent.propTypes = {
     gid: PropTypes.number.isRequired,
     itemKey: PropTypes.string.isRequired,
-    intakeIndex: PropTypes.number.isRequired,
+    intakeName: PropTypes.string.isRequired,
     onAddMeasurement: PropTypes.func.isRequired,
 };
 

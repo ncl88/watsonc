@@ -93,13 +93,19 @@ class ModalFeatureComponent extends React.Component {
     
                 let measurementData = evaluateMeasurement(json, this.props.limits, item.key);
                 let icon = measurementIcon.generate(measurementData.maxColor, measurementData.latestColor);
+
+                let intakeName = `#` + (parseInt(item.intakeIndex) + 1);
+                if (`intakes` in json && Array.isArray(json.intakes) && json.intakes[item.intakeIndex] !== null) {
+                    intakeName = json.intakes[item.intakeIndex] + '';
+                }
+
                 control = (<ModalMeasurementComponent
                     key={key}
                     icon={icon}
                     onAddMeasurement={this.props.onAddMeasurement}
                     gid={this.props.feature.properties.gid}
                     itemKey={item.key}
-                    intakeIndex={item.intakeIndex}
+                    intakeName={intakeName}
                     title={item.title}/>);
             }
 

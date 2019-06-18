@@ -61,9 +61,6 @@ const BLUE_FILL = `fill:#1380c4;`
  * @returns {String}
  */
 const getSymbol = (layerName, options) => {
-
-console.log(`### options`, options);
-
     let highlighted = (options && `highlighted` in options ? options.highlighted : false);
     let online = (options && `online` in options && parseInt(options.online) >= 0 ? parseInt(options.online) : WI_FI_NO_DATA);
     let shape = (options && `shape` in options && parseInt(options.shape) >= 0 ? parseInt(options.shape) : SHAPE_CIRCLE);
