@@ -4,6 +4,7 @@
  * @license    http://www.gnu.org/licenses/#AGPL  GNU AFFERO GENERAL PUBLIC LICENSE 3
  */
 
+const Excel = require('exceljs/modern.nodejs');
 var express = require('express');
 var request = require('request');
 var router = express.Router();
@@ -15,6 +16,37 @@ var moduleConfig = require('./../config/config');
 const spawn = require("child_process").spawn;
 
 moment.locale("da_DK");
+
+router.post('/api/extension/watsonc/download-plot', function (req, res) {
+    if (req.body && req.body.title && req.body.data && Array.isArray(req.body.data)) {
+        var workbook = new Excel.Workbook();
+        req.body.data.map((item) => {
+            var sheet = workbook.addWorksheet(item.name);
+            item.x.map((xItem, index) => {
+                let yItem = item.y[index];
+                if (index === 0) {
+                    var row = sheet.getRow(1);
+                    row.getCell(1).value = ('x');
+                    row.getCell(2).value = ('y');
+                }
+
+                var row = sheet.getRow(index + 2);
+                row.getCell(1).value = (xItem + '');
+                row.getCell(2).value = (yItem + '');
+            });
+        });
+
+        workbook.xlsx.write(res).then(function() {
+            res.end()
+        });
+    } else {
+        res.status(400);
+        res.send({
+            status: `error`,
+            message: `Title and at least one data set has to be provided`
+        });
+    }
+});
 
 router.post('/api/extension/watsonc/intersection', function (req, res) {
     if (!config.gc2.host) throw new Error(`GC2 host has to be specified`);

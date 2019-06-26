@@ -20,6 +20,8 @@
     "babel-eslint": "^10.0.1",
     "babelify": "10",
     "browserify": "^16.2.3",
+    "excel4node": "^1.7.2",
+    "exceljs": "^1.13.0",
     "rc-slider": "^8.6.9",
     "react-dnd": "^6.0.0",
     "react-dnd-html5-backend": "^6.0.0",
