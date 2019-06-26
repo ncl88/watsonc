@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import DataSourceSelector from './DataSourceSelector';
+import ChemicalSelector from './ChemicalSelector';
+
 import StateSnapshotsDashboard from './../../../../browser/modules/stateSnapshots/components/StateSnapshotsDashboard';
-import SearchFieldComponent from './../../../../browser/modules/shared/SearchFieldComponent';
 import { LAYER_NAMES, WATER_LEVEL_KEY } from './../constants';
 
 const MODE_INDEX = 0;
@@ -22,19 +24,14 @@ class IntroModal extends React.Component {
             layers: this.props.layers,
             selectedLayers: [],
             selectedChemical: false,
-            searchTerm: ``
         };
 
-        this.handleSearch = this.handleSearch.bind(this);
+        
         this.toggleLayer = this.toggleLayer.bind(this);
     }
 
     setCategories(categories) {
         this.setState({ categories });
-    }
-
-    handleSearch(searchTerm) {
-        this.setState({searchTerm});
     }
 
     toggleLayer(originalLayerKey, additionalKey = ``) {
@@ -56,66 +53,10 @@ class IntroModal extends React.Component {
         });
     }
 
-    generateWaterGroup() {
-        return (<div key={`chemical_group_key_water_level`}>
-            <div>
-                <h5>{__(`Water level`)}</h5>
-            </div>
-            <div>
-                <div>
-                    <div style={{ display: `inline-block`}}>
-                        <label>
-                            <input name="chem_modal" type="radio" checked={this.state.selectedChemical === WATER_LEVEL_KEY}
-                                onChange={() => { this.setState({ selectedChemical: WATER_LEVEL_KEY })}}/> <span className="js-chemical-name">{__(`Water level`)}</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>);
-    }
-
-    generateChemicalGroups() {
-        let chemicalGroupsForLayer = [];
-        for (let layerName in this.state.categories) {
-            if (layerName === LAYER_NAMES[0]) {
-                for (let key in this.state.categories[layerName]) {
-                    let chemicalsMarkup = [];
-                    for (let key2 in this.state.categories[layerName][key]) {
-                        if (this.state.searchTerm === `` || this.state.categories[layerName][key][key2].toLowerCase().indexOf(this.state.searchTerm.toLowerCase()) > -1) {
-                            chemicalsMarkup.push(<div key={`chemical_${key2}`}>
-                                <div style={{ display: `inline-block`}}>
-                                    <label>
-                                        <input
-                                            name="chem_modal"
-                                            type="radio"
-                                            checked={this.state.selectedChemical === key2}
-                                            onChange={() => { this.setState({ selectedChemical: key2 })}}/> <span className="js-chemical-name">{this.state.categories[layerName][key][key2]}</span>
-                                    </label>
-                                </div>
-                            </div>);
-                        }
-                    }
-
-                    if (chemicalsMarkup.length > 0) {
-                        chemicalGroupsForLayer.push(<div key={`chemical_group_key_${key}`}>
-                            <div>
-                                <h5>{key}</h5>
-                            </div>
-                            <div>{chemicalsMarkup}</div>
-                        </div>);
-                    }
-                }
-            }
-        }
-
-        return chemicalGroupsForLayer;
-    }
-
     render() {
         let layerGroupsList = false;
         if (this.state.mode === MODE_NEW) {
             layerGroupsList = [];
-
             if (this.state.selectedLayers.length > 0) {
                 let waterGroup = this.generateWaterGroup();
                 layerGroupsList.push(waterGroup);
@@ -160,19 +101,6 @@ class IntroModal extends React.Component {
             zIndex: 1000
         };
 
-        const generateLayerRecord = (key, item) => {
-            return (<div key={key}>
-                <div className="checkbox">
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={this.state.selectedLayers.indexOf(item.originalLayerKey + (item.additionalKey ? `#${item.additionalKey}` : ``)) !== -1}
-                            onChange={() => { this.toggleLayer(item.originalLayerKey, item.additionalKey); }}/> {item.title}
-                    </label>
-                </div>
-            </div>);
-        };
-
         return (<div className="modal-content" style={{minWidth: `1000px`, marginTop: `20%`, borderRadius: `40px`}}>
             <div className="modal-header" style={{color: `#009688`, textAlign: `center`, paddingTop: `35px`}}>
                 <h4 className="modal-title" style={{fontSize: `34px`, textTransform: `uppercase`, fontWeight: `700`}}>
@@ -202,22 +130,15 @@ class IntroModal extends React.Component {
                 {this.state.mode === MODE_NEW ? (<div className="container" style={{paddingTop: `20px`}}>
                     <div className="row-fluid">
                         <div className="col-md-6">
-                            <p>{__(`Please select at least one layer`)}</p>
-                            <div>
-                                <h4>{__(`Groundwater`)}</h4>
-                                {generateLayerRecord(`key0`, this.state.layers[0])}
-                                {generateLayerRecord(`key1`, this.state.layers[1])}
-                                <h4>{__(`Streams`)}</h4>
-                                {generateLayerRecord(`key2`, this.state.layers[2])}
-                                <h4>{__(`Rain`)}</h4>
-                                {generateLayerRecord(`key3`, this.state.layers[3])}
-                            </div>
+                            <DataSourceSelector
+                                layers={this.state.layers}
+                                selectedLayers={this.state.selectedLayers}
+                                onToggleLayer={this.toggleLayer}/>
                         </div>
                         <div className="col-md-6">
-                            {this.state.selectedLayers.length > 0 ? (<div>
-                                <SearchFieldComponent onSearch={this.handleSearch}/>
-                                {layerGroupsList.length > 0 ? (<div style={{ maxHeight: `400px`, overflowY: `scroll`}}>{layerGroupsList}</div>) : (<p>{__(`Nothing found`)}</p>)}
-                            </div>) : false}
+                            <ChemicalSelector
+                                categories={this.state.categories}
+                                selectedLayers={this.state.selectedLayers}/>
                         </div>
                     </div>
                 </div>) : false}

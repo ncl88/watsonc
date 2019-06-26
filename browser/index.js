@@ -3,6 +3,7 @@
 import ModalComponent from './components/ModalComponent';
 import DashboardComponent from './components/DashboardComponent';
 import MenuTimeSeriesComponent from './components/MenuTimeSeriesComponent';
+import MenuDataSourceAndTypeSelectorComponent from './components/MenuDataSourceAndTypeSelectorComponent';
 import MenuProfilesComponent from './components/MenuProfilesComponent';
 import IntroModal from './components/IntroModal';
 import { LAYER_NAMES, WATER_LEVEL_KEY } from './constants';
@@ -54,7 +55,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 
 let dashboardComponentInstance = false, modalComponentInstance = false, infoModalInstance = false,
-    menuTimeSeriesComponentInstance = false, menuProfilesComponentInstance = false;
+    menuTimeSeriesComponentInstance = false, menuDataSourceAndTypeSelectorComponentInstance = false, menuProfilesComponentInstance = false;
 
 let lastSelectedChemical = false, categoriesOverall = false, enabledLoctypeIds = [];
 
@@ -266,12 +267,6 @@ module.exports = module.exports = {
         });
 
         state.getState().then(applicationState => {
-            // Setting up some items from the menu
-            $('#search-ribbon').find('.js-data-sources').click(() => {
-                $('#search-border').trigger("click");
-                if (dashboardComponentInstance) dashboardComponentInstance.onSetMax();
-            });
-
             $(PLOTS_ID).attr(`style`, `
                 margin-bottom: 0px;
                 width: 80%;
@@ -467,6 +462,17 @@ module.exports = module.exports = {
             });
         });
 
+        // Initializing data source and types selector
+        if ($(`#data-source-and-types-selector-content`).children().length === 0) {
+            try {
+                menuDataSourceAndTypeSelectorComponentInstance = ReactDOM.render(<MenuDataSourceAndTypeSelectorComponent
+
+                />, document.getElementById(`data-source-and-types-selector-content`));
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
         // Initializing TimeSeries management component
         $(`[data-module-id="timeseries"]`).click(() => {
             if ($(`#watsonc-timeseries`).children().length === 0) {
@@ -542,6 +548,7 @@ module.exports = module.exports = {
     },
 
     buildBreadcrumbs(secondLevel = false, thirdLevel = false, isWaterLevel = false) {
+        $(`.js-layer-slide-breadcrumbs`).attr('style', 'height: 60px');
         $(`.js-layer-slide-breadcrumbs`).empty();
         if (secondLevel !== false) {
             let firstLevel = `Kemi`;
@@ -575,15 +582,6 @@ module.exports = module.exports = {
                 if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[2]) > -1) switchLayer.init(LAYER_NAMES[2], false);
 
                 _self.buildBreadcrumbs();
-                _self.openMenuModal();
-            });
-        } else {
-            $(`.js-layer-slide-breadcrumbs`).append(`<button type="button" class="navbar-toggle" id="burger-btn">
-                <i class="fa fa-database"></i> ${__(`Select data`)}
-            </button>`);
-
-            $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).off();
-            $(`.js-layer-slide-breadcrumbs`).find(`#burger-btn`).click(() => {
                 _self.openMenuModal();
             });
         }
