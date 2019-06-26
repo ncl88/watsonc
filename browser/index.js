@@ -269,11 +269,8 @@ module.exports = module.exports = {
             // Setting up some items from the menu
             $('#search-ribbon').find('.js-data-sources').click(() => {
                 $('#search-border').trigger("click");
-                if (dashboardComponentInstance) dashboardComponentInstance.expand();
+                if (dashboardComponentInstance) dashboardComponentInstance.onSetMax();
             });
-
-            // Setting up plots dialog
-            let modalHeaderHeight = 70;
 
             $(PLOTS_ID).attr(`style`, `
                 margin-bottom: 0px;
@@ -433,29 +430,7 @@ module.exports = module.exports = {
                         onHighlightedPlotChange={(plotId, plots) => {
                             _self.setStyleForHighlightedPlot(plotId, plots);
                             if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setHighlightedPlot(plotId);
-                        }}
-                        onSetMin={() => {
-                            $(PLOTS_ID).animate({
-                                top: ($(document).height() - modalHeaderHeight) + 'px'
-                            }, 500, function () {
-                                $(PLOTS_ID).find('.modal-body').css(`max-height`, );
-                            });
-                        }}
-                        onSetHalf={() => {
-                            $(PLOTS_ID).animate({
-                                top: "60%"
-                            }, 500, function () {
-                                $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.4 - modalHeaderHeight - 10) + 'px');
-                            });
-                        }}
-                        onSetMax={() => {
-                            $(PLOTS_ID).animate({
-                                top: "20%"
-                            }, 500, function () {
-                                $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.8 - modalHeaderHeight - 10) + 'px');
-                            });
-                        }}
-                        />, document.getElementById(DASHBOARD_CONTAINER_ID));
+                        }}/>, document.getElementById(DASHBOARD_CONTAINER_ID));
                 } catch (e) {
                     console.log(e);
                 }
@@ -534,7 +509,7 @@ module.exports = module.exports = {
             }
         });
 
-        if (dashboardComponentInstance) dashboardComponentInstance.collapse();
+        if (dashboardComponentInstance) dashboardComponentInstance.onSetMin();
         $(`#search-border`).trigger(`click`);
     },
 

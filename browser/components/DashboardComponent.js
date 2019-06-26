@@ -21,6 +21,8 @@ const DISPLAY_HALF = 1;
 const DISPLAY_MAX = 2;
 let currentDisplay = DISPLAY_MIN, previousDisplay = DISPLAY_HALF;
 
+let modalHeaderHeight = 70;
+
 /**
  * Component creates plots management form and is the source of truth for plots overall
  */
@@ -488,9 +490,29 @@ class DashboardComponent extends React.Component {
         }));
     };
 
-    collapse() { this.props.onSetMin(); }
+    onSetMin() {
+        $(PLOTS_ID).animate({
+            top: ($(document).height() - modalHeaderHeight) + 'px'
+        }, 500, function () {
+            $(PLOTS_ID).find('.modal-body').css(`max-height`, );
+        });
+    }
 
-    expand() { this.props.onSetMax(); }
+    onSetHalf() {
+        $(PLOTS_ID).animate({
+            top: "60%"
+        }, 500, function () {
+            $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.4 - modalHeaderHeight - 10) + 'px');
+        });
+    }
+
+    onSetMax() {
+        $(PLOTS_ID).animate({
+            top: "20%"
+        }, 500, function () {
+            $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.8 - modalHeaderHeight - 10) + 'px');
+        });
+    }
 
     render() {
         let plotsControls = (<p style={{textAlign: `center`}}>{__(`No timeseries were created or set as active yet`)}</p>);
@@ -532,21 +554,21 @@ class DashboardComponent extends React.Component {
 
         const nextDisplayType = () => {
             if (currentDisplay === DISPLAY_MIN) {
-                this.props.onSetHalf();
+                this.onSetHalf();
                 currentDisplay = DISPLAY_HALF;
                 previousDisplay = DISPLAY_MIN;
             } else if (currentDisplay === DISPLAY_HALF) {
                 if (previousDisplay === DISPLAY_MIN) {
-                    this.props.onSetMax();
+                    this.onSetMax();
                     currentDisplay = DISPLAY_MAX;
                 } else {
-                    this.props.onSetMin();
+                    this.onSetMin();
                     currentDisplay = DISPLAY_MIN;
                 }
 
                 previousDisplay = DISPLAY_HALF;
             } else if (currentDisplay === DISPLAY_MAX) {
-                this.props.onSetHalf();
+                this.onSetHalf();
                 currentDisplay = DISPLAY_HALF;
                 previousDisplay = DISPLAY_MAX;
             }
@@ -605,9 +627,6 @@ DashboardComponent.propTypes = {
     onPlotsChange: PropTypes.func.isRequired,
     onActivePlotsChange: PropTypes.func.isRequired,
     onHighlightedPlotChange: PropTypes.func.isRequired,
-    onSetMin: PropTypes.func.isRequired,
-    onSetHalf: PropTypes.func.isRequired,
-    onSetMax: PropTypes.func.isRequired,
 };
 
 export default DashboardComponent;

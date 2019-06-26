@@ -162,7 +162,7 @@ class MenuPanelPlotComponent extends React.Component {
             </div>);
         }
 
-        return (<div>
+        return (<div style={{maxHeight: ($(document).height() * 0.4 + 40) + 'px'}}>
             {this.state.loading ? <LoadingOverlay/> : false}
             <div style={{height: `40px`}}>
                 <div style={{float: `left`}}>
