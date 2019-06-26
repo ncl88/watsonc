@@ -24,6 +24,7 @@ const FORM_FEATURE_CONTAINER_ID = 'watsonc-features-dialog-form';
  */
 const PLOTS_CONTAINER_ID = 'watsonc-plots-dialog';
 const FORM_PLOTS_CONTAINER_ID = 'watsonc-plots-dialog-form';
+let PLOTS_ID = `#` + PLOTS_CONTAINER_ID;
 
 /**
  *
@@ -266,6 +267,23 @@ module.exports = module.exports = {
         });
 
         state.getState().then(applicationState => {
+            // Setting up some items from the menu
+            $('#search-ribbon').find('.js-data-sources').click(() => {
+                $('#search-border').trigger("click");
+                if (dashboardComponentInstance) dashboardComponentInstance.expand();
+            });
+
+            // Setting up plots dialog
+            let modalHeaderHeight = 70;
+
+            $(PLOTS_ID).attr(`style`, `
+                margin-bottom: 0px;
+                width: 80%;
+                max-width: 80%;
+                right: 10%;
+                left: 10%;
+                bottom: 0px;`);
+
             LAYER_NAMES.map(layerName => {
                 layerTree.setOnEachFeature(layerName, (clickedFeature, layer) => {
                     layer.on("click", function (e) {
@@ -416,7 +434,29 @@ module.exports = module.exports = {
                         onHighlightedPlotChange={(plotId, plots) => {
                             _self.setStyleForHighlightedPlot(plotId, plots);
                             if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setHighlightedPlot(plotId);
-                        }}/>, document.getElementById(FORM_PLOTS_CONTAINER_ID));
+                        }}
+                        onSetMin={() => {
+                            $(PLOTS_ID).animate({
+                                top: ($(document).height() - modalHeaderHeight) + 'px'
+                            }, 500, function () {
+                                $(PLOTS_ID).find('.modal-body').css(`max-height`, );
+                            });
+                        }}
+                        onSetHalf={() => {
+                            $(PLOTS_ID).animate({
+                                top: "60%"
+                            }, 500, function () {
+                                $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.4 - modalHeaderHeight - 10) + 'px');
+                            });
+                        }}
+                        onSetMax={() => {
+                            $(PLOTS_ID).animate({
+                                top: "20%"
+                            }, 500, function () {
+                                $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.8 - modalHeaderHeight - 10) + 'px');
+                            });
+                        }}
+                        />, document.getElementById(FORM_PLOTS_CONTAINER_ID));
                 } catch (e) {
                     console.log(e);
                 }
@@ -452,61 +492,6 @@ module.exports = module.exports = {
                 $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").hide();
             });
         });
-
-        let plotsId = `#` + PLOTS_CONTAINER_ID;
-
-        // Setting up some items from the menu
-        $('#search-ribbon').find('.js-data-sources').click(() => {
-            $('#search-border').trigger("click");
-            $(plotsId).find(".expand-more").trigger("click");
-        });
-
-        // Setting up plots dialog
-        let modalHeaderHeight = 70;
-        $(plotsId).find(".expand-less").on("click", function () {
-            $(plotsId).find(".expand-less").hide();
-            $(plotsId).find(".expand-half").show();
-            $(plotsId).find(".expand-more").show();
-
-            $(plotsId).animate({
-                top: ($(document).height() - modalHeaderHeight) + 'px'
-            }, 500, function () {
-                $(plotsId).find('.modal-body').css(`max-height`, );
-            });
-        });
-
-        $(plotsId).find(".expand-half").on("click", function () {
-            $(plotsId).find(".expand-less").show();
-            $(plotsId).find(".expand-half").hide();
-            $(plotsId).find(".expand-more").show();
-
-            $(plotsId).animate({
-                top: "60%"
-            }, 500, function () {
-                $(plotsId).find('.modal-body').css(`max-height`, ($(document).height() * 0.4 - modalHeaderHeight - 10) + 'px');
-            });
-        });
-
-        $(plotsId).find(".expand-more").on("click", function () {
-            $(plotsId).find(".expand-less").show();
-            $(plotsId).find(".expand-half").show();
-            $(plotsId).find(".expand-more").hide();
-
-            $(plotsId).animate({
-                top: "20%"
-            }, 500, function () {
-                $(plotsId).find('.modal-body').css(`max-height`, ($(document).height() * 0.8 - modalHeaderHeight - 10) + 'px');
-            });
-        });
-
-        $(plotsId).attr(`style`, `
-            margin-bottom: 0px;
-            width: 80%;
-            max-width: 80%;
-            right: 10%;
-            left: 10%;
-            bottom: 0px;
-        `);
 
         // Initializing TimeSeries management component
         $(`[data-module-id="timeseries"]`).click(() => {
@@ -550,8 +535,7 @@ module.exports = module.exports = {
             }
         });
 
-        $(plotsId).find(`.expand-less`).trigger(`click`);
-        $(plotsId).find(`.js-modal-title-text`).text(__(`Calypso dashboard`));
+        if (dashboardComponentInstance) dashboardComponentInstance.collapse();
         $(`#search-border`).trigger(`click`);
     },
 

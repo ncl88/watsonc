@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import ReactTooltip from 'react-tooltip';
 import PlotManager from './../PlotManager';
 import ProfileManager from './../ProfileManager';
 import SortablePlotComponent from './SortablePlotComponent';
@@ -14,6 +15,11 @@ const VIEW_ROW = 1;
 
 const DASHBOARD_ITEM_PLOT = 0;
 const DASHBOARD_ITEM_PROFILE = 1;
+
+const DISPLAY_MIN = 0;
+const DISPLAY_HALF = 1;
+const DISPLAY_MAX = 2;
+let currentDisplay = DISPLAY_MIN, previousDisplay = DISPLAY_HALF;
 
 /**
  * Component creates plots management form and is the source of truth for plots overall
@@ -482,6 +488,10 @@ class DashboardComponent extends React.Component {
         }));
     };
 
+    collapse() { this.props.onSetMin(); }
+
+    expand() { this.props.onSetMax(); }
+
     render() {
         let plotsControls = (<p style={{textAlign: `center`}}>{__(`No timeseries were created or set as active yet`)}</p>);
         let containerClass = `list-group-item col-sm-12 col-md-12 col-lg-6`;
@@ -520,14 +530,49 @@ class DashboardComponent extends React.Component {
             plotsControls = (<SortablePlotsGridComponent axis="xy" onSortEnd={this.handlePlotSort} useDragHandle>{localPlotsControls}</SortablePlotsGridComponent>);
         }
 
+        const nextDisplayType = () => {
+            if (currentDisplay === DISPLAY_MIN) {
+                this.props.onSetHalf();
+                currentDisplay = DISPLAY_HALF;
+                previousDisplay = DISPLAY_MIN;
+            } else if (currentDisplay === DISPLAY_HALF) {
+                if (previousDisplay === DISPLAY_MIN) {
+                    this.props.onSetMax();
+                    currentDisplay = DISPLAY_MAX;
+                } else {
+                    this.props.onSetMin();
+                    currentDisplay = DISPLAY_MIN;
+                }
+
+                previousDisplay = DISPLAY_HALF;
+            } else if (currentDisplay === DISPLAY_MAX) {
+                this.props.onSetHalf();
+                currentDisplay = DISPLAY_HALF;
+                previousDisplay = DISPLAY_MAX;
+            }
+        };
+
         return (<div>
-            <div style={{height: `40px`}}>
-                <div style={{float: `left`}}>
+            <ReactTooltip/>
+            <div style={{height: `40px`, display: `flex`}}>
+                <div
+                    style={{cursor: `pointer`}}
+                    data-tip={__(`Click on the modal header to expand or minify the Dashboard`)}
+                    onClick={nextDisplayType} >
+                    {__(`Calypso dashboard`)}
+                </div>
+                <div
+                    style={{paddingLeft: `10px`, cursor: `pointer`}}
+                    data-tip={__(`Click on the modal header to expand or minify the Dashboard`)}
+                    onClick={nextDisplayType}>
                     <p className="text-muted" style={{margin: `0px`}}>
-                        {__(`Timeseries total`)}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}; {__(`Profiles total`)}: {this.state.profiles.length}, {__(`profiles active`)}: {this.state.activeProfiles.length}
+                        ({__(`Timeseries total`).toLowerCase()}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}; {__(`Profiles total`).toLowerCase()}: {this.state.profiles.length}, {__(`profiles active`)}: {this.state.activeProfiles.length})
                     </p>
                 </div>
-                <div style={{float: `right`}}>
+                <div style={{
+                    flexGrow: `1`,
+                    textAlign: `right`
+                }}>
                     <div className="btn-group btn-group-raised" role="group" style={{margin: `0px`}}>
                         <button
                             type="button"
@@ -542,7 +587,7 @@ class DashboardComponent extends React.Component {
                     </div>
                 </div>
             </div>
-            <div>{plotsControls}</div>
+            <div className="container">{plotsControls}</div>
         </div>);
     }
 }
@@ -552,6 +597,9 @@ DashboardComponent.propTypes = {
     onPlotsChange: PropTypes.func.isRequired,
     onActivePlotsChange: PropTypes.func.isRequired,
     onHighlightedPlotChange: PropTypes.func.isRequired,
+    onSetMin: PropTypes.func.isRequired,
+    onSetHalf: PropTypes.func.isRequired,
+    onSetMax: PropTypes.func.isRequired,
 };
 
 export default DashboardComponent;
