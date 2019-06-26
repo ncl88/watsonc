@@ -348,7 +348,7 @@ module.exports = module.exports = {
 
                             let icon = L.icon({
                                 iconUrl: 'data:image/svg+xml;base64,' + btoa(localSvgCirclePart),
-                                iconAnchor: [14, 14],
+                                iconAnchor: [8, 33],
                                 watsoncStatus: `default`
                             });
 
@@ -854,7 +854,7 @@ module.exports = module.exports = {
                                         shape: featureLayer.feature.properties.loctypeid,
                                         highlighted: true
                                     })),
-                                    iconAnchor: [14, 14],
+                                    iconAnchor: [8, 33],
                                     watsoncStatus: `highlighted`
                                 });
                             } else {
@@ -864,7 +864,7 @@ module.exports = module.exports = {
                                         shape: featureLayer.feature.properties.loctypeid,
                                         highlighted: false
                                     })),
-                                    iconAnchor: [14, 14],
+                                    iconAnchor: [8, 33],
                                     watsoncStatus: `default`
                                 });
                             }
@@ -967,7 +967,7 @@ module.exports = module.exports = {
 
                     let icon = L.icon({
                         iconUrl: 'data:image/svg+xml;base64,' + btoa(localSvg),
-                        iconAnchor: [15, 15],
+                        iconAnchor: [8, 33],
                         popupAnchor: [15, 15],
                         watsoncStatus: `default`
                     });

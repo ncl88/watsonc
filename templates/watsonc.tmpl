@@ -988,6 +988,29 @@
         background-color: #10ae8c !important;
         color: white;
     }
+    .custom-search.typeahead.tt-hint {
+        color: #aaaaaa;
+    }
+    .custom-search.typeahead.tt-input {
+        color: #666666;
+    }
+    .tt-dropdown-menu {
+        color: #666666;
+
+    }
+
+    .tt-hint, .tt-query, .typeahead {
+        height: 30px;
+        padding: 8px 12px;
+        font-size: 18px;
+        line-height: 20px;
+        margin-top: 11px;
+    }
+
+    #searchclear {
+        right: 22px;
+
+    }
 
 </style>
 <!-- map -->
@@ -1082,7 +1105,13 @@
                     </svg>
                 </div>
                 <div class="col-xs-5">
-                    <div id="js-watsonc-search-field"></div>
+                    <div id="place-search">
+                        <div class="places">
+                                <input id="custom-search" class="custom-search typeahead" type="text"
+                                       placeholder="Adresse, matr. nr., DGU nr.">
+                                <span id="searchclear" class="glyphicon glyphicon-remove-circle"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
