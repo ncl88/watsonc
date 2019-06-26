@@ -553,41 +553,49 @@ class DashboardComponent extends React.Component {
         };
 
         return (<div>
-            <ReactTooltip/>
-            <div style={{height: `40px`, display: `flex`}}>
-                <div
-                    style={{cursor: `pointer`}}
-                    data-tip={__(`Click on the modal header to expand or minify the Dashboard`)}
-                    onClick={nextDisplayType} >
-                    {__(`Calypso dashboard`)}
-                </div>
-                <div
-                    style={{paddingLeft: `10px`, cursor: `pointer`}}
-                    data-tip={__(`Click on the modal header to expand or minify the Dashboard`)}
-                    onClick={nextDisplayType}>
-                    <p className="text-muted" style={{margin: `0px`}}>
-                        ({__(`Timeseries total`).toLowerCase()}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}; {__(`Profiles total`).toLowerCase()}: {this.state.profiles.length}, {__(`profiles active`)}: {this.state.activeProfiles.length})
-                    </p>
-                </div>
-                <div style={{
-                    flexGrow: `1`,
-                    textAlign: `right`
-                }}>
-                    <div className="btn-group btn-group-raised" role="group" style={{margin: `0px`}}>
-                        <button
-                            type="button"
-                            disabled={this.state.view === VIEW_MATRIX}
-                            onClick={() => { this.setState({view: VIEW_MATRIX}); }}
-                            className="btn btn-sm btn-primary btn-default">{__(`Matrix view`)}</button>
-                        <button
-                            type="button"
-                            disabled={this.state.view === VIEW_ROW}
-                            onClick={() => { this.setState({view: VIEW_ROW}); }}
-                            className="btn btn-sm btn-primary btn-default">{__(`Row view`)}</button>
+            <div className="modal-header" id="watsonc-plots-dialog-controls">
+                <ReactTooltip/>
+                <div className="modal-header-content">
+                    <div style={{height: `40px`, display: `flex`}}>
+                        <div
+                            style={{cursor: `pointer`}}
+                            data-delay-show="500"
+                            data-tip={__(`Click on the modal header to expand or minify the Dashboard`)}
+                            onClick={nextDisplayType} >
+                            {__(`Calypso dashboard`)}
+                        </div>
+                        <div
+                            style={{paddingLeft: `10px`, cursor: `pointer`}}
+                            data-delay-show="500"
+                            data-tip={__(`Click on the modal header to expand or minify the Dashboard`)}
+                            onClick={nextDisplayType}>
+                            <p className="text-muted" style={{margin: `0px`}}>
+                                ({__(`Timeseries total`).toLowerCase()}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}; {__(`Profiles total`).toLowerCase()}: {this.state.profiles.length}, {__(`profiles active`)}: {this.state.activeProfiles.length})
+                            </p>
+                        </div>
+                        <div style={{
+                            flexGrow: `1`,
+                            textAlign: `right`
+                        }}>
+                            <div className="btn-group btn-group-raised" role="group" style={{margin: `0px`}}>
+                                <button
+                                    type="button"
+                                    disabled={this.state.view === VIEW_MATRIX}
+                                    onClick={() => { this.setState({view: VIEW_MATRIX}); }}
+                                    className="btn btn-sm btn-primary btn-default">{__(`Matrix view`)}</button>
+                                <button
+                                    type="button"
+                                    disabled={this.state.view === VIEW_ROW}
+                                    onClick={() => { this.setState({view: VIEW_ROW}); }}
+                                    className="btn btn-sm btn-primary btn-default">{__(`Row view`)}</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div className="container">{plotsControls}</div>
+            <div className="modal-body">
+                <div className="form-group">{plotsControls}</div>
+            </div>
         </div>);
     }
 }

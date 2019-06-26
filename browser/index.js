@@ -22,9 +22,8 @@ const FORM_FEATURE_CONTAINER_ID = 'watsonc-features-dialog-form';
 /**
  * The plots dialog constants
  */
-const PLOTS_CONTAINER_ID = 'watsonc-plots-dialog';
-const FORM_PLOTS_CONTAINER_ID = 'watsonc-plots-dialog-form';
-let PLOTS_ID = `#` + PLOTS_CONTAINER_ID;
+const DASHBOARD_CONTAINER_ID = 'watsonc-plots-dialog-form';
+let PLOTS_ID = `#` + DASHBOARD_CONTAINER_ID;
 
 /**
  *
@@ -396,7 +395,7 @@ module.exports = module.exports = {
                 });
             });
 
-            if (document.getElementById(FORM_PLOTS_CONTAINER_ID)) {
+            if (document.getElementById(DASHBOARD_CONTAINER_ID)) {
                 let initialPlots = [];
                 if (applicationState && `modules` in applicationState && MODULE_NAME in applicationState.modules && `plots` in applicationState.modules[MODULE_NAME]) {
                     initialPlots = applicationState.modules[MODULE_NAME].plots;
@@ -456,12 +455,12 @@ module.exports = module.exports = {
                                 $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.8 - modalHeaderHeight - 10) + 'px');
                             });
                         }}
-                        />, document.getElementById(FORM_PLOTS_CONTAINER_ID));
+                        />, document.getElementById(DASHBOARD_CONTAINER_ID));
                 } catch (e) {
                     console.log(e);
                 }
             } else {
-                console.warn(`Unable to find the container for watsonc extension (element id: ${FORM_PLOTS_CONTAINER_ID})`);
+                console.warn(`Unable to find the container for watsonc extension (element id: ${DASHBOARD_CONTAINER_ID})`);
             }
         });
 
