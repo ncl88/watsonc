@@ -2,4 +2,5 @@ node_modules/
 config/config.js
 
 # Scripts data folder and .npy data set
+scripts
 scripts/FOHM_layers_v2.npy
