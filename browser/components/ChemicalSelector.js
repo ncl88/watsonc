@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux'
 
 import SearchFieldComponent from './../../../../browser/modules/shared/SearchFieldComponent';
+import { selectChemical } from '../redux/actions'
 
 /**
  * Chemical selector
@@ -26,8 +28,8 @@ class ChemicalSelector extends React.Component {
                 <div>
                     <div style={{ display: `inline-block`}}>
                         <label>
-                            <input name="chem_modal" type="radio" checked={this.state.selectedChemical === WATER_LEVEL_KEY}
-                                onChange={() => { this.setState({ selectedChemical: WATER_LEVEL_KEY })}}/> <span className="js-chemical-name">{__(`Water level`)}</span>
+                            <input name="chem_modal" type="radio" checked={this.props.selectedChemical === WATER_LEVEL_KEY}
+                                onChange={() => { this.props.selectChemical(WATER_LEVEL_KEY)}}/> <span className="js-chemical-name">{__(`Water level`)}</span>
                         </label>
                     </div>
                 </div>
@@ -49,8 +51,8 @@ class ChemicalSelector extends React.Component {
                                         <input
                                             name="chem_modal"
                                             type="radio"
-                                            checked={this.state.selectedChemical === key2}
-                                            onChange={() => { this.setState({ selectedChemical: key2 })}}/> <span className="js-chemical-name">{this.props.categories[layerName][key][key2]}</span>
+                                            checked={this.props.selectedChemical === key2}
+                                            onChange={() => { this.props.selectChemical(key2)}}/> <span className="js-chemical-name">{this.props.categories[layerName][key][key2]}</span>
                                     </label>
                                 </div>
                             </div>);
@@ -78,10 +80,23 @@ class ChemicalSelector extends React.Component {
 
     render() {
 
-        console.log(`###`, this.state);
+        
+        console.log(`### categories`, this.props.categories);
+
+
+        let layerGroupsList = [];
+        if (this.props.selectedLayers.length > 0) {
+            let waterGroup = this.generateWaterGroup();
+            layerGroupsList.push(waterGroup);
+        }
+
+        if (this.props.selectedLayers.indexOf(LAYER_NAMES[0]) > -1) {
+            let chemicalGroups = this.generateChemicalGroups();
+            layerGroupsList = layerGroupsList.concat(chemicalGroups);
+        }
 
         return (<div>
-            {this.state.selectedLayers.length > 0 ? (<div>
+            {this.props.selectedLayers.length > 0 ? (<div>
                 <SearchFieldComponent onSearch={this.handleSearch}/>
                 {layerGroupsList.length > 0 ? (<div style={{ maxHeight: `400px`, overflowY: `scroll`}}>{layerGroupsList}</div>) : (<p>{__(`Nothing found`)}</p>)}
             </div>) : false}
@@ -89,9 +104,14 @@ class ChemicalSelector extends React.Component {
     }
 }
 
-ChemicalSelector.propTypes = {
-    selectedLayers: PropTypes.array.isRequired,
-    categories: PropTypes.object.isRequired,
-};
+const mapStateToProps = state => ({
+    categories: state.global.categories,
+    selectedLayers: state.global.selectedLayers,
+    selectedChemical: state.global.selectedChemical
+});
 
-export default ChemicalSelector;
+const mapDispatchToProps = dispatch => ({
+    selectChemical: (key) => dispatch(selectChemical(key)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ChemicalSelector);

@@ -1,5 +1,7 @@
 'use strict';
 
+import { Provider } from 'react-redux';
+
 import ModalComponent from './components/ModalComponent';
 import DashboardComponent from './components/DashboardComponent';
 import MenuTimeSeriesComponent from './components/MenuTimeSeriesComponent';
@@ -7,6 +9,8 @@ import MenuDataSourceAndTypeSelectorComponent from './components/MenuDataSourceA
 import MenuProfilesComponent from './components/MenuProfilesComponent';
 import IntroModal from './components/IntroModal';
 import { LAYER_NAMES, WATER_LEVEL_KEY } from './constants';
+
+import reduxStore from './redux/store';
 
 const symbolizer = require('./symbolizer');
 
@@ -85,6 +89,24 @@ let names = {};
 
 var jquery = require('jquery');
 require('snackbarjs');
+
+const DATA_SOURCES = [{
+    originalLayerKey: LAYER_NAMES[0],
+    additionalKey: ``,
+    title: __(`Jupiter drilling`)
+}, {
+    originalLayerKey: LAYER_NAMES[2],
+    additionalKey: `1`,
+    title: __(`CALYPSO stations`)
+}, {
+    originalLayerKey: LAYER_NAMES[2],
+    additionalKey: `3`,
+    title: __(`CALYPSO stations`)
+}, {
+    originalLayerKey: LAYER_NAMES[2],
+    additionalKey: `4`,
+    title: __(`CALYPSO stations`)
+}];
 
 /**
  *
@@ -231,7 +253,7 @@ module.exports = module.exports = {
                     if (!urlparser.urlVars || !urlparser.urlVars.state) {
                         _self.openMenuModal();
                     }
-
+    
                     backboneEvents.get().trigger(`${MODULE_NAME}:initialized`);
                 } else {
                     console.error(`Unable to request codes.compunds`);
@@ -465,9 +487,12 @@ module.exports = module.exports = {
         // Initializing data source and types selector
         if ($(`#data-source-and-types-selector-content`).children().length === 0) {
             try {
-                menuDataSourceAndTypeSelectorComponentInstance = ReactDOM.render(<MenuDataSourceAndTypeSelectorComponent
-
-                />, document.getElementById(`data-source-and-types-selector-content`));
+                ReactDOM.render(<Provider store={reduxStore}>
+                    <MenuDataSourceAndTypeSelectorComponent
+                        onApply={_self.onApplyLayersAndChemical}
+                        ref={inst => { menuDataSourceAndTypeSelectorComponentInstance = inst; }}
+                        layers={DATA_SOURCES} />
+                </Provider>, document.getElementById(`data-source-and-types-selector-content`));
             } catch (e) {
                 console.log(e);
             }
@@ -587,43 +612,45 @@ module.exports = module.exports = {
         }
     },
 
+    onApplyLayersAndChemical: (parameters) => {
+        // Disabling vector layers
+        [LAYER_NAMES[0], LAYER_NAMES[2]].map(layerNameToEnable => {
+            switchLayer.init(layerNameToEnable, false);
+        });
+
+        if (cloud.get().getZoom() < 15) {
+            lastEnabledMapState = parameters;
+        } else {
+            let filteredLayers = [];
+            enabledLoctypeIds = [];
+            parameters.layers.map(layerName => {
+                if (layerName.indexOf(`#`) > -1) {
+                    if (filteredLayers.indexOf(layerName.split(`#`)[0]) === -1) filteredLayers.push(layerName.split(`#`)[0]);
+                    enabledLoctypeIds.push(layerName.split(`#`)[1]);
+                } else {
+                    if (filteredLayers.indexOf(layerName) === -1) filteredLayers.push(layerName);
+                }
+            });
+
+            backboneEvents.get().trigger(`${MODULE_NAME}:enabledLoctypeIdsChange`);
+
+            if (parameters.chemical) {
+                _self.enableChemical(parameters.chemical, filteredLayers);
+            } else {
+                filteredLayers.map(layerName => {
+                    layerTree.reloadLayer(layerName);
+                });
+            }
+        }
+    },
+
     /**
      * Open module menu modal dialog
      * 
      * @returns {void}
      */
     openMenuModal: () => {
-        const onApplyHandler = (parameters) => {
-            // Disabling vector layers
-            [LAYER_NAMES[0], LAYER_NAMES[2]].map(layerNameToEnable => {
-                switchLayer.init(layerNameToEnable, false);
-            });
 
-            if (cloud.get().getZoom() < 15) {
-                lastEnabledMapState = parameters;
-            } else {
-                let filteredLayers = [];
-                enabledLoctypeIds = [];
-                parameters.layers.map(layerName => {
-                    if (layerName.indexOf(`#`) > -1) {
-                        if (filteredLayers.indexOf(layerName.split(`#`)[0]) === -1) filteredLayers.push(layerName.split(`#`)[0]);
-                        enabledLoctypeIds.push(layerName.split(`#`)[1]);
-                    } else {
-                        if (filteredLayers.indexOf(layerName) === -1) filteredLayers.push(layerName);
-                    }
-                });
-
-                backboneEvents.get().trigger(`${MODULE_NAME}:enabledLoctypeIdsChange`);
-
-                if (parameters.chemical) {
-                    _self.enableChemical(parameters.chemical, filteredLayers);
-                } else {
-                    filteredLayers.map(layerName => {
-                        layerTree.reloadLayer(layerName);
-                    });
-                }
-            }
-        };
 
         const onCloseHandler = () => {
             $('#watsonc-menu-dialog').modal('hide');
@@ -632,32 +659,20 @@ module.exports = module.exports = {
         const introlModalPlaceholderId = `watsonc-intro-modal-placeholder`;
         if ($(`#${introlModalPlaceholderId}`).is(`:empty`)) {
             try {
-                infoModalInstance = ReactDOM.render(<IntroModal
-                    anchor={anchor}
-                    state={state}
-                    urlparser={urlparser}
-                    backboneEvents={backboneEvents}
-                    layers={[{
-                        originalLayerKey: LAYER_NAMES[0],
-                        additionalKey: ``,
-                        title: __(`Jupiter drilling`)
-                    }, {
-                        originalLayerKey: LAYER_NAMES[2],
-                        additionalKey: `1`,
-                        title: __(`CALYPSO stations`)
-                    }, {
-                        originalLayerKey: LAYER_NAMES[2],
-                        additionalKey: `3`,
-                        title: __(`CALYPSO stations`)
-                    }, {
-                        originalLayerKey: LAYER_NAMES[2],
-                        additionalKey: `4`,
-                        title: __(`CALYPSO stations`)
-                    }]}
-                    categories={categoriesOverall ? categoriesOverall : []}
-                    onApply={onApplyHandler}
-                    onClose={onCloseHandler}
-                />, document.getElementById(introlModalPlaceholderId));
+                ReactDOM.render(<Provider store={reduxStore}>
+                    <IntroModal
+                        ref={inst => {
+                            infoModalInstance = inst;
+                        }}
+                        anchor={anchor}
+                        state={state}
+                        urlparser={urlparser}
+                        backboneEvents={backboneEvents}
+                        layers={DATA_SOURCES}
+                        categories={categoriesOverall ? categoriesOverall : []}
+                        onApply={_self.onApplyLayersAndChemical}
+                        onClose={onCloseHandler}
+                    /></Provider>, document.getElementById(introlModalPlaceholderId));
             } catch (e) {
                 console.error(e);
             }

@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux'
 
 import DataSourceSelector from './DataSourceSelector';
 import ChemicalSelector from './ChemicalSelector';
+import { setCategories } from '../redux/actions'
 
 import StateSnapshotsDashboard from './../../../../browser/modules/stateSnapshots/components/StateSnapshotsDashboard';
-import { LAYER_NAMES, WATER_LEVEL_KEY } from './../constants';
 
 const MODE_INDEX = 0;
 const MODE_NEW = 1;
@@ -20,54 +21,32 @@ class IntroModal extends React.Component {
 
         this.state = {
             mode: MODE_INDEX,
-            categories: this.props.categories,
             layers: this.props.layers,
-            selectedLayers: [],
-            selectedChemical: false,
+            initialCategories: props.categories
         };
+    }
 
-        
-        this.toggleLayer = this.toggleLayer.bind(this);
+    componentDidMount() {
+        if (this.state.initialCategories) {
+            this.props.setCategories(this.state.initialCategories);
+        }
     }
 
     setCategories(categories) {
-        this.setState({ categories });
-    }
+        
+        console.log(`### setCategories`, categories);
 
-    toggleLayer(originalLayerKey, additionalKey = ``) {
-        let compoundLayerKey = originalLayerKey + (additionalKey ? `#${additionalKey}` : ``);
-        let selectedLayers = this.state.selectedLayers.slice(0);
-        if (selectedLayers.indexOf(compoundLayerKey) === -1) {
-            selectedLayers.push(compoundLayerKey);
-        } else {
-            selectedLayers.splice(selectedLayers.indexOf(compoundLayerKey), 1);
-        }
-
-        this.setState({selectedLayers});
+        this.props.setCategories(categories);
     }
 
     applyParameters() {
         this.props.onApply({
-            layers: this.state.selectedLayers,
-            chemical: (this.state.selectedChemical ? this.state.selectedChemical : false)
+            layers: this.props.selectedLayers,
+            chemical: (this.props.selectedChemical ? this.props.selectedChemical : false)
         });
     }
 
     render() {
-        let layerGroupsList = false;
-        if (this.state.mode === MODE_NEW) {
-            layerGroupsList = [];
-            if (this.state.selectedLayers.length > 0) {
-                let waterGroup = this.generateWaterGroup();
-                layerGroupsList.push(waterGroup);
-            }
-
-            if (this.state.selectedLayers.indexOf(LAYER_NAMES[0]) > -1) {
-                let chemicalGroups = this.generateChemicalGroups();
-                layerGroupsList = layerGroupsList.concat(chemicalGroups);
-            }
-        }
-
         let modalBodyStyle = {
             paddingLeft: `0px`,
             paddingRight: `0px`,
@@ -130,15 +109,10 @@ class IntroModal extends React.Component {
                 {this.state.mode === MODE_NEW ? (<div className="container" style={{paddingTop: `20px`}}>
                     <div className="row-fluid">
                         <div className="col-md-6">
-                            <DataSourceSelector
-                                layers={this.state.layers}
-                                selectedLayers={this.state.selectedLayers}
-                                onToggleLayer={this.toggleLayer}/>
+                            <DataSourceSelector layers={this.state.layers}/>
                         </div>
                         <div className="col-md-6">
-                            <ChemicalSelector
-                                categories={this.state.categories}
-                                selectedLayers={this.state.selectedLayers}/>
+                            <ChemicalSelector/>
                         </div>
                     </div>
                 </div>) : false}
@@ -158,7 +132,7 @@ class IntroModal extends React.Component {
                         <div className="col-md-12" style={{textAlign: `right`, paddingTop: `10px`, paddingBottom: `10px`}}>
                             <button
                                 type="button"
-                                disabled={this.state.selectedLayers.length === 0}
+                                disabled={this.props.selectedLayers.length === 0}
                                 className="btn btn-raised btn-primary"
                                 data-dismiss="modal"
                                 onClick={this.applyParameters.bind(this)}>{__(`Continue`)}<div className="ripple-container"></div></button>
@@ -177,4 +151,13 @@ IntroModal.propTypes = {
     onClose: PropTypes.func.isRequired
 };
 
-export default IntroModal;
+const mapStateToProps = state => ({
+    selectedLayers: state.global.selectedLayers,
+    selectedChemical: state.global.selectedChemical
+});
+
+const mapDispatchToProps = dispatch => ({
+    setCategories: (categories) => dispatch(setCategories(categories)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(IntroModal);

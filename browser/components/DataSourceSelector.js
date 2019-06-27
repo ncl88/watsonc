@@ -1,5 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux'
+
+import { selectLayer, unselectLayer } from '../redux/actions'
 
 /**
  * Data source selector
@@ -11,20 +14,27 @@ class DataSourceSelector extends React.Component {
 
     render() {
 
+        console.log(`### DataSourceSelector props`, this.props);
+
         const generateLayerRecord = (key, item) => {
+            let selected = (this.props.selectedLayers.indexOf(item.originalLayerKey + (item.additionalKey ? `#${item.additionalKey}` : ``)) !== -1);
             return (<div key={key}>
                 <div className="checkbox">
                     <label>
                         <input
                             type="checkbox"
-                            checked={this.props.selectedLayers.indexOf(item.originalLayerKey + (item.additionalKey ? `#${item.additionalKey}` : ``)) !== -1}
-                            onChange={() => { this.props.onToggleLayer(item.originalLayerKey, item.additionalKey); }}/> {item.title}
+                            checked={selected}
+                            onChange={() => {
+                                if (selected) {
+                                    this.props.unselectLayer(item.originalLayerKey, item.additionalKey);
+                                } else {
+                                    this.props.selectLayer(item.originalLayerKey, item.additionalKey);
+                                }
+                            }}/> {item.title}
                     </label>
                 </div>
             </div>);
         };
-
-        console.log(`###`, this.state);
 
         return (<div>
             <p>{__(`Please select at least one layer`)}</p>
@@ -43,8 +53,15 @@ class DataSourceSelector extends React.Component {
 
 DataSourceSelector.propTypes = {
     layers: PropTypes.array.isRequired,
-    selectedLayers: PropTypes.array.isRequired,
-    onToggleLayer: PropTypes.func.isRequired,
 };
 
-export default DataSourceSelector;
+const mapStateToProps = state => ({
+    selectedLayers: state.global.selectedLayers
+});
+
+const mapDispatchToProps = dispatch => ({
+    selectLayer: (originalLayerKey, additionalKey) => dispatch(selectLayer(originalLayerKey, additionalKey)),
+    unselectLayer: (originalLayerKey, additionalKey) => dispatch(unselectLayer(originalLayerKey, additionalKey)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(DataSourceSelector);
