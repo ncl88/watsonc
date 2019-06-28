@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
+import { Provider } from 'react-redux';
 import { connect } from 'react-redux';
+import reduxStore from '../redux/store';
 
 import DataSourceSelector from './DataSourceSelector';
+import ChemicalSelectorModal from './ChemicalSelectorModal';
 
 /**
  * Creates data source and type selector
@@ -30,8 +32,6 @@ class MenuDataSourceAndTypeSelectorComponent extends React.Component {
             openedSymbol = (<i className="fas fa-chevron-down"></i>);
         }
 
-        console.log(`### this.props`, this.props.categories);
-
         let chemicalName = __(`Not selected`);
         if (this.props.selectedChemical) {
             for (let layerName in this.props.categories) {
@@ -42,6 +42,10 @@ class MenuDataSourceAndTypeSelectorComponent extends React.Component {
                         }
                     }
                 }
+            }
+
+            if (this.props.selectedChemical === `watlevmsl`) {
+                chemicalName = __(`Water level`);
             }
         }
 
@@ -62,8 +66,7 @@ class MenuDataSourceAndTypeSelectorComponent extends React.Component {
                 borderBottom: `1px solid #e0e0e0`
             }}>
                 <div>
-                    <DataSourceSelector
-                        layers={this.props.layers}/>
+                    <DataSourceSelector layers={this.props.layers}/>
                 </div>
                 <div style={{paddingTop: `20px`}}>
                     <p>{__(`Select datatype`)}</p>
@@ -72,19 +75,26 @@ class MenuDataSourceAndTypeSelectorComponent extends React.Component {
                         disabled={this.props.selectedLayers.length === 0}
                         className="btn btn-primary btn-sm"
                         onClick={() => {
-                            const selectChemicalModalPlaceholderId = `watsonc-select-chemical-dialog-placeholder`;
-                            $(`#${selectChemicalModalPlaceholderId}`).empty();
+                            const dialogPrefix = `watsonc-select-chemical-dialog`;
+                            const selectChemicalModalPlaceholderId = `${dialogPrefix}-placeholder`;
+
+                            if ($(`#${selectChemicalModalPlaceholderId}`).children().length > 0) {
+                                ReactDOM.unmountComponentAtNode(document.getElementById(selectChemicalModalPlaceholderId))
+                            }
+
                             try {
                                 ReactDOM.render(<div>
-                                    <ChemicalSelector/>
+                                    <Provider store={reduxStore}>
+                                        <ChemicalSelectorModal onClickControl={() => {
+                                            $('#' + dialogPrefix).modal('hide');
+                                        }}/>
+                                    </Provider>
                                 </div>, document.getElementById(selectChemicalModalPlaceholderId));
                             } catch (e) {
                                 console.error(e);
                             }
 
-                            $('#watsonc-select-chemical-dialog').modal({
-                                backdrop: `static`
-                            });
+                            $('#' + dialogPrefix).modal({backdrop: `static`});
                         }}><i className="fas fa-edit"></i></button>
                     </p>
                 </div>

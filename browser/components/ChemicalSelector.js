@@ -1,9 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux'
+import { connect } from 'react-redux';
 
 import SearchFieldComponent from './../../../../browser/modules/shared/SearchFieldComponent';
-import { selectChemical } from '../redux/actions'
+import { selectChemical } from '../redux/actions';
+
+const uuidv4 = require('uuid/v4');
 
 /**
  * Chemical selector
@@ -12,14 +13,11 @@ class ChemicalSelector extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            searchTerm: ``
-        };
-
+        this.state = {searchTerm: ``};
         this.handleSearch = this.handleSearch.bind(this);
     }
 
-    generateWaterGroup() {
+    generateWaterGroup(runId) {
         return (<div key={`chemical_group_key_water_level`}>
             <div>
                 <h5>{__(`Water level`)}</h5>
@@ -28,7 +26,10 @@ class ChemicalSelector extends React.Component {
                 <div>
                     <div style={{ display: `inline-block`}}>
                         <label>
-                            <input name="chem_modal" type="radio" checked={this.props.selectedChemical === WATER_LEVEL_KEY}
+                            <input
+                                name={`chem_modal_${runId}`}
+                                type="radio"
+                                checked={this.props.selectedChemical === WATER_LEVEL_KEY}
                                 onChange={() => { this.props.selectChemical(WATER_LEVEL_KEY)}}/> <span className="js-chemical-name">{__(`Water level`)}</span>
                         </label>
                     </div>
@@ -37,7 +38,7 @@ class ChemicalSelector extends React.Component {
         </div>);
     }
 
-    generateChemicalGroups() {
+    generateChemicalGroups(runId) {
         let chemicalGroupsForLayer = [];
         for (let layerName in this.props.categories) {
             if (layerName === LAYER_NAMES[0]) {
@@ -49,7 +50,7 @@ class ChemicalSelector extends React.Component {
                                 <div style={{ display: `inline-block`}}>
                                     <label>
                                         <input
-                                            name="chem_modal"
+                                            name={`chem_modal_${runId}`}
                                             type="radio"
                                             checked={this.props.selectedChemical === key2}
                                             onChange={() => { this.props.selectChemical(key2)}}/> <span className="js-chemical-name">{this.props.categories[layerName][key][key2]}</span>
@@ -79,19 +80,16 @@ class ChemicalSelector extends React.Component {
     }
 
     render() {
-
-        
-        console.log(`### categories`, this.props.categories);
-
+        let runId = uuidv4();
 
         let layerGroupsList = [];
         if (this.props.selectedLayers.length > 0) {
-            let waterGroup = this.generateWaterGroup();
+            let waterGroup = this.generateWaterGroup(runId);
             layerGroupsList.push(waterGroup);
         }
 
         if (this.props.selectedLayers.indexOf(LAYER_NAMES[0]) > -1) {
-            let chemicalGroups = this.generateChemicalGroups();
+            let chemicalGroups = this.generateChemicalGroups(runId);
             layerGroupsList = layerGroupsList.concat(chemicalGroups);
         }
 

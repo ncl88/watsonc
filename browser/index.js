@@ -230,7 +230,6 @@ module.exports = module.exports = {
                         });
                     }
 
-                    // Breadcrumbs
                     _self.buildBreadcrumbs();
 
                     categoriesOverall = {};
@@ -573,7 +572,7 @@ module.exports = module.exports = {
     },
 
     buildBreadcrumbs(secondLevel = false, thirdLevel = false, isWaterLevel = false) {
-        $(`.js-layer-slide-breadcrumbs`).attr('style', 'height: 60px');
+        $(`.js-layer-slide-breadcrumbs`).attr('style', 'height: 60px; padding-top: 10px;');
         $(`.js-layer-slide-breadcrumbs`).empty();
         if (secondLevel !== false) {
             let firstLevel = `Kemi`;
@@ -587,28 +586,9 @@ module.exports = module.exports = {
                 <li class="active" style="color: rgba(255, 255, 255, 0.84);"><i class="fa fa-database"></i> ${firstLevel}</li>
                 ${secondLevelMarkup}
                 <li class="active" style="color: rgba(255, 255, 255, 0.84);">
-                    <span style="color: rgb(160, 244, 197); font-weight: bold;">${thirdLevel}<span> 
-                    <button type="button" class="btn btn-xs btn-link js-clear-breadcrubms" title="${__(`Select another chemical`)}">
-                        <i class="fa fa-remove"></i> ${__(`Select another chemical`)}
-                    </button>
+                    <span style="color: rgb(160, 244, 197); font-weight: bold;">${thirdLevel}<span>
                 </li>
             </ol>`);
-
-            $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).off();
-            $(`.js-layer-slide-breadcrumbs`).find(`.js-clear-breadcrubms`).click(() => {
-                $(`[name="chem"]`).prop('checked', false);
-                lastSelectedChemical = false;
-
-                // Unsetting the onLoad handler
-                layerTree.setOnLoad("v:chemicals.boreholes_time_series_with_chemicals", false, "watsonc");
-
-                // Turning off current vector layers
-                if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[0]) > -1) switchLayer.init(LAYER_NAMES[0], false);
-                if (layerTree.getActiveLayers().indexOf(LAYER_NAMES[2]) > -1) switchLayer.init(LAYER_NAMES[2], false);
-
-                _self.buildBreadcrumbs();
-                _self.openMenuModal();
-            });
         }
     },
 
@@ -633,10 +613,10 @@ module.exports = module.exports = {
             });
 
             backboneEvents.get().trigger(`${MODULE_NAME}:enabledLoctypeIdsChange`);
-
             if (parameters.chemical) {
                 _self.enableChemical(parameters.chemical, filteredLayers);
             } else {
+                lastSelectedChemical = parameters.chemical;
                 filteredLayers.map(layerName => {
                     layerTree.reloadLayer(layerName);
                 });
@@ -650,8 +630,6 @@ module.exports = module.exports = {
      * @returns {void}
      */
     openMenuModal: () => {
-
-
         const onCloseHandler = () => {
             $('#watsonc-menu-dialog').modal('hide');
         };
@@ -1031,6 +1009,3 @@ module.exports = module.exports = {
         });
     }
 };
-
-
-

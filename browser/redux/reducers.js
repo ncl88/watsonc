@@ -7,9 +7,6 @@ const initialState = {
 };
 
 const reducer = (state = initialState, action) => {
-
-    console.log(`### state action`, state, action);
-
     let compoundLayerKey, selectedLayers;
     switch (action.type) {
         case 'SET_CATEGORIES':

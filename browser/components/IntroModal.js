@@ -18,7 +18,7 @@ const MODE_SELECT = 2;
 class IntroModal extends React.Component {
     constructor(props) {
         super(props);
-
+        
         this.state = {
             mode: MODE_INDEX,
             layers: this.props.layers,
@@ -33,9 +33,6 @@ class IntroModal extends React.Component {
     }
 
     setCategories(categories) {
-        
-        console.log(`### setCategories`, categories);
-
         this.props.setCategories(categories);
     }
 
