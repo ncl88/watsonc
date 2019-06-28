@@ -13,9 +13,6 @@ class DataSourceSelector extends React.Component {
     }
 
     render() {
-
-        console.log(`### DataSourceSelector props`, this.props);
-
         const generateLayerRecord = (key, item) => {
             let selected = (this.props.selectedLayers.indexOf(item.originalLayerKey + (item.additionalKey ? `#${item.additionalKey}` : ``)) !== -1);
             return (<div key={key}>

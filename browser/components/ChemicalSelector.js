@@ -4,6 +4,8 @@ import { connect } from 'react-redux';
 import SearchFieldComponent from './../../../../browser/modules/shared/SearchFieldComponent';
 import { selectChemical } from '../redux/actions';
 
+import { WATER_LEVEL_KEY } from './../constants';
+
 const uuidv4 = require('uuid/v4');
 
 /**
@@ -18,6 +20,13 @@ class ChemicalSelector extends React.Component {
     }
 
     generateWaterGroup(runId) {
+        let checked = false;
+        if (this.props.useLocalSelectedChemical) {
+            checked = this.props.localSelectedChemical === WATER_LEVEL_KEY;
+        } else {
+            checked = this.props.selectedChemical === WATER_LEVEL_KEY;
+        }
+
         return (<div key={`chemical_group_key_water_level`}>
             <div>
                 <h5>{__(`Water level`)}</h5>
@@ -29,8 +38,14 @@ class ChemicalSelector extends React.Component {
                             <input
                                 name={`chem_modal_${runId}`}
                                 type="radio"
-                                checked={this.props.selectedChemical === WATER_LEVEL_KEY}
-                                onChange={() => { this.props.selectChemical(WATER_LEVEL_KEY)}}/> <span className="js-chemical-name">{__(`Water level`)}</span>
+                                checked={checked}
+                                onChange={() => {
+                                    if (this.props.useLocalSelectedChemical) {
+                                        this.props.localSelectChemical(WATER_LEVEL_KEY);
+                                    } else {
+                                        this.props.selectChemical(WATER_LEVEL_KEY);
+                                    }
+                                }}/> <span className="js-chemical-name">{__(`Water level`)}</span>
                         </label>
                     </div>
                 </div>
@@ -46,14 +61,27 @@ class ChemicalSelector extends React.Component {
                     let chemicalsMarkup = [];
                     for (let key2 in this.props.categories[layerName][key]) {
                         if (this.state.searchTerm === `` || this.props.categories[layerName][key][key2].toLowerCase().indexOf(this.state.searchTerm.toLowerCase()) > -1) {
+                            let checked = false;
+                            if (this.props.useLocalSelectedChemical) {
+                                checked = this.props.localSelectedChemical === key2;
+                            } else {
+                                checked = this.props.selectedChemical === key2;
+                            }
+
                             chemicalsMarkup.push(<div key={`chemical_${key2}`}>
                                 <div style={{ display: `inline-block`}}>
                                     <label>
                                         <input
                                             name={`chem_modal_${runId}`}
                                             type="radio"
-                                            checked={this.props.selectedChemical === key2}
-                                            onChange={() => { this.props.selectChemical(key2)}}/> <span className="js-chemical-name">{this.props.categories[layerName][key][key2]}</span>
+                                            checked={checked}
+                                            onChange={() => {
+                                                if (this.props.useLocalSelectedChemical) {
+                                                    this.props.localSelectChemical(key2);
+                                                } else {
+                                                    this.props.selectChemical(key2);
+                                                }
+                                            }}/> <span className="js-chemical-name">{this.props.categories[layerName][key][key2]}</span>
                                     </label>
                                 </div>
                             </div>);

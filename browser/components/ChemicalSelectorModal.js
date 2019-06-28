@@ -13,6 +13,13 @@ class ChemicalSelectorModal extends React.Component {
     }
 
     render() {
+        let disabled = false;
+        if (this.props.useLocalSelectedChemical === true) {
+            disabled = (this.props.localSelectedChemical === false || this.props.localSelectedChemical === `false`);
+        } else {
+            disabled = (this.props.selectedChemical === false || this.props.selectedChemical === `false`);
+        }
+
         return (<div className="modal-content">
             <div className="modal-header">
                 <h4 className="modal-title">
@@ -23,18 +30,13 @@ class ChemicalSelectorModal extends React.Component {
                 <div className="container">
                     <ChemicalSelector
                         useLocalSelectedChemical={this.props.useLocalSelectedChemical}
-                        localSelectedChemical={this.props.localSelectedChemical}/>
+                        localSelectedChemical={this.props.localSelectedChemical}
+                        localSelectChemical={this.props.onClickControl}/>
                 </div>
                 <div style={{textAlign: `right`}}>
                     <button
                         type="button"
-                        disabled={() => {
-                            if (this.props.useLocalSelectedChemical === true) {
-                                return this.props.localSelectedChemical === false || this.props.localSelectedChemical === `false`;
-                            } else {
-                                return this.props.selectedChemical === false || this.props.selectedChemical === `false`;
-                            }
-                        }}
+                        disabled={disabled}
                         className="btn btn-raised btn-primary"
                         data-dismiss="modal"
                         onClick={this.props.onClickControl}>{__(`Continue`)}</button>

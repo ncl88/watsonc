@@ -39,6 +39,10 @@ class MenuDataSourceAndTypeSelectorComponent extends React.Component {
             chemicalName = utils.getChemicalName(this.props.selectedChemical, this.props.categories);
         }
 
+        if (!this.state.opened) {
+            $('#data-source-and-types-selector-content').parent().removeClass('active');
+        }
+
         return (<div>
             <div>
                 <a href="javascript:void(0)" role="tab" data-toggle="tab" className={this.state.opened ? `active` : ``} data-module-ignore="true" onClick={(e) => {

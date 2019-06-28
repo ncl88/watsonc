@@ -2,13 +2,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import Slider from 'rc-slider';
+import { Provider } from 'react-redux';
 import { connect } from 'react-redux';
 
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
 
-import ChemicalSelector from './ChemicalSelector';
-import { selectChemical } from '../redux/actions';
+import reduxStore from './../redux/store';
+
+import { selectChemical } from './../redux/actions';
+
+const utils = require('./../utils');
 
 const wkt = require('terraformer-wkt-parser');
 const utmZone = require('./../../../../browser/modules/utmZone');
@@ -340,7 +344,8 @@ class MenuProfilesComponent extends React.Component {
         }
 
         let chemicalName = __(`Not selected`);
-        if (this.props.selectedChemical) {
+        if (this.props.localSelectedChemical) {
+            console.log(`### aaa`, this.state.localSelectedChemical, this.props.categories);
             chemicalName = utils.getChemicalName(this.state.localSelectedChemical, this.props.categories);
         }
 
@@ -442,6 +447,8 @@ class MenuProfilesComponent extends React.Component {
                                                     localSelectedChemical={this.state.selectedChemical}
                                                     onClickControl={(selectroValue) => {
                                                         console.log(`### new selected chemical`, selectroValue);
+
+                                                        this.setState({localSelectedChemical: selectroValue})
                                                         $('#' + dialogPrefix).modal('hide');
                                                     }}/>
                                             </Provider>
