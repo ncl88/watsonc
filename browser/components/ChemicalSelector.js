@@ -102,6 +102,11 @@ class ChemicalSelector extends React.Component {
     }
 }
 
+ChemicalSelector.defaultProps = {
+    useLocalSelectedChemical: false,
+    localSelectedChemical: false
+};
+
 const mapStateToProps = state => ({
     categories: state.global.categories,
     selectedLayers: state.global.selectedLayers,

@@ -236,9 +236,8 @@ module.exports = module.exports = {
                     categoriesOverall[LAYER_NAMES[0]] = categories;
                     categoriesOverall[LAYER_NAMES[0]]["Vandstand"] = {"0": WATER_LEVEL_KEY};
                     categoriesOverall[LAYER_NAMES[2]] = {"Vandstand": {"0": WATER_LEVEL_KEY}};
-                    if (infoModalInstance) {
-                        infoModalInstance.setCategories(categoriesOverall);
-                    }
+
+                    if (infoModalInstance) infoModalInstance.setCategories(categoriesOverall);
 
                     // Setup menu
                     let dd = $('li .dropdown-toggle');
@@ -521,7 +520,15 @@ module.exports = module.exports = {
         // Initializing TimeSeries management component
         $(`[data-module-id="profile-drawing"]`).click(() => {
             try {
-                menuProfilesComponentInstance = ReactDOM.render(<MenuProfilesComponent
+                ReactDOM.render(<Provider store={reduxStore}>
+                    <MenuProfilesComponent
+                        ref={inst => {
+                            menuProfilesComponentInstance = inst;
+
+                            backboneEvents.get().on(`reset:all reset:profile-drawing off:all` , () => {
+                                menuProfilesComponentInstance.stopDrawing();
+                            });
+                        }}
                     cloud={cloud}
                     initialProfiles={dashboardComponentInstance.getProfiles()}
                     initialActiveProfiles={dashboardComponentInstance.getActiveProfiles()}
@@ -529,11 +536,8 @@ module.exports = module.exports = {
                     onProfileDelete={dashboardComponentInstance.handleDeleteProfile}
                     onProfileHighlight={dashboardComponentInstance.handleHighlightProfile}
                     onProfileShow={dashboardComponentInstance.handleShowProfile}
-                    onProfileHide={dashboardComponentInstance.handleHideProfile}/>, document.getElementById(`profile-drawing-content`));
-
-                backboneEvents.get().on(`reset:all reset:profile-drawing off:all` , () => {
-                    menuProfilesComponentInstance.stopDrawing();
-                });
+                    onProfileHide={dashboardComponentInstance.handleHideProfile}/>
+                </Provider>, document.getElementById(`profile-drawing-content`));
             } catch (e) {
                 console.log(e);
             }

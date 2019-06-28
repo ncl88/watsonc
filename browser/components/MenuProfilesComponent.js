@@ -2,11 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import Slider from 'rc-slider';
+import { connect } from 'react-redux';
 
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
+
+import ChemicalSelector from './ChemicalSelector';
+import { selectChemical } from '../redux/actions';
+
 const wkt = require('terraformer-wkt-parser');
-const uuidv1 = require('uuid/v1');
 const utmZone = require('./../../../../browser/modules/utmZone');
 
 const STEP_NOT_READY = 0;
@@ -27,8 +31,8 @@ class MenuProfilesComponent extends React.Component {
         this.state = {
             apiUrl: (props.apiUrl ? props.apiUrl : DEFAULT_API_URL),
             loading: false,
-            showDrawingForm: false,
-            showExistingProfiles: false,
+            showDrawingForm: true,
+            showExistingProfiles: true,
             boreholeNames: [],
             layers: [],
             selectedLayers: [],
@@ -38,7 +42,7 @@ class MenuProfilesComponent extends React.Component {
             step: STEP_NOT_READY,
             bufferedProfile: false,
             profileBottom: -100,
-            buffer: 40,
+            buffer: 100,
         };
 
         this.search = this.search.bind(this);
@@ -305,16 +309,6 @@ class MenuProfilesComponent extends React.Component {
                     </div>
                 </td>
                 <td style={{textAlign: `right`}}>
-                    <div className="checkbox">
-                        <label>
-                            <input
-                                type="radio"
-                                name="selected_profile"
-                                onChange={(event) => { this.handleProfileSelect(item); }}/>
-                        </label>
-                    </div>
-                </td>
-                <td style={{textAlign: `right`}}>
                     <button
                         type="button"
                         className="btn btn-xs btn-primary"
@@ -343,6 +337,11 @@ class MenuProfilesComponent extends React.Component {
                     {plotRows}
                 </tbody>
             </table>);
+        }
+
+        let chemicalName = __(`Not selected`);
+        if (this.props.selectedChemical) {
+            chemicalName = utils.getChemicalName(this.state.localSelectedChemical, this.props.categories);
         }
 
         return (<div id="profile-drawing-buffer" style={{position: `relative`}}>
@@ -423,6 +422,42 @@ class MenuProfilesComponent extends React.Component {
 
                     <div className="row">
                         <div className="col-md-12">
+                            <p>{__(`Select datatype`)}</p>
+                            <p>{chemicalName} <button
+                                type="button"
+                                className="btn btn-primary btn-sm"
+                                onClick={() => {
+                                    const dialogPrefix = `watsonc-select-chemical-dialog`;
+                                    const selectChemicalModalPlaceholderId = `${dialogPrefix}-placeholder`;
+
+                                    if ($(`#${selectChemicalModalPlaceholderId}`).children().length > 0) {
+                                        ReactDOM.unmountComponentAtNode(document.getElementById(selectChemicalModalPlaceholderId));
+                                    }
+
+                                    try {
+                                        ReactDOM.render(<div>
+                                            <Provider store={reduxStore}>
+                                                <ChemicalSelectorModal
+                                                    useLocalSelectedChemical={true}
+                                                    localSelectedChemical={this.state.selectedChemical}
+                                                    onClickControl={(selectroValue) => {
+                                                        console.log(`### new selected chemical`, selectroValue);
+                                                        $('#' + dialogPrefix).modal('hide');
+                                                    }}/>
+                                            </Provider>
+                                        </div>, document.getElementById(selectChemicalModalPlaceholderId));
+                                    } catch (e) {
+                                        console.error(e);
+                                    }
+
+                                    $('#' + dialogPrefix).modal({backdrop: `static`});
+                                }}><i className="fas fa-edit"></i></button>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-md-12">
                             {availableLayers}
                         </div>
                     </div>
@@ -433,6 +468,8 @@ class MenuProfilesComponent extends React.Component {
                                 disabled={this.state.selectedLayers.length === 0}
                                 onAdd={(newTitle) => { this.saveProfile(newTitle) }}
                                 type="browserOwned"
+                                showIcon={false}
+                                saveButtonText={__(`Continue`)}
                                 customStyle={{width: `100%`}}/>
                         </div>
                     </div>) : false}
@@ -461,4 +498,13 @@ MenuProfilesComponent.propTypes = {
     cloud: PropTypes.any.isRequired,
 };
 
-export default MenuProfilesComponent;
+
+const mapStateToProps = state => ({
+    selectedChemical: state.global.selectedChemical
+});
+
+const mapDispatchToProps = dispatch => ({
+    selectChemical: (key) => dispatch(selectChemical(key)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(MenuProfilesComponent);

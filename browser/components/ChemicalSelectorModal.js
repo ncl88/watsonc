@@ -21,12 +21,20 @@ class ChemicalSelectorModal extends React.Component {
             </div>
             <div className="modal-body">
                 <div className="container">
-                    <ChemicalSelector/>
+                    <ChemicalSelector
+                        useLocalSelectedChemical={this.props.useLocalSelectedChemical}
+                        localSelectedChemical={this.props.localSelectedChemical}/>
                 </div>
                 <div style={{textAlign: `right`}}>
                     <button
                         type="button"
-                        disabled={this.props.selectedChemical === false || this.props.selectedChemical === `false`}
+                        disabled={() => {
+                            if (this.props.useLocalSelectedChemical === true) {
+                                return this.props.localSelectedChemical === false || this.props.localSelectedChemical === `false`;
+                            } else {
+                                return this.props.selectedChemical === false || this.props.selectedChemical === `false`;
+                            }
+                        }}
                         className="btn btn-raised btn-primary"
                         data-dismiss="modal"
                         onClick={this.props.onClickControl}>{__(`Continue`)}</button>
@@ -35,6 +43,11 @@ class ChemicalSelectorModal extends React.Component {
         </div>);
     }
 }
+
+ChemicalSelectorModal.defaultProps = {
+    useLocalSelectedChemical: false,
+    localSelectedChemical: false
+};
 
 const mapStateToProps = state => ({
     selectedChemical: state.global.selectedChemical

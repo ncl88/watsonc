@@ -7,6 +7,8 @@ import reduxStore from '../redux/store';
 import DataSourceSelector from './DataSourceSelector';
 import ChemicalSelectorModal from './ChemicalSelectorModal';
 
+const utils = require('./../utils');
+
 /**
  * Creates data source and type selector
  */
@@ -34,24 +36,12 @@ class MenuDataSourceAndTypeSelectorComponent extends React.Component {
 
         let chemicalName = __(`Not selected`);
         if (this.props.selectedChemical) {
-            for (let layerName in this.props.categories) {
-                for (let groupName in this.props.categories[layerName]) {
-                    for (let key in this.props.categories[layerName][groupName]) {
-                        if ((key + '') === (this.props.selectedChemical + '')) {
-                            chemicalName = this.props.categories[layerName][groupName][key];
-                        }
-                    }
-                }
-            }
-
-            if (this.props.selectedChemical === `watlevmsl`) {
-                chemicalName = __(`Water level`);
-            }
+            chemicalName = utils.getChemicalName(this.props.selectedChemical, this.props.categories);
         }
 
         return (<div>
             <div>
-                <a href="javascript:void(0)" role="tab" data-toggle="tab" data-module-ignore="true" onClick={(e) => {
+                <a href="javascript:void(0)" role="tab" data-toggle="tab" className={this.state.opened ? `active` : ``} data-module-ignore="true" onClick={(e) => {
                     this.setState({opened: !this.state.opened});
                     e.preventDefault();
                     e.stopPropagation();
