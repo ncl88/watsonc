@@ -346,6 +346,9 @@ class MenuProfilesComponent extends React.Component {
                         </div>
                     </div>
                 </td>
+                <td style={{textAlign: `center`}}>
+                    {data.compound ? utils.getChemicalName(data.compound, this.props.categories) : __(`Not selected`)}
+                </td>
                 <td style={{textAlign: `right`}}>
                     <button
                         type="button"
@@ -367,6 +370,7 @@ class MenuProfilesComponent extends React.Component {
                             <div style={{float: `left`}}><i style={{fontSize: `20px`}} className="material-icons">grid_on</i></div>
                             <div style={{float: `left`, paddingLeft: `10px`}}>{__(`Title`)}</div>
                         </th>
+                        <th style={{textAlign: `center`}}>{__(`Datatype`)}</th>
                         <th style={{textAlign: `right`, paddingRight: `10px`}}><i style={{fontSize: `20px`}} className="material-icons">delete</i></th>
                     </tr>
                 </thead>
