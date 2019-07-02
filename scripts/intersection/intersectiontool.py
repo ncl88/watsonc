@@ -228,6 +228,7 @@ if __name__ == "__main__":
                 lineSplit[0] = lineSplit[0].strip()
                 lineSplit[1] = lineSplit[1].strip()
                 processedConfigurationFile[lineSplit[0]] = lineSplit[1]
+        processedConfigurationFile['config'] = x
         processedConfigurationFiles.append(processedConfigurationFile);
 
     # Check for intersection of provided line with found model polygons
@@ -254,6 +255,7 @@ if __name__ == "__main__":
                     localResult['subtitle'] = x['Subtitle']
                     localResult['type'] = x['Type (geology, terrain, potential)']
                     localResult['layerinfo'] = x['layerinfo']
+                    localResult['layerconfig'] = x['config']
                     localResult['intersectionSegments'] = intersectionSegments
                     intersectingModels.append(localResult)
                 currentPolygon += 1

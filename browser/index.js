@@ -59,7 +59,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 
 let dashboardComponentInstance = false, modalComponentInstance = false, infoModalInstance = false,
-    menuTimeSeriesComponentInstance = false, menuDataSourceAndTypeSelectorComponentInstance = false, menuProfilesComponentInstance = false;
+    menuTimeSeriesComponentInstance = false;
 
 let lastSelectedChemical = false, categoriesOverall = false, enabledLoctypeIds = [];
 
@@ -432,7 +432,7 @@ module.exports = module.exports = {
                         }}
                         onProfilesChange={(profiles = false) => {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-                            if (profiles && menuProfilesComponentInstance) menuProfilesComponentInstance.setProfiles(profiles);
+                            if (profiles && window.menuProfilesComponentInstance) window.menuProfilesComponentInstance.setProfiles(profiles);
                         }}
                         onActivePlotsChange={(activePlots) => {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
@@ -440,14 +440,14 @@ module.exports = module.exports = {
                         }}
                         onActiveProfilesChange={(activeProfiles) => {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-                            if (menuProfilesComponentInstance) menuProfilesComponentInstance.setActiveProfiles(activeProfiles);
+                            if (window.menuProfilesComponentInstance) window.menuProfilesComponentInstance.setActiveProfiles(activeProfiles);
                         }}
                         onHighlightedPlotChange={(plotId, plots) => {
                             _self.setStyleForHighlightedPlot(plotId, plots);
                             if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setHighlightedPlot(plotId);
                         }}/>, document.getElementById(DASHBOARD_CONTAINER_ID));
                 } catch (e) {
-                    console.log(e);
+                    console.error(e);
                 }
             } else {
                 console.warn(`Unable to find the container for watsonc extension (element id: ${DASHBOARD_CONTAINER_ID})`);
@@ -488,11 +488,10 @@ module.exports = module.exports = {
                 ReactDOM.render(<Provider store={reduxStore}>
                     <MenuDataSourceAndTypeSelectorComponent
                         onApply={_self.onApplyLayersAndChemical}
-                        ref={inst => { menuDataSourceAndTypeSelectorComponentInstance = inst; }}
-                        layers={DATA_SOURCES} />
+                        layers={DATA_SOURCES}/>
                 </Provider>, document.getElementById(`data-source-and-types-selector-content`));
             } catch (e) {
-                console.log(e);
+                console.error(e);
             }
         }
 
@@ -509,7 +508,7 @@ module.exports = module.exports = {
                         onPlotShow={dashboardComponentInstance.handleShowPlot}
                         onPlotHide={dashboardComponentInstance.handleHidePlot}/>, document.getElementById(`watsonc-timeseries`));
                 } catch (e) {
-                    console.log(e);
+                    console.error(e);
                 }
             }
         });
@@ -522,24 +521,22 @@ module.exports = module.exports = {
             try {
                 ReactDOM.render(<Provider store={reduxStore}>
                     <MenuProfilesComponent
-                        ref={inst => {
-                            menuProfilesComponentInstance = inst;
-
-                            backboneEvents.get().on(`reset:all reset:profile-drawing off:all` , () => {
-                                menuProfilesComponentInstance.stopDrawing();
-                            });
-                        }}
-                    cloud={cloud}
-                    initialProfiles={dashboardComponentInstance.getProfiles()}
-                    initialActiveProfiles={dashboardComponentInstance.getActiveProfiles()}
-                    onProfileCreate={dashboardComponentInstance.handleCreateProfile}
-                    onProfileDelete={dashboardComponentInstance.handleDeleteProfile}
-                    onProfileHighlight={dashboardComponentInstance.handleHighlightProfile}
-                    onProfileShow={dashboardComponentInstance.handleShowProfile}
-                    onProfileHide={dashboardComponentInstance.handleHideProfile}/>
+                        cloud={cloud}
+                        categories={categoriesOverall ? categoriesOverall : []}
+                        initialProfiles={dashboardComponentInstance.getProfiles()}
+                        initialActiveProfiles={dashboardComponentInstance.getActiveProfiles()}
+                        onProfileCreate={dashboardComponentInstance.handleCreateProfile}
+                        onProfileDelete={dashboardComponentInstance.handleDeleteProfile}
+                        onProfileHighlight={dashboardComponentInstance.handleHighlightProfile}
+                        onProfileShow={dashboardComponentInstance.handleShowProfile}
+                        onProfileHide={dashboardComponentInstance.handleHideProfile}/>
                 </Provider>, document.getElementById(`profile-drawing-content`));
+
+                backboneEvents.get().on(`reset:all reset:profile-drawing off:all` , () => {
+                    window.menuProfilesComponentInstance.stopDrawing();
+                });
             } catch (e) {
-                console.log(e);
+                console.error(e);
             }
         });
 
@@ -761,7 +758,7 @@ module.exports = module.exports = {
                             onPlotAdd={((newPlotTitle) => { dashboardComponentInstance.addPlot(newPlotTitle, true); })}/>, document.getElementById(FORM_FEATURE_CONTAINER_ID));
                     }, 100);
                 } catch (e) {
-                    console.log(e);
+                    console.error(e);
                 }
             } else {
                 console.warn(`Unable to find the container for borehole component (element id: ${FORM_FEATURE_CONTAINER_ID})`);

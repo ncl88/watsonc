@@ -23,7 +23,7 @@ const STEP_READY_TO_LOAD = 2;
 
 const DEFAULT_API_URL = `/api/key-value`;
 
-let drawnItems = new L.FeatureGroup(), embedDrawControl = false;
+let drawnItems = new L.FeatureGroup(), displayedItems = new L.FeatureGroup(), embedDrawControl = false;
 
 /**
  * Component for creating profiles
@@ -35,6 +35,7 @@ class MenuProfilesComponent extends React.Component {
         this.state = {
             apiUrl: (props.apiUrl ? props.apiUrl : DEFAULT_API_URL),
             loading: false,
+            localSelectedChemical: false,
             showDrawingForm: true,
             showExistingProfiles: true,
             boreholeNames: [],
@@ -56,9 +57,32 @@ class MenuProfilesComponent extends React.Component {
         this.handleLayerSelect = this.handleLayerSelect.bind(this);
 
         props.cloud.get().map.addLayer(drawnItems);
+        props.cloud.get().map.addLayer(displayedItems);
 
         this.bufferSliderRef = React.createRef();
         this.bufferValueRef = React.createRef();
+
+        window.menuProfilesComponentInstance = this;
+    }
+
+    componentDidMount() {
+        this.displayActiveProfiles();
+    }
+
+    displayActiveProfiles() {
+        displayedItems.eachLayer(layer => {
+            displayedItems.removeLayer(layer);
+        });
+
+        if (this.state.activeProfiles) {
+            this.state.activeProfiles.map(activeProfileKey => {
+                this.state.profiles.map(profile => {
+                    if (profile.key === activeProfileKey) {
+                        this.displayProfile(profile);
+                    }
+                });
+            });
+        }
     }
 
     setProfiles(profiles) {
@@ -66,7 +90,9 @@ class MenuProfilesComponent extends React.Component {
     }
 
     setActiveProfiles(activeProfiles) {
-        this.setState({activeProfiles});
+        this.setState({activeProfiles}, () => {
+            this.displayActiveProfiles();
+        });
     }
 
     saveProfile(title) {
@@ -85,6 +111,7 @@ class MenuProfilesComponent extends React.Component {
             profile: this.state.profile,
             buffer: this.state.buffer,
             depth: this.state.profileBottom,
+            compound: this.state.localSelectedChemical,
             boreholeNames: this.state.boreholeNames,
             layers
         }, true, () => {
@@ -208,7 +235,7 @@ class MenuProfilesComponent extends React.Component {
         if (embedDrawControl) embedDrawControl.disable();
     }
 
-    handleProfileSelect(profile) {
+    displayProfile(profile) {
         this.clearDrawnLayers();
 
         // Get utm zone
@@ -231,10 +258,17 @@ class MenuProfilesComponent extends React.Component {
             "opacity": 1,
             "fillOpacity": 0.1,
             "dashArray": '5,3'
-        }).addTo(drawnItems);
+        }).addTo(displayedItems);
 
         var profileLayer = new L.geoJSON(profileLine);
-        profileLayer.addTo(drawnItems);
+
+        profileLayer.bindTooltip(profile.value.title, {
+            className: 'watsonc-profile-tooltip',
+            permanent: true,
+            offset: [0, 0]
+        });
+
+        profileLayer.addTo(displayedItems);
     }
 
     handleProfileToggle(checked, profile) {
@@ -333,7 +367,6 @@ class MenuProfilesComponent extends React.Component {
                             <div style={{float: `left`}}><i style={{fontSize: `20px`}} className="material-icons">grid_on</i></div>
                             <div style={{float: `left`, paddingLeft: `10px`}}>{__(`Title`)}</div>
                         </th>
-                        <th style={{textAlign: `right`, paddingRight: `10px`}}><i style={{fontSize: `20px`}} className="material-icons">map</i></th>
                         <th style={{textAlign: `right`, paddingRight: `10px`}}><i style={{fontSize: `20px`}} className="material-icons">delete</i></th>
                     </tr>
                 </thead>
@@ -344,8 +377,7 @@ class MenuProfilesComponent extends React.Component {
         }
 
         let chemicalName = __(`Not selected`);
-        if (this.props.localSelectedChemical) {
-            console.log(`### aaa`, this.state.localSelectedChemical, this.props.categories);
+        if (this.state.localSelectedChemical) {
             chemicalName = utils.getChemicalName(this.state.localSelectedChemical, this.props.categories);
         }
 
@@ -360,7 +392,7 @@ class MenuProfilesComponent extends React.Component {
                 {this.state.showDrawingForm ? (<div className="container">
                     <div className="row">
                         <div className="col-md-4" style={{paddingTop: `12px`}}>
-                            <p>{__(`Adjust buffer`)}</p>
+                            <p><strong>{__(`Adjust buffer`)}</strong></p>
                         </div>
                         <div className="col-md-5" style={{paddingTop: `14px`}}>
                             <Slider value={this.state.buffer ? parseInt(this.state.buffer) : 0} min={0} max={500} onChange={(value) => { this.setState({buffer: value}); }}/>
@@ -376,7 +408,7 @@ class MenuProfilesComponent extends React.Component {
 
                     <div className="row">
                         <div className="col-md-4" style={{paddingTop: `12px`}}>
-                            <p>{__(`Adjust profile bottom`)}</p>
+                            <p><strong>{__(`Adjust profile bottom`)}</strong></p>
                         </div>
                         <div className="col-md-8">
                             <input
@@ -384,6 +416,41 @@ class MenuProfilesComponent extends React.Component {
                                 className="form-control"
                                 onChange={(event) => { this.setState({profileBottom: event.target.value}); }}
                                 value={this.state.profileBottom}/>
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-md-12">
+                            <p><strong>{__(`Select datatype`)}:</strong> {chemicalName} <button
+                                type="button"
+                                className="btn btn-primary btn-sm"
+                                onClick={() => {
+                                    const dialogPrefix = `watsonc-select-chemical-dialog`;
+                                    const selectChemicalModalPlaceholderId = `${dialogPrefix}-placeholder`;
+
+                                    if ($(`#${selectChemicalModalPlaceholderId}`).children().length > 0) {
+                                        ReactDOM.unmountComponentAtNode(document.getElementById(selectChemicalModalPlaceholderId));
+                                    }
+
+                                    try {
+                                        ReactDOM.render(<div>
+                                            <Provider store={reduxStore}>
+                                                <ChemicalSelectorModal
+                                                    useLocalSelectedChemical={true}
+                                                    localSelectedChemical={this.state.selectedChemical}
+                                                    onClickControl={(selectroValue) => {
+                                                        this.setState({localSelectedChemical: selectroValue})
+                                                        $('#' + dialogPrefix).modal('hide');
+                                                    }}/>
+                                            </Provider>
+                                        </div>, document.getElementById(selectChemicalModalPlaceholderId));
+                                    } catch (e) {
+                                        console.error(e);
+                                    }
+
+                                    $('#' + dialogPrefix).modal({backdrop: `static`});
+                                }}><i className="fas fa-edit"></i></button>
+                            </p>
                         </div>
                     </div>
 
@@ -412,7 +479,7 @@ class MenuProfilesComponent extends React.Component {
                             <a
                                 href="javascript:void(0)"
                                 className="btn"
-                                disabled={this.state.step !== STEP_READY_TO_LOAD}
+                                disabled={this.state.step !== STEP_READY_TO_LOAD || this.state.localSelectedChemical === false}
                                 onClick={() => {
                                     this.search();
                                 }}>{__(`Continue`)}</a>
@@ -422,44 +489,6 @@ class MenuProfilesComponent extends React.Component {
                     <div className="row">
                         <div className="col-md-12">
                             <div className="js-results"></div>
-                        </div>
-                    </div>
-
-                    <div className="row">
-                        <div className="col-md-12">
-                            <p>{__(`Select datatype`)}</p>
-                            <p>{chemicalName} <button
-                                type="button"
-                                className="btn btn-primary btn-sm"
-                                onClick={() => {
-                                    const dialogPrefix = `watsonc-select-chemical-dialog`;
-                                    const selectChemicalModalPlaceholderId = `${dialogPrefix}-placeholder`;
-
-                                    if ($(`#${selectChemicalModalPlaceholderId}`).children().length > 0) {
-                                        ReactDOM.unmountComponentAtNode(document.getElementById(selectChemicalModalPlaceholderId));
-                                    }
-
-                                    try {
-                                        ReactDOM.render(<div>
-                                            <Provider store={reduxStore}>
-                                                <ChemicalSelectorModal
-                                                    useLocalSelectedChemical={true}
-                                                    localSelectedChemical={this.state.selectedChemical}
-                                                    onClickControl={(selectroValue) => {
-                                                        console.log(`### new selected chemical`, selectroValue);
-
-                                                        this.setState({localSelectedChemical: selectroValue})
-                                                        $('#' + dialogPrefix).modal('hide');
-                                                    }}/>
-                                            </Provider>
-                                        </div>, document.getElementById(selectChemicalModalPlaceholderId));
-                                    } catch (e) {
-                                        console.error(e);
-                                    }
-
-                                    $('#' + dialogPrefix).modal({backdrop: `static`});
-                                }}><i className="fas fa-edit"></i></button>
-                            </p>
                         </div>
                     </div>
 
@@ -507,7 +536,8 @@ MenuProfilesComponent.propTypes = {
 
 
 const mapStateToProps = state => ({
-    selectedChemical: state.global.selectedChemical
+    selectedChemical: state.global.selectedChemical,
+
 });
 
 const mapDispatchToProps = dispatch => ({

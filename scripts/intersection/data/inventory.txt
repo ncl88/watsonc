@@ -1,2 +1,0 @@
-﻿nr;navn;legend;farve
-0;100_Potentialekort_Aalborg.grd;Potentialekort Aalborg 2019;rgb(43,40,237)

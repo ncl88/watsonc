@@ -78,7 +78,7 @@ router.post('/api/extension/watsonc/intersection', function (req, res) {
             let reprojectedProfile = reproject.reproject(req.body.profile, 'EPSG:4326', 'EPSG:25832', crss);
 
             let inputJSON = {
-                configFolder: require('path').dirname(moduleConfig.intersectionsScriptPath) + '/data',
+                configFolder: require('path').dirname(moduleConfig.intersectionsScriptPath) + '/../profil',
                 coordinates: reprojectedProfile.geometry.coordinates,
                 DGU_nr: boreholeNames,
                 Profile_depth: parseInt(req.body.profileDepth)
@@ -101,6 +101,8 @@ router.post('/api/extension/watsonc/intersection', function (req, res) {
                         boreholeNames
                     });
                 } else {
+                    console.error('Error occured:', parsedData);
+
                     res.status(400);
                     res.send({
                         status: `error`,
@@ -135,17 +137,23 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
     let reprojectedProfile = reproject.reproject(req.body.profile, 'EPSG:4326', 'EPSG:25832', crss);
     
     let inputJSON = {
-        configFolder: './data',
         coordinates: reprojectedProfile.geometry.coordinates,
         DGU_nr: req.body.boreholeNames,
-        Profile_depth: parseInt(req.body.depth)
+        Profile_depth: parseInt(req.body.depth),
+        Compound: req.body.compound
     };
 
-    console.log(JSON.stringify(inputJSON));
+    inputJSON.layers = [];
+    inputJSON.overlap = [];
+    req.body.layers.map(item => {
+        inputJSON.layers.push(item.layerconfig);
+        inputJSON.overlap.push(item.intersectionSegments);
+    });
 
     let result = '';
-    const pythonProcess = spawn('python3.6', [moduleConfig.profileScriptPath, JSON.stringify(inputJSON)], {
-        cwd: require('path').dirname(moduleConfig.profileScriptPath)
+    const pythonProcess = spawn('python3.6', [moduleConfig.profileScriptPath, '"' + JSON.stringify(inputJSON).replace(/"/g, '\'') + '"'], {
+        cwd: require('path').dirname(moduleConfig.profileScriptPath),
+        shell: true
     });
 
     pythonProcess.stdout.on('data', (data) => {
@@ -153,6 +161,8 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
     });
 
     pythonProcess.stdout.on('close', function(code) {
+        let parsedData = false;
+
         let error = false;
         try {
             let localParsedData = JSON.parse(result);

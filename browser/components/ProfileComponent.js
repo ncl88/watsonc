@@ -13,12 +13,24 @@ class ProfileComponent extends React.Component {
     }
 
     render() {
+        let dataCopy = JSON.parse(JSON.stringify(this.props.plotMeta.value.data.data));
+        dataCopy.map((item, index) => {
+            if (!dataCopy[index].mode) dataCopy[index].mode = 'lines';
+            if (dataCopy[index].fillcolor && dataCopy[index].fillcolor.indexOf('%') > -1) dataCopy[index].fillcolor = decodeURIComponent(dataCopy[index].fillcolor);
+
+            if (item.line && item.line.color && item.line.color.indexOf('%') > -1) {    
+                dataCopy[index].line.color = decodeURIComponent(item.line.color);
+            }
+        });
+
+        console.log(`### data`, dataCopy);
+
         let plot = (<p className="text-muted">{__(`At least one y axis has to be provided`)}</p>);
         if (this.props.plotMeta) {
             plot = (<div style={{ paddingBottom: `20px` }}>
                 <div style={{ border: `1px solid lightgray`, paddingBottom: `20px` }}>
                     <Plot
-                        data={this.props.plotMeta.value.data.data}
+                        data={dataCopy}
                         useResizeHandler={true}
                         config={{modeBarButtonsToRemove: ['autoScale2d']}}
                         layout={this.props.plotMeta.value.data.layout}
