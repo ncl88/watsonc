@@ -10,13 +10,17 @@ import ProfileComponent from './ProfileComponent';
 const SortableProfileComponent = (props) => {
     return (<li className={props.containerClass ? props.containerClass : `list-group-item col-sm-12 col-md-12 col-lg-6`}>
         <div>
-            <ProfileComponent onDelete={(id) => { props.handleDelete(id)}} plotMeta={props.meta}/>
+            <ProfileComponent
+                onDelete={(id) => { props.handleDelete(id)}}
+                onChangeDatatype={(id) => { props.handleChangeDatatype(id)}}
+                plotMeta={props.meta}/>
         </div>
     </li>);
 }
 
 SortableProfileComponent.propTypes = {
     handleDelete: PropTypes.func.isRequired,
+    handleChangeDatatype: PropTypes.func.isRequired,
     meta: PropTypes.object.isRequired,
 };
 

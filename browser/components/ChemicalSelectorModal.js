@@ -40,6 +40,11 @@ class ChemicalSelectorModal extends React.Component {
                         className="btn btn-raised btn-primary"
                         data-dismiss="modal"
                         onClick={this.props.onClickControl}>{__(`Continue`)}</button>
+                    {this.props.onCancelControl ? (<button
+                        type="button"
+                        className="btn btn-raised"
+                        data-dismiss="modal"
+                        onClick={this.props.onCancelControl}>{__(`Cancel`)}</button>) : false}
                 </div>
             </div>
         </div>);

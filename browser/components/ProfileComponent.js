@@ -23,8 +23,6 @@ class ProfileComponent extends React.Component {
             }
         });
 
-        console.log(`### data`, dataCopy);
-
         let plot = (<p className="text-muted">{__(`At least one y axis has to be provided`)}</p>);
         if (this.props.plotMeta) {
             plot = (<div style={{ paddingBottom: `20px` }}>
@@ -45,12 +43,19 @@ class ProfileComponent extends React.Component {
                     <h4>{this.props.plotMeta.value.title}</h4>
                 </div>
                 <div style={{float: `right`}}>
-                    <SortableHandleComponent title={this.props.plotMeta.value.title}/> <a
+                    <a
+                        className="btn btn-primary"
+                        href="javascript:void(0)"
+                        title={__(`Change datatype`) + ` ` + this.props.plotMeta.value.title}
+                        onClick={() => { this.props.onChangeDatatype(this.props.plotMeta.key)}}
+                        style={{padding: `0px`}}>
+                        <i className="fa fa-edit"></i> {__(`Change datatype`)}
+                    </a> <SortableHandleComponent title={this.props.plotMeta.value.title}/> <a
                         className="btn"
                         href="javascript:void(0)"
                         title={__(`Delete`) + ` ` + this.props.plotMeta.value.title}
                         onClick={() => { this.props.onDelete(this.props.plotMeta.key)}}
-                        style={{padding: `0px`, marginLeft: `10px`}}>
+                        style={{padding: `0px`, marginLeft: `20px`}}>
                         <i className="fa fa-remove"></i> {__(`Delete`)}
                     </a>
                 </div>
@@ -62,6 +67,7 @@ class ProfileComponent extends React.Component {
 
 ProfileComponent.propTypes = {
     onDelete: PropTypes.func.isRequired,
+    onChangeDatatype: PropTypes.func.isRequired,
     plotMeta: PropTypes.object.isRequired
 };
 

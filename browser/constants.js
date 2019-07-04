@@ -7,4 +7,8 @@ const LAYER_NAMES = [
 
 const WATER_LEVEL_KEY = `watlevmsl`;
 
-export { LAYER_NAMES, WATER_LEVEL_KEY };
+const SELECT_CHEMICAL_DIALOG_PREFIX = `watsonc-select-chemical-dialog`;
+
+const TEXT_FIELD_DIALOG_PREFIX = `watsonc-text-field-dialog`;
+
+export { LAYER_NAMES, WATER_LEVEL_KEY, SELECT_CHEMICAL_DIALOG_PREFIX, TEXT_FIELD_DIALOG_PREFIX };

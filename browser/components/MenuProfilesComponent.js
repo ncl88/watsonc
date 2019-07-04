@@ -5,6 +5,7 @@ import Slider from 'rc-slider';
 import { Provider } from 'react-redux';
 import { connect } from 'react-redux';
 
+import {SELECT_CHEMICAL_DIALOG_PREFIX} from './../constants';
 import TitleFieldComponent from './../../../../browser/modules/shared/TitleFieldComponent';
 import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
 
@@ -429,8 +430,7 @@ class MenuProfilesComponent extends React.Component {
                                 type="button"
                                 className="btn btn-primary btn-sm"
                                 onClick={() => {
-                                    const dialogPrefix = `watsonc-select-chemical-dialog`;
-                                    const selectChemicalModalPlaceholderId = `${dialogPrefix}-placeholder`;
+                                    const selectChemicalModalPlaceholderId = `${SELECT_CHEMICAL_DIALOG_PREFIX}-placeholder`;
 
                                     if ($(`#${selectChemicalModalPlaceholderId}`).children().length > 0) {
                                         ReactDOM.unmountComponentAtNode(document.getElementById(selectChemicalModalPlaceholderId));
@@ -442,9 +442,9 @@ class MenuProfilesComponent extends React.Component {
                                                 <ChemicalSelectorModal
                                                     useLocalSelectedChemical={true}
                                                     localSelectedChemical={this.state.selectedChemical}
-                                                    onClickControl={(selectroValue) => {
-                                                        this.setState({localSelectedChemical: selectroValue})
-                                                        $('#' + dialogPrefix).modal('hide');
+                                                    onClickControl={(selectorValue) => {
+                                                        this.setState({localSelectedChemical: selectorValue})
+                                                        $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal('hide');
                                                     }}/>
                                             </Provider>
                                         </div>, document.getElementById(selectChemicalModalPlaceholderId));
@@ -452,7 +452,7 @@ class MenuProfilesComponent extends React.Component {
                                         console.error(e);
                                     }
 
-                                    $('#' + dialogPrefix).modal({backdrop: `static`});
+                                    $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal({backdrop: `static`});
                                 }}><i className="fas fa-edit"></i></button>
                             </p>
                         </div>

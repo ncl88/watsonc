@@ -1,14 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Provider } from 'react-redux';
+import reduxStore from './../redux/store';
 
 import ReactTooltip from 'react-tooltip';
+import {SELECT_CHEMICAL_DIALOG_PREFIX, TEXT_FIELD_DIALOG_PREFIX} from './../constants';
 import PlotManager from './../PlotManager';
 import ProfileManager from './../ProfileManager';
+import TextFieldModal from './TextFieldModal';
 import SortablePlotComponent from './SortablePlotComponent';
 import SortableProfileComponent from './SortableProfileComponent';
 import SortablePlotsGridComponent from './SortablePlotsGridComponent';
 import { isNumber } from 'util';
 import arrayMove from 'array-move';
+
+const uuidv1 = require('uuid/v1');
 
 const VIEW_MATRIX = 0;
 const VIEW_ROW = 1;
@@ -49,7 +55,9 @@ class DashboardComponent extends React.Component {
             activePlots: [],
             activeProfiles: [],
             dataSource: [],
-            highlightedPlot: false
+            highlightedPlot: false,
+            createdProfileChemical: false,
+            createdProfileName: false,
         };
 
         this.plotManager = new PlotManager();
@@ -65,6 +73,7 @@ class DashboardComponent extends React.Component {
         this.handleHideProfile = this.handleHideProfile.bind(this);
         this.handleCreateProfile = this.handleCreateProfile.bind(this);
         this.handleDeleteProfile = this.handleDeleteProfile.bind(this);
+        this.handleChangeDatatypeProfile = this.handleChangeDatatypeProfile.bind(this);
 
         this.getFeatureByGidFromDataSource = this.getFeatureByGidFromDataSource.bind(this);
         this.handleNewPlotNameChange = this.handleNewPlotNameChange.bind(this);
@@ -130,6 +139,80 @@ class DashboardComponent extends React.Component {
             this.props.onProfilesChange(profilesCopy);
         }).catch(error => {
             console.error(`Error occured while creating profile (${error})`)
+        });
+    }
+
+    handleChangeDatatypeProfile(profileKey) {
+        let selectedProfile = false;
+        this.state.profiles.map(item => {
+            if (item.key === profileKey) {
+                selectedProfile = item;
+            }
+        });
+
+        if (selectedProfile === false) throw new Error(`Unable to find the profile with key ${profileKey}`);
+
+        this.setState({createdProfileChemical: false}, () => {
+            const abortDataTypeChange = () => {
+                this.setState({createdProfileChemical: false});
+                $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal('hide');
+            }
+
+            const uniqueKey = uuidv1();
+
+            try {
+                ReactDOM.render(<div key={`tmp_key_chemical_${uniqueKey}`}>
+                    <Provider store={reduxStore}>
+                        <ChemicalSelectorModal
+                            useLocalSelectedChemical={true}
+                            localSelectedChemical={this.state.selectedChemical}
+                            onClickControl={(selectorValue) => {
+                                this.setState({createdProfileChemical: selectorValue}, () => {
+                                    try {
+                                        ReactDOM.render(<div key={`tmp_key_text_${uniqueKey}`}>
+                                            <TextFieldModal
+                                                title={__(`Enter the name of created profile`)}
+                                                onClickControl={(title) => {
+                                                    jquery.snackbar({
+                                                        id: "snackbar-watsonc",
+                                                        content: "<span id='conflict-progress'>" + __("The profile with the new datatype is being created") + "</span>",
+                                                        htmlAllowed: true,
+                                                        timeout: 1000000
+                                                    });
+
+                                                    this.handleCreateProfile({
+                                                        title,
+                                                        profile: selectedProfile.value.profile,
+                                                        buffer: selectedProfile.value.buffer,
+                                                        depth: selectedProfile.value.depth,
+                                                        compound: this.state.createdProfileChemical,
+                                                        boreholeNames: selectedProfile.value.boreholeNames,
+                                                        layers: selectedProfile.value.layers,
+                                                    }, true, () => {
+                                                        this.setState({createdProfileChemical: false}, () => {
+                                                            jquery("#snackbar-watsonc").snackbar("hide");
+                                                        });
+                                                    });
+                                                }}
+                                                onCancelControl={abortDataTypeChange}/>
+                                        </div>, document.getElementById(`${TEXT_FIELD_DIALOG_PREFIX}-placeholder`));
+                                    } catch (e) {
+                                        console.error(e);
+                                    }
+
+                                    $('#' + TEXT_FIELD_DIALOG_PREFIX).modal({backdrop: `static`});
+                                });
+
+                                $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal('hide');
+                            }}
+                            onCancelControl={abortDataTypeChange}/>
+                    </Provider>
+                </div>, document.getElementById(`${SELECT_CHEMICAL_DIALOG_PREFIX}-placeholder`));
+            } catch (e) {
+                console.error(e);
+            }
+
+            $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal({backdrop: `static`});
         });
     }
 
@@ -540,6 +623,7 @@ class DashboardComponent extends React.Component {
                         key={`sortable_${index}`}
                         containerClass={containerClass}
                         index={index}
+                        handleChangeDatatype={this.handleChangeDatatypeProfile}
                         handleDelete={this.handleDeleteProfile}
                         meta={profile}/>);
                 }
