@@ -483,17 +483,19 @@ module.exports = module.exports = {
         });
 
         // Initializing data source and types selector
-        if ($(`#data-source-and-types-selector-content`).children().length === 0) {
-            try {
-                ReactDOM.render(<Provider store={reduxStore}>
-                    <MenuDataSourceAndTypeSelectorComponent
-                        onApply={_self.onApplyLayersAndChemical}
-                        layers={DATA_SOURCES}/>
-                </Provider>, document.getElementById(`data-source-and-types-selector-content`));
-            } catch (e) {
-                console.error(e);
+        $(`[data-module-id="data-source-and-types-selector"]`).click(() => {
+            if ($(`#data-source-and-types-selector-content`).children().length === 0) {
+                try {
+                    ReactDOM.render(<Provider store={reduxStore}>
+                        <MenuDataSourceAndTypeSelectorComponent
+                            onApply={_self.onApplyLayersAndChemical}
+                            layers={DATA_SOURCES}/>
+                    </Provider>, document.getElementById(`data-source-and-types-selector-content`));
+                } catch (e) {
+                    console.error(e);
+                }
             }
-        }
+        });
 
         // Initializing TimeSeries management component
         $(`[data-module-id="timeseries"]`).click(() => {

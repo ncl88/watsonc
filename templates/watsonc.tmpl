@@ -1412,8 +1412,9 @@
                     <div class="modal-body" id="module-container-body">
                         <!-- Tab panes -->
                         <div class="tab-content main-content">
+                            <div role="tabpanel" class="tab-pane fade" id="data-source-and-types-selector-content"></div>
+
                             <div role="tabpanel" class="tab-pane fade" id="state-snapshots-content">
-                                <div></div>
                                 <div class="form-group" id="state-snapshots" role="tablist"></div>
                             </div>
 
@@ -1441,15 +1442,21 @@
                     <!-- Nav tabs -->
                     <ul class="" role="tablist" id="main-tabs">
                         <li role="presentation">
-                            <div id="data-source-and-types-selector-content"></div>
+                            <a href="#data-source-and-types-selector-content" aria-controls="" data-module-id="data-source-and-types-selector" data-module-ignore-errors="true" role="tab" data-toggle="tab">
+                                <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{Data sources and -types}}" class="fas fa-database fas-material-adapt"></i>
+                                <span class="module-title">{{Data sources and -types}}</span>
+                            </a>
                         </li>
+
                         <li role="presentation">
                             <a href="#state-snapshots-content" aria-controls="" role="tab" data-toggle="tab">
                                 <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{Projects}}" class="material-icons">folder_open</i>
                                 <span class="module-title">{{Projects}}</span>
                             </a>
                         </li>
+
                         <hr/>
+
                         <li>
                             <a href="#timeseries-content" aria-controls="" role="tab" data-toggle="tab" data-module-id="timeseries" data-module-ignore-errors="true">
                                 <i data-container="body" data-toggle="tooltip" data-placement="left" title="{{Timeseries}}" class="fas fa-chart-bar fas-material-adapt"></i>
