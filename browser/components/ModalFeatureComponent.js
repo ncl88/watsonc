@@ -91,7 +91,7 @@ class ModalFeatureComponent extends React.Component {
                     throw new Error(`Unable to parse measurements data`);
                 }
     
-                let measurementData = evaluateMeasurement(json, this.props.limits, item.key);
+                let measurementData = evaluateMeasurement(json, this.props.limits, item.key, item.intakeIndex);
                 let icon = measurementIcon.generate(measurementData.maxColor, measurementData.latestColor);
 
                 let intakeName = `#` + (parseInt(item.intakeIndex) + 1);

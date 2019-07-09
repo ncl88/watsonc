@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-const evaluate = (json, limits, chem) => {
+const evaluate = (json, limits, chem, specificIntake = false) => {
     let maxMeasurement = 0;
     let maxMeasurementIntakes = [];
     let latestMeasurement = 0;
@@ -12,37 +12,57 @@ const evaluate = (json, limits, chem) => {
     let latestValue = moment("0001-01-01T00:00:00+00:00", "YYYY-MM-DDTHH:mm:ssZZ");
     let latestPosition = {};
 
-    for (let i = 0; i < intakes; i++) {
-        let length = json.timeOfMeasurement[i].length - 1;
-        currentValue = moment(json.timeOfMeasurement[i][length], "YYYY-MM-DDTHH:mm:ssZZ");
+    const generateLatestMeasurement = (intake) => {
+        let length = json.timeOfMeasurement[intake].length - 1;
+        currentValue = moment(json.timeOfMeasurement[intake][length], "YYYY-MM-DDTHH:mm:ssZZ");
+
+        // @todo Check the special symbol
         if (currentValue.isAfter(latestValue)) {
             latestValue = currentValue;
-            latestMeasurement = json.measurements[i][length];
+            latestMeasurement = json.measurements[intake][length];
             latestPosition = {
-                intake: i,
+                intake,
                 measurement: length
             }
         }
 
-        latestMeasurementIntakes[i] = json.measurements[i][length];
+        latestMeasurementIntakes[intake] = json.measurements[intake][length];
+    }
+
+    if (specificIntake !== false) {
+        generateLatestMeasurement(specificIntake);
+    } else {
+        for (let i = 0; i < intakes; i++) {
+            generateLatestMeasurement(i);
+        }
     }
 
     // Find Highest value
     let numberOfIntakes = json.measurements.length;
     maxMeasurement = 0;
     maxMeasurementIntakes = [];
-    
-    for (let i = 0; i < numberOfIntakes; i++) {
-        maxMeasurementIntakes[i] = 0;
-        let length = json.measurements[i].length;
+
+    const generateMaxMeasurement = (intake) => {
+        maxMeasurementIntakes[intake] = 0;
+        let length = json.measurements[intake].length;
         for (let u = 0; u < length; u++) {
-            currentValue = json.measurements[i][u];
-            if (!(latestPosition.intake === i && latestPosition.measurement === u) && currentValue > maxMeasurement) {
+            currentValue = json.measurements[intake][u];
+            if (!(latestPosition.intake === intake && latestPosition.measurement === u) && currentValue > maxMeasurement) {
                 maxMeasurement = currentValue;
             }
-            if (currentValue > maxMeasurementIntakes[i]) {
-                maxMeasurementIntakes[i] = currentValue;
+
+            // @todo Check the special symbol
+            if (currentValue > maxMeasurementIntakes[intake]) {
+                maxMeasurementIntakes[intake] = currentValue;
             }
+        }
+    }
+
+    if (specificIntake !== false) {
+        generateMaxMeasurement(specificIntake);
+    } else {
+        for (let i = 0; i < numberOfIntakes; i++) {
+            generateMaxMeasurement(i);
         }
     }
 
