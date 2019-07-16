@@ -1,4 +1,6 @@
 module.exports = {
+    // Python 3 command
+    pythonCommand: 'python3',
     // Location of the Python scripts
     intersectionsScriptPath: '/root/vidi/ProfileTool/intersectiontool.py',
     profileScriptPath: '/root/vidi/ProfileTool/profiletool.py',

@@ -84,7 +84,7 @@ router.post('/api/extension/watsonc/intersection', function (req, res) {
                 Profile_depth: parseInt(req.body.profileDepth)
             };
 
-            const pythonProcess = spawn('python3.6', [moduleConfig.intersectionsScriptPath, JSON.stringify(inputJSON)]);
+            const pythonProcess = spawn(moduleConfig.pythonCommand, [moduleConfig.intersectionsScriptPath, JSON.stringify(inputJSON)]);
             pythonProcess.stdout.on('data', (data) => {
                 let parsedData = data.toString();
                 let error = false;
@@ -151,7 +151,7 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
     });
 
     let result = '';
-    const pythonProcess = spawn('python3.6', [moduleConfig.profileScriptPath, '"' + JSON.stringify(inputJSON).replace(/"/g, '\'') + '"'], {
+    const pythonProcess = spawn(moduleConfig.pythonCommand, [moduleConfig.profileScriptPath, '"' + JSON.stringify(inputJSON).replace(/"/g, '\'') + '"'], {
         cwd: require('path').dirname(moduleConfig.profileScriptPath),
         shell: true
     });
