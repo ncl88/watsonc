@@ -137,6 +137,8 @@ module.exports = module.exports = {
             drawCircle: false
         }).addTo(cloud.get().map);
 
+        $(`#search-border`).trigger(`click`);
+
         $(`#find-me-btn`).click(() => {
             lc.stop();
             lc.start();
@@ -896,9 +898,9 @@ module.exports = module.exports = {
 
                         let html = [];
                         for (let i = 0; i < measurementData.numberOfIntakes; i++) {
-                            html.push(`<b style="color: rgb(16, 174, 140)">Intag: ${i + 1}</b><br>
-                            Max: ${measurementData.maxMeasurementIntakes[i]}<br>
-                            Seneste: ${measurementData.latestMeasurementIntakes[i]}<br>`);
+                            html.push(`<b style="color: rgb(16, 174, 140)">${__(`Intake`)}: ${i + 1}</b><br>
+                            ${__(`Max`)}: ${measurementData.maxMeasurementIntakes[i] === false ? __(`n.d.`) : measurementData.maxMeasurementIntakes[i]}<br>
+                            ${__(`Latest`)}: ${measurementData.latestMeasurementIntakes[i] === false ? __(`n.d.`) : measurementData.latestMeasurementIntakes[i]}<br>`);
                         }
 
                         layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
