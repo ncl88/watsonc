@@ -4,6 +4,7 @@ import axios from 'axios';
 import moment from 'moment';
 import Plot from 'react-plotly.js';
 
+import {LIMIT_CHAR} from '../constants';
 import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
 import SortableHandleComponent from './SortableHandleComponent';
 
@@ -95,6 +96,7 @@ class MenuPanelPlotComponent extends React.Component {
                     let measurementData = JSON.parse(feature.properties[key]);
                     if (Array.isArray(measurementData.measurements) === false) {
                         measurementData.measurements = JSON.parse(measurementData.measurements);
+                        measurementData.attributes = (measurementData.attributes ? JSON.parse(measurementData.attributes) : false);
                     }
 
                     let localMinTime = measurementData.timeOfMeasurement[intakeIndex][0];
@@ -116,7 +118,7 @@ class MenuPanelPlotComponent extends React.Component {
                     }
 
                     data.push({
-                        name: (`DGU ${feature.properties.boreholeno} - ${measurementData.title} (${measurementData.unit}${createdAt ? `, ` + __(`updated at`) + ` ` + moment(createdAt).format(`D MMM YYYY`) : ``})`),
+                        name: (`DGU ${feature.properties.boreholeno} (${measurementData.intakes ? measurementData.intakes[intakeIndex] : (intakeIndex + 1)}) - ${measurementData.title} (${measurementData.unit}${createdAt ? `, ` + __(`updated at`) + ` ` + moment(createdAt).format(`D MMM YYYY`) : ``})`),
                         x: measurementData.timeOfMeasurement[intakeIndex],
                         y: measurementData.measurements[intakeIndex],
                         type: 'scattergl',
@@ -125,6 +127,37 @@ class MenuPanelPlotComponent extends React.Component {
                             color: colors[index]
                         }
                     });
+
+                    if (measurementData.attributes && Array.isArray(measurementData.attributes[intakeIndex]) && measurementData.attributes[intakeIndex].length > 0) {
+                        let xValues = [];
+                        let yValues = [];
+
+                        measurementData.attributes[intakeIndex].map((item, index) => {
+                            if (item === LIMIT_CHAR) {
+                                xValues.push(measurementData.timeOfMeasurement[intakeIndex][index]);
+                                yValues.push(measurementData.measurements[intakeIndex][index]);
+                            }
+                        });
+
+                        if (xValues.length > 0) {
+                            data.push({
+                                x: xValues,
+                                y: yValues,
+                                type: 'scattergl',
+                                mode: 'markers',
+                                showlegend: false,
+                                hoverinfo: 'none',
+                                marker: {
+                                    color: 'rgba(17, 157, 255, 0)',
+                                    size: 20,
+                                    line: {
+                                        color: 'rgb(231, 0, 0)',
+                                        width: 3
+                                    }
+                                },
+                            });
+                        }
+                    }
                 } else {
                     console.error(`Plot does not contain measurement ${measurementLocationRaw}`);
                 }

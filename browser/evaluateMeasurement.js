@@ -1,6 +1,5 @@
 import moment from 'moment';
-
-const LIMIT_CHAR = `<`;
+import {LIMIT_CHAR} from './constants';
 
 const evaluate = (json, limits, chem, specificIntake = false) => {
     let maxMeasurement = 0;
