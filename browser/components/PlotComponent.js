@@ -117,25 +117,18 @@ class MenuPanelPlotComponent extends React.Component {
                         }
                     }
 
-                    data.push({
-                        name: (`DGU ${feature.properties.boreholeno} (${measurementData.intakes ? measurementData.intakes[intakeIndex] : (intakeIndex + 1)}) - ${measurementData.title} (${measurementData.unit}${createdAt ? `, ` + __(`updated at`) + ` ` + moment(createdAt).format(`D MMM YYYY`) : ``})`),
-                        x: measurementData.timeOfMeasurement[intakeIndex],
-                        y: measurementData.measurements[intakeIndex],
-                        type: 'scattergl',
-                        mode: 'lines+markers',
-                        marker: {
-                            color: colors[index]
-                        }
-                    });
 
+                    let textValues = [];
                     if (measurementData.attributes && Array.isArray(measurementData.attributes[intakeIndex]) && measurementData.attributes[intakeIndex].length > 0) {
-                        let xValues = [];
-                        let yValues = [];
+                        let xValues = [], yValues = [];
 
                         measurementData.attributes[intakeIndex].map((item, index) => {
                             if (item === LIMIT_CHAR) {
                                 xValues.push(measurementData.timeOfMeasurement[intakeIndex][index]);
                                 yValues.push(measurementData.measurements[intakeIndex][index]);
+                                textValues.push(measurementData.measurements[intakeIndex][index] + ' ' + LIMIT_CHAR);
+                            } else {
+                                textValues.push(measurementData.measurements[intakeIndex][index]);
                             }
                         });
 
@@ -145,8 +138,8 @@ class MenuPanelPlotComponent extends React.Component {
                                 y: yValues,
                                 type: 'scattergl',
                                 mode: 'markers',
-                                showlegend: false,
                                 hoverinfo: 'none',
+                                showlegend: false,
                                 marker: {
                                     color: 'rgba(17, 157, 255, 0)',
                                     size: 20,
@@ -158,6 +151,21 @@ class MenuPanelPlotComponent extends React.Component {
                             });
                         }
                     }
+
+                    let plotData = {
+                        name: (`DGU ${feature.properties.boreholeno} (${measurementData.intakes ? measurementData.intakes[intakeIndex] : (intakeIndex + 1)}) - ${measurementData.title} (${measurementData.unit}${createdAt ? `, ` + __(`updated at`) + ` ` + moment(createdAt).format(`D MMM YYYY`) : ``})`),
+                        x: measurementData.timeOfMeasurement[intakeIndex],
+                        y: measurementData.measurements[intakeIndex],
+                        type: 'scattergl',
+                        mode: 'lines+markers',
+                        hoverinfo: 'text',
+                        marker: {
+                            color: colors[index]
+                        }
+                    };
+
+                    if (textValues.length > 0) plotData.hovertext = textValues;
+                    data.push(plotData);
                 } else {
                     console.error(`Plot does not contain measurement ${measurementLocationRaw}`);
                 }
