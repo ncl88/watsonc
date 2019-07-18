@@ -188,20 +188,8 @@ module.exports = module.exports = {
                 }, 200);
 
                 if (lastEnabledMapState.layers.length > 0) {
-                    if (lastEnabledMapState.chemical) {
-                        _self.enableChemical(lastEnabledMapState.chemical, lastEnabledMapState.layers, () => {
-                            lastEnabledMapState.layers = [];
-                            lastEnabledMapState.chemical = false;
-                        });
-                    } else {
-                        lastEnabledMapState.layers.map(item => {
-                            if (item.indexOf(`v:`) === 0) {
-                                switchLayer.init(item, true, true, false);
-                            }
-                        });
-    
-                        lastEnabledMapState.layers = [];
-                    }
+                    _self.onApplyLayersAndChemical(lastEnabledMapState);
+                    lastEnabledMapState.layers = [];
                 }
             }
 
