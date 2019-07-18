@@ -25,7 +25,7 @@ const DASHBOARD_ITEM_PROFILE = 1;
 const DISPLAY_MIN = 0;
 const DISPLAY_HALF = 1;
 const DISPLAY_MAX = 2;
-let currentDisplay = DISPLAY_MIN, previousDisplay = DISPLAY_HALF;
+let currentDisplay = DISPLAY_HALF, previousDisplay = DISPLAY_MAX;
 
 let modalHeaderHeight = 70;
 
@@ -95,6 +95,10 @@ class DashboardComponent extends React.Component {
                 dashboardItems: dashboardItemsCopy
             });
         });
+    }
+
+    componentDidMount() {
+        this.nextDisplayType();
     }
 
     dehydratePlots(plots) { return this.plotManager.dehydratePlots(plots); }
@@ -579,6 +583,10 @@ class DashboardComponent extends React.Component {
         }, 500, function () {
             $(PLOTS_ID).find('.modal-body').css(`max-height`, );
         });
+
+        $('.js-expand-less').hide();
+        $('.js-expand-half').show();
+        $('.js-expand-more').show();
     }
 
     onSetHalf() {
@@ -587,6 +595,10 @@ class DashboardComponent extends React.Component {
         }, 500, function () {
             $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.4 - modalHeaderHeight - 10) + 'px');
         });
+
+        $('.js-expand-less').show();
+        $('.js-expand-half').hide();
+        $('.js-expand-more').show();
     }
 
     onSetMax() {
@@ -595,6 +607,32 @@ class DashboardComponent extends React.Component {
         }, 500, function () {
             $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.8 - modalHeaderHeight - 10) + 'px');
         });
+
+        $('.js-expand-less').show();
+        $('.js-expand-half').show();
+        $('.js-expand-more').hide();
+    }
+
+    nextDisplayType() {
+        if (currentDisplay === DISPLAY_MIN) {
+            this.onSetHalf();
+            currentDisplay = DISPLAY_HALF;
+            previousDisplay = DISPLAY_MIN;
+        } else if (currentDisplay === DISPLAY_HALF) {
+            if (previousDisplay === DISPLAY_MIN) {
+                this.onSetMax();
+                currentDisplay = DISPLAY_MAX;
+            } else {
+                this.onSetMin();
+                currentDisplay = DISPLAY_MIN;
+            }
+
+            previousDisplay = DISPLAY_HALF;
+        } else if (currentDisplay === DISPLAY_MAX) {
+            this.onSetHalf();
+            currentDisplay = DISPLAY_HALF;
+            previousDisplay = DISPLAY_MAX;
+        }
     }
 
     render() {
@@ -636,26 +674,22 @@ class DashboardComponent extends React.Component {
             plotsControls = (<SortablePlotsGridComponent axis="xy" onSortEnd={this.handlePlotSort} useDragHandle>{localPlotsControls}</SortablePlotsGridComponent>);
         }
 
-        const nextDisplayType = () => {
-            if (currentDisplay === DISPLAY_MIN) {
-                this.onSetHalf();
-                currentDisplay = DISPLAY_HALF;
-                previousDisplay = DISPLAY_MIN;
-            } else if (currentDisplay === DISPLAY_HALF) {
-                if (previousDisplay === DISPLAY_MIN) {
-                    this.onSetMax();
-                    currentDisplay = DISPLAY_MAX;
-                } else {
-                    this.onSetMin();
-                    currentDisplay = DISPLAY_MIN;
-                }
+        const setNoExpanded = () => {
+            currentDisplay = DISPLAY_HALF;
+            previousDisplay = DISPLAY_MAX;
+            this.nextDisplayType();
+        };
 
-                previousDisplay = DISPLAY_HALF;
-            } else if (currentDisplay === DISPLAY_MAX) {
-                this.onSetHalf();
-                currentDisplay = DISPLAY_HALF;
-                previousDisplay = DISPLAY_MAX;
-            }
+        const setHalfExpanded = () => {
+            currentDisplay = DISPLAY_MIN;
+            previousDisplay = DISPLAY_HALF;
+            this.nextDisplayType();
+        };
+
+        const setFullExpanded = () => {
+            currentDisplay = DISPLAY_HALF;
+            previousDisplay = DISPLAY_MIN;
+            this.nextDisplayType();
         };
 
         return (<div>
@@ -663,18 +697,31 @@ class DashboardComponent extends React.Component {
                 <ReactTooltip/>
                 <div className="modal-header-content">
                     <div style={{height: `40px`, display: `flex`}}>
+                        <div style={{paddingRight: `20px`}}>
+                            <div>
+                                <button type="button" className="close js-expand-more expand-more" aria-hidden="true" onClick={setFullExpanded}>
+                                    <i className="material-icons">expand_less</i>
+                                </button>
+                                <button type="button" className="close js-expand-half expand-half" aria-hidden="true" onClick={setHalfExpanded}>
+                                    <i className="material-icons">swap_vert</i>
+                                </button>
+                                <button type="button" className="close js-expand-less expand-less" aria-hidden="true" onClick={setNoExpanded}>
+                                    <i className="material-icons">expand_more</i>
+                                </button>
+                            </div>
+                        </div>
                         <div
                             style={{cursor: `pointer`}}
                             data-delay-show="500"
                             data-tip={__(`Click on the modal header to expand or minify the Dashboard`)}
-                            onClick={nextDisplayType} >
+                            onClick={this.nextDisplayType.bind(this)} >
                             {__(`Calypso dashboard`)}
                         </div>
                         <div
                             style={{paddingLeft: `10px`, cursor: `pointer`}}
                             data-delay-show="500"
                             data-tip={__(`Click on the modal header to expand or minify the Dashboard`)}
-                            onClick={nextDisplayType}>
+                            onClick={this.nextDisplayType.bind(this)}>
                             <p className="text-muted" style={{margin: `0px`}}>
                                 ({__(`Timeseries total`).toLowerCase()}: {this.state.plots.length}, {__(`timeseries active`)}: {this.state.activePlots.length}; {__(`Profiles total`).toLowerCase()}: {this.state.profiles.length}, {__(`profiles active`)}: {this.state.activeProfiles.length})
                             </p>
