@@ -125,6 +125,7 @@ module.exports = module.exports = {
         _self = this;
         return this;
     },
+
     init: function () {
         state.listenTo(MODULE_NAME, _self);
         state.listen(MODULE_NAME, `plotsUpdate`);
@@ -132,6 +133,20 @@ module.exports = module.exports = {
         state.listen(MODULE_NAME, `enabledLoctypeIdsChange`);
 
         this.initializeSearchBar();
+
+        $('#watsonc-plots-dialog-form').click(function () {
+            $('#watsonc-plots-dialog-form').css('z-index', '100000');
+            $('#watsonc-features-dialog').css('z-index', '100');
+            $('#search-ribbon').css('z-index', '-1');
+        });
+
+        $('#watsonc-features-dialog').click(function () {
+            _self.bringFeaturesDialogToFront();
+        });
+
+        $('#search-ribbon').click(function () {
+            $('#search-ribbon').css('z-index', '10');
+        });
 
         var lc = L.control.locate({
             drawCircle: false
@@ -536,6 +551,12 @@ module.exports = module.exports = {
         $(`#search-border`).trigger(`click`);
     },
 
+    bringFeaturesDialogToFront() {
+        $('#watsonc-plots-dialog-form').css('z-index', '100');
+        $('#watsonc-features-dialog').css('z-index', '100000');
+        $('#search-ribbon').css('z-index', '-1');
+    },
+
     initializeSearchBar() {
         let searchBar = $(`#js-watsonc-search-field`);
         $(searchBar).parent().attr(`style`, `padding-top: 8px;`);
@@ -756,6 +777,8 @@ module.exports = module.exports = {
                 console.warn(`Unable to find the container for borehole component (element id: ${FORM_FEATURE_CONTAINER_ID})`);
             }
         }
+
+        _self.bringFeaturesDialogToFront();
     },
 
     /**
