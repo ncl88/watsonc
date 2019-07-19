@@ -74,11 +74,6 @@ let dataSource = [];
 let boreholesDataSource = [];
 let waterLevelDataSource = [];
 
-let lastEnabledMapState = {
-    layers: [],
-    chemical: false
-};
-
 let previousZoom = -1;
 
 let store;
@@ -183,10 +178,6 @@ module.exports = module.exports = {
         });
 
         cloud.get().on(`moveend`, () => {
-            if (previousZoom === -1 && cloud.get().getZoom() < 15 || previousZoom >= 15 && cloud.get().getZoom() < 15) {
-                lastEnabledMapState.layers = layerTree.getActiveLayers();
-            }
-
             if (cloud.get().getZoom() < 15) {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
                 switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
@@ -202,9 +193,14 @@ module.exports = module.exports = {
                     jquery("#snackbar-watsonc").snackbar("hide");
                 }, 200);
 
-                if (lastEnabledMapState.layers.length > 0) {
-                    _self.onApplyLayersAndChemical(lastEnabledMapState);
-                    lastEnabledMapState.layers = [];
+                // If user just zoomed in the proper zoom, enable current state layers
+                if (previousZoom === 14 || (previousZoom === -1 && cloud.get().getZoom() === 15)) {
+                    if (reduxStore.getState().global && reduxStore.getState().global.selectedLayers) {
+                        _self.onApplyLayersAndChemical({
+                            layers: reduxStore.getState().global.selectedLayers,
+                            chemical: reduxStore.getState().global.selectedChemical
+                        });
+                    }
                 }
             }
 
@@ -612,9 +608,7 @@ module.exports = module.exports = {
             switchLayer.init(layerNameToEnable, false);
         });
 
-        if (cloud.get().getZoom() < 15) {
-            lastEnabledMapState = parameters;
-        } else {
+        if (cloud.get().getZoom() >= 15) {
             let filteredLayers = [];
             enabledLoctypeIds = [];
             parameters.layers.map(layerName => {
