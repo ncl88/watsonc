@@ -933,8 +933,13 @@ module.exports = module.exports = {
 
                     zIndexOffset = 10000;
                 } else {
-                    maxColor = latestColor = "#cccccc";
-                    zIndexOffset = 1;
+                    if (storeId === LAYER_NAMES[2]) {
+                        maxColor = latestColor = "#1380c4";
+                        zIndexOffset = 10;
+                    } else {
+                        maxColor = latestColor = "#cccccc";
+                        zIndexOffset = 100;
+                    }
                 }
 
                 let highlighted = (participatingIds.indexOf(feature.properties.gid) > -1);
