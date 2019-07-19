@@ -371,9 +371,19 @@ module.exports = module.exports = {
                         }
 
                         if (renderIcon) {
+                            let participatingIds = [];
+                            if (dashboardComponentInstance) {
+                                let plots = dashboardComponentInstance.getPlots();
+                                plots.map(plot => {
+                                    participatingIds = participatingIds.concat(_self.participatingIds(plot));
+                                });
+                            }
+
+                            let highlighted = (participatingIds.indexOf(feature.properties.gid) > -1);
                             let localSvgCirclePart = symbolizer.getSymbol(layerName, {
                                 online: feature.properties.status,
                                 shape: feature.properties.loctypeid,
+                                highlighted
                             });
 
                             let icon = L.icon({
@@ -426,6 +436,8 @@ module.exports = module.exports = {
                         onPlotsChange={(plots = false) => {
                             backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
                             if (plots) {
+                                _self.setStyleForPlots(plots);
+
                                 if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setPlots(plots);
                                 // Plots were updated from the DashboardComponent component
                                 if (modalComponentInstance) _self.createModal(false, plots);
@@ -789,60 +801,160 @@ module.exports = module.exports = {
             let participatingIds = [];
             plots.map(plot => {
                 if (plot.id === plotId) {
-                    plot.measurements.map(measurement => {
-                        let splitMeasurement = measurement.split(`:`);
-                        if (splitMeasurement.length === 3) {
-                            let id = parseInt(splitMeasurement[0]);
-                            if (participatingIds.indexOf(id) === -1) participatingIds.push(id);
-                        }
-                    });
+                    let localParticipatingIds = _self.participatingIds(plot);
+                    participatingIds = participatingIds.concat(localParticipatingIds);
                 }
             });
 
-            let mapLayers = layers.getMapLayers();
-            mapLayers.map(layer => {
-                if ([LAYER_NAMES[0], LAYER_NAMES[2]].indexOf(layer.id) > -1 && layer._layers) {
-                    for (let key in layer._layers) {
-                        let featureLayer = layer._layers[key];
-                        if (featureLayer.feature && featureLayer.feature.properties && featureLayer.feature.properties.gid) {
-                            let icon = false;
-                            if (participatingIds.indexOf(featureLayer.feature.properties.gid) > -1) {
-                                icon = L.icon({
-                                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(layer.id, {
-                                        online: featureLayer.feature.properties.status,
-                                        shape: featureLayer.feature.properties.loctypeid,
-                                        highlighted: true
-                                    })),
-                                    iconAnchor: [8, 33],
-                                    watsoncStatus: `highlighted`
-                                });
-                            } else {
-                                icon = L.icon({
-                                    iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(layer.id, {
-                                        online: featureLayer.feature.properties.status,
-                                        shape: featureLayer.feature.properties.loctypeid,
-                                        highlighted: false
-                                    })),
-                                    iconAnchor: [8, 33],
-                                    watsoncStatus: `default`
-                                });
-                            }
+            _self.highlightFeatures(participatingIds);
+        }
+    },
 
-                            if (icon && `setIcon` in featureLayer) {
-                                // Do not set icon if the existing one is the same as the new one
-                                let statusOfExistingIcon = (`watsoncStatus` in featureLayer.options.icon.options ? featureLayer.options.icon.options.watsoncStatus : false);
-                                let statusOfNewIcon = icon.options.watsoncStatus;
-                                if (statusOfExistingIcon === false) {
+    participatingIds(plot) {
+        let participatingIds = [];
+        plot.measurements.map(measurement => {
+            let splitMeasurement = measurement.split(`:`);
+            if (splitMeasurement.length === 3) {
+                let id = parseInt(splitMeasurement[0]);
+                if (participatingIds.indexOf(id) === -1) participatingIds.push(id);
+            }
+        });
+
+        return participatingIds;
+    },
+
+    /**
+     * Sets style for all plots
+     * 
+     * @param {Array} plots Existing plots
+     * 
+     * @return {void}
+     */
+    setStyleForPlots: (plots) => {
+        // If specific chemical is activated, then do not style
+        if (lastSelectedChemical === false) {
+            let participatingIds = [];
+            plots.map(plot => {
+                let localParticipatingIds = _self.participatingIds(plot);
+                participatingIds = participatingIds.concat(localParticipatingIds)
+            });
+
+            _self.highlightFeatures(participatingIds);
+        } else {
+            let activeLayers = layerTree.getActiveLayers();
+            activeLayers.map(activeLayerKey => {
+                _self.displayChemicalSymbols(activeLayerKey);
+            });
+        }
+    },
+
+    highlightFeatures(participatingIds) {
+        let mapLayers = layers.getMapLayers();
+        mapLayers.map(layer => {
+            if ([LAYER_NAMES[0], LAYER_NAMES[2]].indexOf(layer.id) > -1 && layer._layers) {
+                for (let key in layer._layers) {
+                    let featureLayer = layer._layers[key];
+                    if (featureLayer.feature && featureLayer.feature.properties && featureLayer.feature.properties.gid) {
+                        let icon = L.icon({
+                            iconUrl: 'data:image/svg+xml;base64,' + btoa(getSymbol(layer.id, {
+                                online: featureLayer.feature.properties.status,
+                                shape: featureLayer.feature.properties.loctypeid,
+                                highlighted: (participatingIds.indexOf(featureLayer.feature.properties.gid) > -1)
+                            })),
+                            iconAnchor: [8, 33],
+                            watsoncStatus: participatingIds.indexOf(featureLayer.feature.properties.gid) > -1 ? `highlighted` : `default`
+                        });
+
+                        if (icon && `setIcon` in featureLayer) {
+                            // Do not set icon if the existing one is the same as the new one
+                            let statusOfExistingIcon = (`watsoncStatus` in featureLayer.options.icon.options ? featureLayer.options.icon.options.watsoncStatus : false);
+                            let statusOfNewIcon = icon.options.watsoncStatus;
+                            if (statusOfExistingIcon === false) {
+                                featureLayer.setIcon(icon);
+                            } else {
+                                if (statusOfExistingIcon !== statusOfNewIcon) {
                                     featureLayer.setIcon(icon);
-                                } else {
-                                    if (statusOfExistingIcon !== statusOfNewIcon) {
-                                        featureLayer.setIcon(icon);
-                                    }
                                 }
                             }
                         }
                     }
                 }
+            }
+        });
+    },
+
+    displayChemicalSymbols(storeId) {
+        let stores = layerTree.getStores();
+        let participatingIds = [];
+        if (dashboardComponentInstance) {
+            let plots = dashboardComponentInstance.getPlots();
+            plots.map(plot => {
+                participatingIds = participatingIds.concat(_self.participatingIds(plot));
+            });
+        }
+
+        let chem = "_" + lastSelectedChemical;
+        if (stores[storeId]) {
+            stores[storeId].layer.eachLayer(function (layer) {
+                let feature = layer.feature;
+
+                let maxColor;
+                let latestColor;
+                let zIndexOffset;
+
+                let featureData = false;
+                if (chem in feature.properties) {
+                    featureData = feature.properties[chem];
+                } else if (lastSelectedChemical in feature.properties) {
+                    featureData = feature.properties[lastSelectedChemical];
+                }
+
+                let json;
+                try {
+                    json = JSON.parse(featureData);
+                } catch (e) {
+                    return L.circleMarker(layer.getLatLng());
+                }
+
+                if (featureData !== null && json) {
+                    let measurementData = evaluateMeasurement(json, limits, chem);
+                    maxColor = measurementData.maxColor;
+                    latestColor = measurementData.latestColor;
+
+                    let html = [];
+                    for (let i = 0; i < measurementData.numberOfIntakes; i++) {
+                        html.push(`<b style="color: rgb(16, 174, 140)">${__(`Intake`)}: ${i + 1}</b><br>
+                        ${__(`Max`)}: ${measurementData.maxMeasurementIntakes[i] === false ? __(`n.d.`) : measurementData.maxMeasurementIntakes[i]}<br>
+                        ${__(`Latest`)}: ${measurementData.latestMeasurementIntakes[i] === false ? __(`n.d.`) : measurementData.latestMeasurementIntakes[i]}<br>`);
+                    }
+
+                    layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
+                    <b style="color: rgb(16, 174, 140)">${names[lastSelectedChemical]} (${json.unit})</b><br>${html.join('<br>')}`);
+
+                    zIndexOffset = 10000;
+                } else {
+                    maxColor = latestColor = "#cccccc";
+                    zIndexOffset = 1;
+                }
+
+                let highlighted = (participatingIds.indexOf(feature.properties.gid) > -1);
+                let localSvg = symbolizer.getSymbol(stores[storeId].layer.id, {
+                    online: feature.properties.status,
+                    shape: feature.properties.loctypeid,
+                    leftPartColor: maxColor,
+                    rightPartColor: latestColor,
+                    highlighted
+                });
+
+                let icon = L.icon({
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(localSvg),
+                    iconAnchor: [8, 33],
+                    popupAnchor: [15, 15],
+                    watsoncStatus: `default`
+                });
+
+                layer.setIcon(icon);
+                layer.setZIndexOffset(zIndexOffset);
             });
         }
     },
@@ -870,75 +982,14 @@ module.exports = module.exports = {
 
         lastSelectedChemical = chemicalId;
         backboneEvents.get().trigger(`${MODULE_NAME}:chemicalChange`);
-
-        let chem = "_" + chemicalId;
-        let fn = function (store) {
+        let onLoadCallback = function (store) {
             if (layersToEnable.indexOf(store.id) > -1) {
-                let stores = layerTree.getStores();
-                stores[store.id].layer.eachLayer(function (layer) {
-                    let feature = layer.feature;
-
-                    let maxColor;
-                    let latestColor;
-                    let zIndexOffset;
-
-                    let featureData = false;
-                    if (chem in feature.properties) {
-                        featureData = feature.properties[chem];
-                    } else if (chemicalId in feature.properties) {
-                        featureData = feature.properties[chemicalId];
-                    }
-
-                    let json;
-                    try {
-                        json = JSON.parse(featureData);
-                    } catch (e) {
-                        return L.circleMarker(layer.getLatLng());
-                    }
-
-                    if (featureData !== null && json) {
-                        let measurementData = evaluateMeasurement(json, limits, chem);
-                        maxColor = measurementData.maxColor;
-                        latestColor = measurementData.latestColor;
-
-                        let html = [];
-                        for (let i = 0; i < measurementData.numberOfIntakes; i++) {
-                            html.push(`<b style="color: rgb(16, 174, 140)">${__(`Intake`)}: ${i + 1}</b><br>
-                            ${__(`Max`)}: ${measurementData.maxMeasurementIntakes[i] === false ? __(`n.d.`) : measurementData.maxMeasurementIntakes[i]}<br>
-                            ${__(`Latest`)}: ${measurementData.latestMeasurementIntakes[i] === false ? __(`n.d.`) : measurementData.latestMeasurementIntakes[i]}<br>`);
-                        }
-
-                        layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
-                        <b style="color: rgb(16, 174, 140)">${names[chemicalId]} (${json.unit})</b><br>${html.join('<br>')}`);
-
-                        zIndexOffset = 10000;
-                    } else {
-                        maxColor = latestColor = "#cccccc";
-                        zIndexOffset = 1;
-                    }
-
-                    let localSvg = symbolizer.getSymbol(stores[store.id].layer.id, {
-                        online: feature.properties.status,
-                        shape: feature.properties.loctypeid,
-                        leftPartColor: maxColor,
-                        rightPartColor: latestColor
-                    });
-
-                    let icon = L.icon({
-                        iconUrl: 'data:image/svg+xml;base64,' + btoa(localSvg),
-                        iconAnchor: [8, 33],
-                        popupAnchor: [15, 15],
-                        watsoncStatus: `default`
-                    });
-
-                    layer.setIcon(icon);
-                    layer.setZIndexOffset(zIndexOffset);
-                });
+                _self.displayChemicalSymbols(store.id);
             }
         };
 
-        layerTree.setOnLoad(LAYER_NAMES[0], fn, "watsonc");
-        layerTree.setOnLoad(LAYER_NAMES[2], fn, "watsonc");
+        layerTree.setOnLoad(LAYER_NAMES[0], onLoadCallback, "watsonc");
+        layerTree.setOnLoad(LAYER_NAMES[2], onLoadCallback, "watsonc");
 
         layersToEnable.map(layerName => {
             layerTree.reloadLayer(layerName);
