@@ -8,11 +8,15 @@ import ProfileComponent from './ProfileComponent';
  * Wrapper for making a Profile component sortable inside of Plots&Profiles grid
  */
 const SortableProfileComponent = (props) => {
-    return (<li className={props.containerClass ? props.containerClass : `list-group-item col-sm-12 col-md-12 col-lg-6`} style={{minHeight: `520px`}}>
+    return (<li className={props.containerClass ? props.containerClass : `list-group-item col-sm-12 col-md-12 col-lg-6`} style={{
+        height: `${props.height}px`,
+        padding: `0px 16px 0px 16px`
+    }}>
         <div>
             <ProfileComponent
                 onDelete={(id) => { props.handleDelete(id)}}
                 onClick={props.handleClick}
+                height={props.height}
                 onChangeDatatype={(id) => { props.handleChangeDatatype(id)}}
                 plotMeta={props.meta}/>
         </div>

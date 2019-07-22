@@ -117,7 +117,6 @@ class MenuPanelPlotComponent extends React.Component {
                         }
                     }
 
-
                     let textValues = [];
                     if (measurementData.attributes && Array.isArray(measurementData.attributes[intakeIndex]) && measurementData.attributes[intakeIndex].length > 0) {
                         let xValues = [], yValues = [];
@@ -195,12 +194,11 @@ class MenuPanelPlotComponent extends React.Component {
                 autosize: true
             };
 
-            plot = (<div style={{ paddingBottom: `20px` }}>
-                <div style={{ border: `1px solid lightgray`, paddingBottom: `20px` }}>
-                    <Plot data={data} useResizeHandler={true} layout={layout} style={{width: "100%", height: "100%"}}/>
-                </div>
-                <div>{legend}</div>
-            </div>);
+            plot = (<Plot
+                data={data}
+                useResizeHandler={true}
+                layout={layout}
+                style={{width: "100%", height: `${this.props.height - 60}px`}}/>);
         }
 
         return (<div style={{maxHeight: ($(document).height() * 0.4 + 40) + 'px'}}>
@@ -228,7 +226,7 @@ class MenuPanelPlotComponent extends React.Component {
                         <i className="fa fa-remove"></i> {__(`Delete`)}</a> 
                 </div>
             </div>
-            <div>{plot}</div>
+            <div style={{height: `${this.props.height - 50}px`, border: `1px solid lightgray`}}>{plot}</div>
         </div>);
     }
 }

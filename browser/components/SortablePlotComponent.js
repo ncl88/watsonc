@@ -8,9 +8,15 @@ import PlotComponent from './PlotComponent';
  * Wrapper for making a Plot component sortable inside of Plots grid
  */
 const SortablePlotComponent = (props) => {
-    return (<li className={props.containerClass ? props.containerClass : `list-group-item col-sm-12 col-md-12 col-lg-6`} style={{minHeight: `520px`}}>
+    return (<li className={props.containerClass ? props.containerClass : `list-group-item col-sm-12 col-md-12 col-lg-6`} style={{
+        height: `${props.height}px`,
+        padding: `0px 16px 0px 16px`
+    }}>
         <div>
-            <PlotComponent onDelete={(id) => { props.handleDelete(id)}} plotMeta={props.meta}/>
+            <PlotComponent
+                onDelete={(id) => { props.handleDelete(id)}}
+                height={props.height}
+                plotMeta={props.meta}/>
         </div>
     </li>);
 }

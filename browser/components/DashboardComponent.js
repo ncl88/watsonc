@@ -29,6 +29,8 @@ let currentDisplay = DISPLAY_HALF, previousDisplay = DISPLAY_MAX;
 
 let modalHeaderHeight = 70;
 
+let _self = false, resizeTimeout = false;
+
 /**
  * Component creates plots management form and is the source of truth for plots overall
  */
@@ -58,6 +60,7 @@ class DashboardComponent extends React.Component {
             highlightedPlot: false,
             createdProfileChemical: false,
             createdProfileName: false,
+            lastUpdate: false
         };
 
         this.plotManager = new PlotManager();
@@ -79,9 +82,18 @@ class DashboardComponent extends React.Component {
         this.getFeatureByGidFromDataSource = this.getFeatureByGidFromDataSource.bind(this);
         this.handleNewPlotNameChange = this.handleNewPlotNameChange.bind(this);
         this.handlePlotSort = this.handlePlotSort.bind(this);
+
+        _self = this;
     }
 
     componentWillMount() {
+        $(window).resize(function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                _self.setState({lastUpdate: new Date()});
+            }, 500);
+        });
+
         this.profileManager.getAll().then(profiles => {
             let dashboardItemsCopy = JSON.parse(JSON.stringify(this.state.dashboardItems));
             profiles.map(item => {
@@ -600,36 +612,39 @@ class DashboardComponent extends React.Component {
         $(PLOTS_ID).animate({
             top: ($(document).height() - modalHeaderHeight) + 'px'
         }, 500, function () {
-            $(PLOTS_ID).find('.modal-body').css(`max-height`, );
+            $(PLOTS_ID).find('.modal-body').css(`max-height`, modalHeaderHeight + 'px');
         });
 
         $('.js-expand-less').hide();
         $('.js-expand-half').show();
         $('.js-expand-more').show();
+        $(PLOTS_ID + ' .modal-body').css(`visibility`, `hidden`);
     }
 
     onSetHalf() {
         $(PLOTS_ID).animate({
-            top: "60%"
+            top: "50%"
         }, 500, function () {
-            $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.4 - modalHeaderHeight - 10) + 'px');
+            $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.5 - modalHeaderHeight - 20) + 'px');
         });
 
         $('.js-expand-less').show();
         $('.js-expand-half').hide();
         $('.js-expand-more').show();
+        $(PLOTS_ID + ' .modal-body').css(`visibility`, `visible`);
     }
 
     onSetMax() {
         $(PLOTS_ID).animate({
-            top: "20%"
+            top: "10%"
         }, 500, function () {
-            $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.8 - modalHeaderHeight - 10) + 'px');
+            $(PLOTS_ID).find('.modal-body').css(`max-height`, ($(document).height() * 0.9 - modalHeaderHeight - 10) + 'px');
         });
 
         $('.js-expand-less').show();
         $('.js-expand-half').show();
         $('.js-expand-more').hide();
+        $(PLOTS_ID + ' .modal-body').css(`visibility`, `visible`);
     }
 
     nextDisplayType() {
@@ -655,11 +670,22 @@ class DashboardComponent extends React.Component {
     }
 
     render() {
-        let plotsControls = (<p style={{textAlign: `center`}}>{__(`No timeseries were created or set as active yet`)}</p>);
+        let plotsControls = (<p style={{textAlign: `center`, paddingTop: `20px`}}>{__(`No timeseries were created or set as active yet`)}</p>);
         let containerClass = `list-group-item col-sm-12 col-md-12 col-lg-6`;
         if (this.state.view === VIEW_ROW) {
             containerClass = `list-group-item col-sm-12 col-md-12 col-lg-12`;
         }
+
+        // Actualize elements location
+        if (currentDisplay === DISPLAY_MIN) {
+            this.onSetMin();
+        } else if (currentDisplay === DISPLAY_HALF) {
+            this.onSetHalf();
+        } else if (currentDisplay === DISPLAY_MAX) {
+            this.onSetMax();
+        }
+
+        let listItemHeightPx = Math.round(($(document).height() * 0.9 - modalHeaderHeight - 10) / 2);
 
         let localPlotsControls = [];
         this.state.dashboardItems.map((item, index) => {
@@ -669,6 +695,7 @@ class DashboardComponent extends React.Component {
                     localPlotsControls.push(<SortablePlotComponent
                         key={`sortable_${index}`}
                         containerClass={containerClass}
+                        height={listItemHeightPx}
                         index={index}
                         handleDelete={this.handleDeletePlot}
                         meta={plot}/>);
@@ -679,6 +706,7 @@ class DashboardComponent extends React.Component {
                     localPlotsControls.push(<SortableProfileComponent
                         key={`sortable_${index}`}
                         containerClass={containerClass}
+                        height={listItemHeightPx}
                         index={index}
                         handleChangeDatatype={this.handleChangeDatatypeProfile}
                         handleDelete={this.handleDeleteProfile}
@@ -766,8 +794,8 @@ class DashboardComponent extends React.Component {
                     </div>
                 </div>
             </div>
-            <div className="modal-body">
-                <div className="form-group">{plotsControls}</div>
+            <div className="modal-body" style={{padding: `0px 20px 0px 0px`, margin: `0px`}}>
+                <div className="form-group" style={{marginBottom: `0px`, paddingBottom: `0px`}}>{plotsControls}</div>
             </div>
         </div>);
     }

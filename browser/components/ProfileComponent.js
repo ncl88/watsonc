@@ -25,17 +25,13 @@ class ProfileComponent extends React.Component {
 
         let plot = (<p className="text-muted">{__(`At least one y axis has to be provided`)}</p>);
         if (this.props.plotMeta) {
-            plot = (<div style={{ paddingBottom: `20px` }}>
-                <div style={{ border: `1px solid lightgray`, paddingBottom: `20px` }}>
-                    <Plot
-                        data={dataCopy}
-                        useResizeHandler={true}
-                        onClick={this.props.onClick}
-                        config={{modeBarButtonsToRemove: ['autoScale2d']}}
-                        layout={this.props.plotMeta.value.data.layout}
-                        style={{width: "100%", height: "100%"}}/>
-                </div>
-            </div>);
+            plot = (<Plot
+                data={dataCopy}
+                useResizeHandler={true}
+                onClick={this.props.onClick}
+                config={{modeBarButtonsToRemove: ['autoScale2d']}}
+                layout={this.props.plotMeta.value.data.layout}
+                style={{width: "100%", height: `${this.props.height - 60}px`}}/>);
         }
 
         return (<div>
@@ -61,7 +57,7 @@ class ProfileComponent extends React.Component {
                     </a>
                 </div>
             </div>
-            <div>{plot}</div>
+            <div style={{height: `${this.props.height - 50}px`, border: `1px solid lightgray`}}>{plot}</div>
         </div>);
     }
 }
