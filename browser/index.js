@@ -578,12 +578,14 @@ module.exports = module.exports = {
 
     openBorehole(boreholeIdentifier) {
         let mapLayers = layers.getMapLayers();
+        let boreholeIsInViewport = false;
         mapLayers.map(layer => {
             if ([LAYER_NAMES[0], LAYER_NAMES[2]].indexOf(layer.id) > -1 && layer._layers) {
                 for (let key in layer._layers) {
                     if (layer._layers[key].feature && layer._layers[key].feature.properties && layer._layers[key].feature.properties.boreholeno) {
                         if (layer._layers[key].feature.properties.boreholeno.trim() === boreholeIdentifier.trim()) {
                             layer._layers[key].fire(`click`);
+                            boreholeIsInViewport = true;
                             setTimeout(() => {
                                 _self.bringFeaturesDialogToFront();
                             }, 500);
@@ -592,6 +594,10 @@ module.exports = module.exports = {
                 }
             }
         });
+
+        if (boreholeIsInViewport === false) {
+            alert(__(`Requested borehole is not in a viewport (data is not loaded)`));
+        }
     },
 
     bringFeaturesDialogToFront() {
