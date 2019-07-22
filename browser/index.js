@@ -2,6 +2,7 @@
 
 import { Provider } from 'react-redux';
 
+import PlotManager from './PlotManager';
 import ModalComponent from './components/ModalComponent';
 import DashboardComponent from './components/DashboardComponent';
 import MenuTimeSeriesComponent from './components/MenuTimeSeriesComponent';
@@ -418,6 +419,98 @@ module.exports = module.exports = {
                 });
             });
 
+            const proceedWithInitialization = () => {
+                // Setting up feature dialog
+                $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").on("click", function () {
+                    $("#" + FEATURE_CONTAINER_ID).animate({
+                        bottom: (($("#" + FEATURE_CONTAINER_ID).height() * -1) + 30) + "px"
+                    }, 500, function () {
+                        $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").hide();
+                        $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").show();
+                    });
+                });
+
+                $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").on("click", function () {
+                    $("#" + FEATURE_CONTAINER_ID).animate({
+                        bottom: "0"
+                    }, 500, function () {
+                        $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").show();
+                        $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").hide();
+                    });
+                });
+
+                $(`#` + FEATURE_CONTAINER_ID).find(".close-hide").on("click", function () {
+                    $("#" + FEATURE_CONTAINER_ID).animate({
+                        bottom: "-100%"
+                    }, 500, function () {
+                        $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").show();
+                        $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").hide();
+                    });
+                });
+
+                // Initializing data source and types selector
+                $(`[data-module-id="data-source-and-types-selector"]`).click(() => {
+                    if ($(`#data-source-and-types-selector-content`).children().length === 0) {
+                        try {
+                            ReactDOM.render(<Provider store={reduxStore}>
+                                <MenuDataSourceAndTypeSelectorComponent
+                                    onApply={_self.onApplyLayersAndChemical}
+                                    layers={DATA_SOURCES}/>
+                            </Provider>, document.getElementById(`data-source-and-types-selector-content`));
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                });
+
+                // Initializing TimeSeries management component
+                $(`[data-module-id="timeseries"]`).click(() => {
+                    if ($(`#watsonc-timeseries`).children().length === 0) {
+                        try {
+                            menuTimeSeriesComponentInstance = ReactDOM.render(<MenuTimeSeriesComponent
+                                initialPlots={dashboardComponentInstance.getPlots()}
+                                initialActivePlots={dashboardComponentInstance.getActivePlots()}
+                                onPlotCreate={dashboardComponentInstance.handleCreatePlot}
+                                onPlotDelete={dashboardComponentInstance.handleDeletePlot}
+                                onPlotHighlight={dashboardComponentInstance.handleHighlightPlot}
+                                onPlotShow={dashboardComponentInstance.handleShowPlot}
+                                onPlotHide={dashboardComponentInstance.handleHidePlot}/>, document.getElementById(`watsonc-timeseries`));
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                });
+
+                // Initializing profiles tab
+                if ($(`#profile-drawing-content`).length === 0) throw new Error(`Unable to get the profile drawing tab`);
+
+                // Initializing TimeSeries management component
+                $(`[data-module-id="profile-drawing"]`).click(() => {
+                    try {
+                        ReactDOM.render(<Provider store={reduxStore}>
+                            <MenuProfilesComponent
+                                cloud={cloud}
+                                categories={categoriesOverall ? categoriesOverall : []}
+                                initialProfiles={dashboardComponentInstance.getProfiles()}
+                                initialActiveProfiles={dashboardComponentInstance.getActiveProfiles()}
+                                onProfileCreate={dashboardComponentInstance.handleCreateProfile}
+                                onProfileDelete={dashboardComponentInstance.handleDeleteProfile}
+                                onProfileHighlight={dashboardComponentInstance.handleHighlightProfile}
+                                onProfileShow={dashboardComponentInstance.handleShowProfile}
+                                onProfileHide={dashboardComponentInstance.handleHideProfile}/>
+                        </Provider>, document.getElementById(`profile-drawing-content`));
+
+                        backboneEvents.get().on(`reset:all reset:profile-drawing off:all` , () => {
+                            window.menuProfilesComponentInstance.stopDrawing();
+                        });
+                    } catch (e) {
+                        console.error(e);
+                    }
+                });
+
+                if (dashboardComponentInstance) dashboardComponentInstance.onSetMin();
+            };
+
             if (document.getElementById(DASHBOARD_CONTAINER_ID)) {
                 let initialPlots = [];
                 if (applicationState && `modules` in applicationState && MODULE_NAME in applicationState.modules && `plots` in applicationState.modules[MODULE_NAME]) {
@@ -429,133 +522,53 @@ module.exports = module.exports = {
                     initialProfiles = applicationState.modules[MODULE_NAME].profiles;
                 }
 
-                try {
-                    dashboardComponentInstance = ReactDOM.render(<DashboardComponent
-                        initialPlots={initialPlots}
-                        initialProfiles={initialProfiles}
-                        onPlotsChange={(plots = false) => {
-                            backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-                            if (plots) {
-                                _self.setStyleForPlots(plots);
 
-                                if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setPlots(plots);
-                                // Plots were updated from the DashboardComponent component
-                                if (modalComponentInstance) _self.createModal(false, plots);
-                            }
-                        }}
-                        onProfilesChange={(profiles = false) => {
-                            backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-                            if (profiles && window.menuProfilesComponentInstance) window.menuProfilesComponentInstance.setProfiles(profiles);
-                        }}
-                        onActivePlotsChange={(activePlots) => {
-                            backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-                            if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setActivePlots(activePlots);
-                        }}
-                        onActiveProfilesChange={(activeProfiles) => {
-                            backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
-                            if (window.menuProfilesComponentInstance) window.menuProfilesComponentInstance.setActiveProfiles(activeProfiles);
-                        }}
-                        onHighlightedPlotChange={(plotId, plots) => {
-                            _self.setStyleForHighlightedPlot(plotId, plots);
-                            if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setHighlightedPlot(plotId);
-                        }}/>, document.getElementById(DASHBOARD_CONTAINER_ID));
-                } catch (e) {
-                    console.error(e);
-                }
+
+                let plotManager = new PlotManager();
+                plotManager.hydratePlots(initialPlots).then(hydratedInitialPlots => {
+                    try {
+                        dashboardComponentInstance = ReactDOM.render(<DashboardComponent
+                            initialPlots={hydratedInitialPlots}
+                            initialProfiles={initialProfiles}
+                            onPlotsChange={(plots = false) => {
+                                backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
+                                if (plots) {
+                                    _self.setStyleForPlots(plots);
+    
+                                    if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setPlots(plots);
+                                    // Plots were updated from the DashboardComponent component
+                                    if (modalComponentInstance) _self.createModal(false, plots);
+                                }
+                            }}
+                            onProfilesChange={(profiles = false) => {
+                                backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
+                                if (profiles && window.menuProfilesComponentInstance) window.menuProfilesComponentInstance.setProfiles(profiles);
+                            }}
+                            onActivePlotsChange={(activePlots) => {
+                                backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
+                                if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setActivePlots(activePlots);
+                            }}
+                            onActiveProfilesChange={(activeProfiles) => {
+                                backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
+                                if (window.menuProfilesComponentInstance) window.menuProfilesComponentInstance.setActiveProfiles(activeProfiles);
+                            }}
+                            onHighlightedPlotChange={(plotId, plots) => {
+                                _self.setStyleForHighlightedPlot(plotId, plots);
+                                if (menuTimeSeriesComponentInstance) menuTimeSeriesComponentInstance.setHighlightedPlot(plotId);
+                            }}/>, document.getElementById(DASHBOARD_CONTAINER_ID));
+                    } catch (e) {
+                        console.error(e);
+                    }
+    
+                    proceedWithInitialization();
+                }).catch(() => {
+                    console.error(`Unable to hydrate initial plots`, initialPlots);
+                });
             } else {
                 console.warn(`Unable to find the container for watsonc extension (element id: ${DASHBOARD_CONTAINER_ID})`);
             }
         });
 
-        // Setting up feature dialog
-        $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").on("click", function () {
-            $("#" + FEATURE_CONTAINER_ID).animate({
-                bottom: (($("#" + FEATURE_CONTAINER_ID).height() * -1) + 30) + "px"
-            }, 500, function () {
-                $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").hide();
-                $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").show();
-            });
-        });
-
-        $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").on("click", function () {
-            $("#" + FEATURE_CONTAINER_ID).animate({
-                bottom: "0"
-            }, 500, function () {
-                $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").show();
-                $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").hide();
-            });
-        });
-
-        $(`#` + FEATURE_CONTAINER_ID).find(".close-hide").on("click", function () {
-            $("#" + FEATURE_CONTAINER_ID).animate({
-                bottom: "-100%"
-            }, 500, function () {
-                $(`#` + FEATURE_CONTAINER_ID).find(".expand-less").show();
-                $(`#` + FEATURE_CONTAINER_ID).find(".expand-more").hide();
-            });
-        });
-
-        // Initializing data source and types selector
-        $(`[data-module-id="data-source-and-types-selector"]`).click(() => {
-            if ($(`#data-source-and-types-selector-content`).children().length === 0) {
-                try {
-                    ReactDOM.render(<Provider store={reduxStore}>
-                        <MenuDataSourceAndTypeSelectorComponent
-                            onApply={_self.onApplyLayersAndChemical}
-                            layers={DATA_SOURCES}/>
-                    </Provider>, document.getElementById(`data-source-and-types-selector-content`));
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-        });
-
-        // Initializing TimeSeries management component
-        $(`[data-module-id="timeseries"]`).click(() => {
-            if ($(`#watsonc-timeseries`).children().length === 0) {
-                try {
-                    menuTimeSeriesComponentInstance = ReactDOM.render(<MenuTimeSeriesComponent
-                        initialPlots={dashboardComponentInstance.getPlots()}
-                        initialActivePlots={dashboardComponentInstance.getActivePlots()}
-                        onPlotCreate={dashboardComponentInstance.handleCreatePlot}
-                        onPlotDelete={dashboardComponentInstance.handleDeletePlot}
-                        onPlotHighlight={dashboardComponentInstance.handleHighlightPlot}
-                        onPlotShow={dashboardComponentInstance.handleShowPlot}
-                        onPlotHide={dashboardComponentInstance.handleHidePlot}/>, document.getElementById(`watsonc-timeseries`));
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-        });
-
-        // Initializing profiles tab
-        if ($(`#profile-drawing-content`).length === 0) throw new Error(`Unable to get the profile drawing tab`);
-
-        // Initializing TimeSeries management component
-        $(`[data-module-id="profile-drawing"]`).click(() => {
-            try {
-                ReactDOM.render(<Provider store={reduxStore}>
-                    <MenuProfilesComponent
-                        cloud={cloud}
-                        categories={categoriesOverall ? categoriesOverall : []}
-                        initialProfiles={dashboardComponentInstance.getProfiles()}
-                        initialActiveProfiles={dashboardComponentInstance.getActiveProfiles()}
-                        onProfileCreate={dashboardComponentInstance.handleCreateProfile}
-                        onProfileDelete={dashboardComponentInstance.handleDeleteProfile}
-                        onProfileHighlight={dashboardComponentInstance.handleHighlightProfile}
-                        onProfileShow={dashboardComponentInstance.handleShowProfile}
-                        onProfileHide={dashboardComponentInstance.handleHideProfile}/>
-                </Provider>, document.getElementById(`profile-drawing-content`));
-
-                backboneEvents.get().on(`reset:all reset:profile-drawing off:all` , () => {
-                    window.menuProfilesComponentInstance.stopDrawing();
-                });
-            } catch (e) {
-                console.error(e);
-            }
-        });
-
-        if (dashboardComponentInstance) dashboardComponentInstance.onSetMin();
         $(`#search-border`).trigger(`click`);
     },
 
