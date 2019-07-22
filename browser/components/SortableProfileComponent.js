@@ -12,6 +12,7 @@ const SortableProfileComponent = (props) => {
         <div>
             <ProfileComponent
                 onDelete={(id) => { props.handleDelete(id)}}
+                onClick={props.handleClick}
                 onChangeDatatype={(id) => { props.handleChangeDatatype(id)}}
                 plotMeta={props.meta}/>
         </div>
@@ -20,6 +21,7 @@ const SortableProfileComponent = (props) => {
 
 SortableProfileComponent.propTypes = {
     handleDelete: PropTypes.func.isRequired,
+    handleClick: PropTypes.func.isRequired,
     handleChangeDatatype: PropTypes.func.isRequired,
     meta: PropTypes.object.isRequired,
 };

@@ -73,6 +73,7 @@ class DashboardComponent extends React.Component {
         this.handleHideProfile = this.handleHideProfile.bind(this);
         this.handleCreateProfile = this.handleCreateProfile.bind(this);
         this.handleDeleteProfile = this.handleDeleteProfile.bind(this);
+        this.handleProfileClick = this.handleProfileClick.bind(this);
         this.handleChangeDatatypeProfile = this.handleChangeDatatypeProfile.bind(this);
 
         this.getFeatureByGidFromDataSource = this.getFeatureByGidFromDataSource.bind(this);
@@ -218,6 +219,24 @@ class DashboardComponent extends React.Component {
 
             $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal({backdrop: `static`});
         });
+    }
+
+    handleProfileClick(e) {
+        if (e && e.points && e.points.length === 1 && e.points[0].data && e.points[0].data.text) {
+            if (e.points[0].data.text.indexOf(`Boring DGU`) > -1) {
+                let boreholeNumber = false;
+                let lines = e.points[0].data.text.split(`<br>`);
+                lines.map(item => {
+                    if (item.indexOf(`Boring DGU`) > -1) {
+                        boreholeNumber = item.replace(`Boring DGU`, ``).trim();
+                    }
+                });
+
+                if (boreholeNumber !== false) {
+                    this.props.onOpenBorehole(boreholeNumber);
+                }
+            }
+        }
     }
 
     handleDeleteProfile(profileKey, callback = false) {
@@ -663,6 +682,7 @@ class DashboardComponent extends React.Component {
                         index={index}
                         handleChangeDatatype={this.handleChangeDatatypeProfile}
                         handleDelete={this.handleDeleteProfile}
+                        handleClick={this.handleProfileClick}
                         meta={profile}/>);
                 }
             } else {
@@ -755,6 +775,7 @@ class DashboardComponent extends React.Component {
 
 DashboardComponent.propTypes = {
     initialPlots: PropTypes.array.isRequired,
+    onOpenBorehole: PropTypes.func.isRequired,
     onPlotsChange: PropTypes.func.isRequired,
     onActivePlotsChange: PropTypes.func.isRequired,
     onHighlightedPlotChange: PropTypes.func.isRequired,

@@ -30,6 +30,7 @@ class ProfileComponent extends React.Component {
                     <Plot
                         data={dataCopy}
                         useResizeHandler={true}
+                        onClick={this.props.onClick}
                         config={{modeBarButtonsToRemove: ['autoScale2d']}}
                         layout={this.props.plotMeta.value.data.layout}
                         style={{width: "100%", height: "100%"}}/>

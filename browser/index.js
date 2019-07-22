@@ -307,37 +307,42 @@ module.exports = module.exports = {
                             $("#" + FEATURE_CONTAINER_ID).find(".expand-more").hide();
                         });
 
-                        var clickBounds = L.latLngBounds(e.latlng, e.latlng), intersectingFeatures = [],
+                        let intersectingFeatures = [];
+                        if (e.latlng) {
+                            var clickBounds = L.latLngBounds(e.latlng, e.latlng);
+                            let res = [156543.033928, 78271.516964, 39135.758482, 19567.879241, 9783.9396205,
+                                4891.96981025, 2445.98490513, 1222.99245256, 611.496226281, 305.748113141, 152.87405657,
+                                76.4370282852, 38.2185141426, 19.1092570713, 9.55462853565, 4.77731426782, 2.38865713391,
+                                1.19432856696, 0.597164283478, 0.298582141739, 0.149291, 0.074645535];
 
-                        res = [156543.033928, 78271.516964, 39135.758482, 19567.879241, 9783.9396205,
-                            4891.96981025, 2445.98490513, 1222.99245256, 611.496226281, 305.748113141, 152.87405657,
-                            76.4370282852, 38.2185141426, 19.1092570713, 9.55462853565, 4.77731426782, 2.38865713391,
-                            1.19432856696, 0.597164283478, 0.298582141739, 0.149291, 0.074645535];
+                            let distance = 10 * res[cloud.get().getZoom()];
 
-                        let distance = 10 * res[cloud.get().getZoom()];
+                            let mapObj = cloud.get().map;
+                            for (var l in mapObj._layers) {
+                                var overlay = mapObj._layers[l];
+                                if (overlay._layers) {
+                                    for (var f in overlay._layers) {
+                                        var feature = overlay._layers[f];
+                                        var bounds;
+                                        if (feature.getBounds) {
+                                            bounds = feature.getBounds();
+                                        } else if (feature._latlng) {
+                                            let circle = new L.circle(feature._latlng, {radius: distance});
+                                            // DIRTY HACK
+                                            circle.addTo(mapObj);
+                                            bounds = circle.getBounds();
+                                            circle.removeFrom(mapObj);
+                                        }
 
-                        let mapObj = cloud.get().map;
-                        for (var l in mapObj._layers) {
-                            var overlay = mapObj._layers[l];
-                            if (overlay._layers) {
-                                for (var f in overlay._layers) {
-                                    var feature = overlay._layers[f];
-                                    var bounds;
-                                    if (feature.getBounds) {
-                                        bounds = feature.getBounds();
-                                    } else if (feature._latlng) {
-                                        let circle = new L.circle(feature._latlng, {radius: distance});
-                                        // DIRTY HACK
-                                        circle.addTo(mapObj);
-                                        bounds = circle.getBounds();
-                                        circle.removeFrom(mapObj);
-                                    }
-
-                                    if (bounds && clickBounds.intersects(bounds) && overlay.id) {
-                                        intersectingFeatures.push(feature.feature);
+                                        if (bounds && clickBounds.intersects(bounds) && overlay.id) {
+                                            intersectingFeatures.push(feature.feature);
+                                        }
                                     }
                                 }
                             }
+                        } else {
+                            // In case marker "click" event was triggered from the code
+                            intersectingFeatures.push(e.target.feature);
                         }
 
                         let titleAsLink = false;
@@ -522,14 +527,13 @@ module.exports = module.exports = {
                     initialProfiles = applicationState.modules[MODULE_NAME].profiles;
                 }
 
-
-
                 let plotManager = new PlotManager();
                 plotManager.hydratePlots(initialPlots).then(hydratedInitialPlots => {
                     try {
                         dashboardComponentInstance = ReactDOM.render(<DashboardComponent
                             initialPlots={hydratedInitialPlots}
                             initialProfiles={initialProfiles}
+                            onOpenBorehole={this.openBorehole.bind(this)}
                             onPlotsChange={(plots = false) => {
                                 backboneEvents.get().trigger(`${MODULE_NAME}:plotsUpdate`);
                                 if (plots) {
@@ -570,6 +574,24 @@ module.exports = module.exports = {
         });
 
         $(`#search-border`).trigger(`click`);
+    },
+
+    openBorehole(boreholeIdentifier) {
+        let mapLayers = layers.getMapLayers();
+        mapLayers.map(layer => {
+            if ([LAYER_NAMES[0], LAYER_NAMES[2]].indexOf(layer.id) > -1 && layer._layers) {
+                for (let key in layer._layers) {
+                    if (layer._layers[key].feature && layer._layers[key].feature.properties && layer._layers[key].feature.properties.boreholeno) {
+                        if (layer._layers[key].feature.properties.boreholeno.trim() === boreholeIdentifier.trim()) {
+                            layer._layers[key].fire(`click`);
+                            setTimeout(() => {
+                                _self.bringFeaturesDialogToFront();
+                            }, 500);
+                        }
+                    }
+                }
+            }
+        });
     },
 
     bringFeaturesDialogToFront() {
