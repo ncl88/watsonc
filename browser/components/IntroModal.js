@@ -127,6 +127,7 @@ class IntroModal extends React.Component {
                         <div className="col-md-12">
                             <StateSnapshotsDashboard
                                 readOnly={true}
+                                customSetOfTitles={true}
                                 initialAuthenticated={this.props.authenticated}
                                 showStateSnapshotTypes={false}
                                 playOnly={true}

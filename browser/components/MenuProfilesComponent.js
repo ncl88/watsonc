@@ -368,11 +368,13 @@ class MenuProfilesComponent extends React.Component {
                 <thead style={{color: `rgb(0, 150, 136)`}}>
                     <tr>
                         <th>
-                            <div style={{float: `left`}}><i style={{fontSize: `20px`}} className="material-icons">grid_on</i></div>
+                            <div style={{float: `left`}}><i style={{fontSize: `20px`}} className="material-icons" title={__(`Add to the dashboard`)}>grid_on</i></div>
                             <div style={{float: `left`, paddingLeft: `10px`}}>{__(`Title`)}</div>
                         </th>
                         <th style={{textAlign: `center`}}>{__(`Datatype`)}</th>
-                        <th style={{textAlign: `right`, paddingRight: `10px`}}><i style={{fontSize: `20px`}} className="material-icons">delete</i></th>
+                        <th style={{textAlign: `right`, paddingRight: `10px`}}>
+                            <i style={{fontSize: `20px`}} className="material-icons" title={__(`Delete`)}>delete</i>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -453,7 +455,7 @@ class MenuProfilesComponent extends React.Component {
                                     }
 
                                     $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal({backdrop: `static`});
-                                }}><i className="fas fa-edit"></i></button>
+                                }}><i className="fas fa-edit" title={__(`Edit`)}></i></button>
                             </p>
                         </div>
                     </div>

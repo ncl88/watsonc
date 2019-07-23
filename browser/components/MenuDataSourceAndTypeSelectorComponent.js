@@ -62,7 +62,7 @@ class MenuDataSourceAndTypeSelectorComponent extends React.Component {
                             }
 
                             $('#' + dialogPrefix).modal({backdrop: `static`});
-                        }}><i className="fas fa-edit"></i></button>
+                        }}><i className="fas fa-edit" title={__(`Edit`)}></i></button>
                     </p>
                 </div>
             </div>
