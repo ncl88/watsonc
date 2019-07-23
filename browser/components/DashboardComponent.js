@@ -747,14 +747,32 @@ class DashboardComponent extends React.Component {
                     <div style={{height: `40px`, display: `flex`}}>
                         <div style={{paddingRight: `20px`}}>
                             <div>
-                                <button type="button" className="close js-expand-more expand-more" aria-hidden="true" onClick={setFullExpanded}>
-                                    <i className="material-icons">expand_less</i>
+                                <button
+                                    type="button"
+                                    className="close js-expand-more expand-more"
+                                    aria-hidden="true"
+                                    onClick={setFullExpanded}
+                                    style={{opacity: `1`}}
+                                    title={__(`Expand dashboard`)}>
+                                    <i className="material-icons" style={{fontWeight: `900`}}>expand_less</i>
                                 </button>
-                                <button type="button" className="close js-expand-half expand-half" aria-hidden="true" onClick={setHalfExpanded}>
-                                    <i className="material-icons">swap_vert</i>
+                                <button
+                                    type="button"
+                                    className="close js-expand-half expand-half"
+                                    aria-hidden="true"
+                                    onClick={setHalfExpanded}
+                                    style={{opacity: `1`}}
+                                    title={__(`Open dashboard halfway`)}>
+                                    <i className="material-icons" style={{fontWeight: `900`}}>swap_vert</i>
                                 </button>
-                                <button type="button" className="close js-expand-less expand-less" aria-hidden="true" onClick={setNoExpanded}>
-                                    <i className="material-icons">expand_more</i>
+                                <button
+                                    type="button"
+                                    className="close js-expand-less expand-less"
+                                    aria-hidden="true"
+                                    onClick={setNoExpanded}
+                                    style={{opacity: `1`}}
+                                    title={__(`Minimize dashboard`)}>
+                                    <i className="material-icons" style={{fontWeight: `900`}}>expand_more</i>
                                 </button>
                             </div>
                         </div>

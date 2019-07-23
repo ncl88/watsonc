@@ -18,3 +18,8 @@ export const setCategories = (categories) => ({
     payload: categories
 });
 
+export const setAuthenticated = (authenticated) => ({
+    type: 'SET_AUTHENTICATED',
+    payload: authenticated
+});
+

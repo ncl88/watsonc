@@ -12,6 +12,7 @@ import IntroModal from './components/IntroModal';
 import { LAYER_NAMES, WATER_LEVEL_KEY } from './constants';
 
 import reduxStore from './redux/store';
+import { setAuthenticated } from './redux/actions';
 
 const symbolizer = require('./symbolizer');
 
@@ -35,19 +36,7 @@ let PLOTS_ID = `#` + DASHBOARD_CONTAINER_ID;
  *
  * @type {*|exports|module.exports}
  */
-var cloud;
-
-/**
- *
- * @type {*|exports|module.exports}
- */
-var switchLayer;
-
-/**
- *
- * @type {*|exports|module.exports}
- */
-var backboneEvents;
+var cloud, switchLayer, backboneEvents, session = false;
 
 /**
  *
@@ -118,6 +107,10 @@ module.exports = module.exports = {
         anchor = o.anchor;
         state = o.state;
         urlparser = o.urlparser;
+        if (o.extensions && o.extensions.session) {
+            session = o.extensions.session.index;
+        }
+
         _self = this;
         return this;
     },
@@ -129,6 +122,10 @@ module.exports = module.exports = {
         state.listen(MODULE_NAME, `enabledLoctypeIdsChange`);
 
         this.initializeSearchBar();
+
+        backboneEvents.get().on(`session:authChange`, authenticated => {
+            reduxStore.dispatch(setAuthenticated(authenticated));
+        });
 
         $('#watsonc-plots-dialog-form').click(function () {
             $('#watsonc-plots-dialog-form').css('z-index', '100000');

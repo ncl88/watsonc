@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux';
 
 const initialState = {
+    authenticated: false,
     categories: false,
     selectedLayers: [],
     selectedChemical: false
@@ -9,8 +10,10 @@ const initialState = {
 const reducer = (state = initialState, action) => {
     let compoundLayerKey, selectedLayers;
     switch (action.type) {
+        case 'SET_AUTHENTICATED':
+            return Object.assign({}, state, {authenticated: action.payload});
         case 'SET_CATEGORIES':
-                return Object.assign({}, state, {categories: action.payload});
+            return Object.assign({}, state, {categories: action.payload});
         case 'SELECT_CHEMICAL':
             return Object.assign({}, state, {selectedChemical: action.payload});
         case 'SELECT_LAYER':

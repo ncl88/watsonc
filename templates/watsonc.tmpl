@@ -1009,7 +1009,11 @@
 
     #searchclear {
         right: 22px;
+    }
 
+    #watsonc-plots-dialog-form .expand-more, #watsonc-plots-dialog-form .expand-half, #watsonc-plots-dialog-form .expand-less {
+        color: rgb(0, 150, 136);
+        cursor: pointer;
     }
 
 </style>
@@ -1037,16 +1041,9 @@
 
         <div id="floating-container-secondary" style="display: inline;">
             <div id="locale-btn"></div>
-            <a href="#base-layers-dialog" id="base-layers-btn"
-               class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i
-                    class="material-icons">layers</i></a>
-            <!--<a href="#info-dialog" id="info-dialog-btn" data-module="info"-->
-               <!--class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i-->
-                    <!--class="material-icons">info</i></a>-->
-            <!--<a href="#print-dialog" id="print-dialog-btn" data-module="print"-->
-               <!--class="btn btn-default btn-fab btn-fab-mini map-tool-btn"><i-->
-                    <!--class="material-icons">print</i></a>-->
-
+            <a href="#base-layers-dialog" id="base-layers-btn" class="btn btn-default btn-fab btn-fab-mini map-tool-btn" title="{{Layer}}">
+                <i class="material-icons">layers</i>
+            </a>
         </div>
     </div>
 
@@ -1119,11 +1116,14 @@
 
     <div id="base-layers-dialog" class="dialog-bottom fade-then-dragging">
         <div class="modal-header">
-            <button type="button" class="close close-hide" aria-hidden="true"><i class="material-icons">close</i>
+            <button type="button" class="close close-hide" aria-hidden="true">
+                <i class="material-icons">close</i>
             </button>
-            <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
+            <button type="button" class="close expand-more" aria-hidden="true">
+                <i class="material-icons">expand_less</i>
             </button>
-            <button type="button" class="close expand-less" aria-hidden="true"><i class="material-icons">expand_more</i>
+            <button type="button" class="close expand-less" aria-hidden="true">
+                <i class="material-icons">expand_more</i>
             </button>
             <h3 class="modal-title">Korttype</h3>
         </div>
@@ -1137,11 +1137,11 @@
             <button type="button" class="close editor-attr-dialog__close-hide" data-module="editor" aria-hidden="true">
                 <i class="material-icons">close</i>
             </button>
-            <button type="button" class="close editor-attr-dialog__expand-more" aria-hidden="true"><i
-                    class="material-icons">expand_less</i>
+            <button type="button" class="close editor-attr-dialog__expand-more" aria-hidden="true">
+                <i class="material-icons">expand_less</i>
             </button>
-            <button type="button" class="close editor-attr-dialog__expand-less" aria-hidden="true"><i
-                    class="material-icons">expand_more</i>
+            <button type="button" class="close editor-attr-dialog__expand-less" aria-hidden="true">
+                <i class="material-icons">expand_more</i>
             </button>
             <h3 class="modal-title">Attributes</h3>
         </div>
@@ -1152,10 +1152,11 @@
 
     <div id="watsonc-features-dialog" class="dialog-bottom fade-then-dragging dialog-bottom-wide">
         <div class="modal-header">
-            <button type="button" class="close close-hide" data-module="editor" aria-hidden="true"><i
-                    class="material-icons">close</i>
+            <button type="button" class="close close-hide" data-module="editor" aria-hidden="true" title={{Close}}>
+                <i class="material-icons">close</i>
             </button>
-            <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
+            <button type="button" class="close expand-more" aria-hidden="true">
+                <i class="material-icons">expand_less</i>
             </button>
             <h3 class="modal-title">Watsonc extension</h3>
         </div>
@@ -1184,12 +1185,14 @@
 
     <div id="print-dialog" class="dialog-bottom fade-then-dragging">
         <div class="modal-header">
-            <button type="button" class="close close-hide" data-module="print" aria-hidden="true"><i
-                    class="material-icons">close</i>
+            <button type="button" class="close close-hide" data-module="print" aria-hidden="true" title={{Close}}>
+                <i class="material-icons">close</i>
             </button>
-            <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
+            <button type="button" class="close expand-more" aria-hidden="true">
+                <i class="material-icons">expand_less</i>
             </button>
-            <button type="button" class="close expand-less" aria-hidden="true"><i class="material-icons">expand_more</i>
+            <button type="button" class="close expand-less" aria-hidden="true">
+                <i class="material-icons">expand_more</i>
             </button>
             <h3 class="modal-title">Print</h3>
         </div>
@@ -1286,8 +1289,8 @@
 
     <div id="info-dialog" class="dialog-bottom fade-then-dragging dialog-bottom-wide">
         <div class="modal-header">
-            <button type="button" class="close close-hide" data-module="editor" aria-hidden="true"><i
-                    class="material-icons">close</i>
+            <button type="button" class="close close-hide" data-module="editor" aria-hidden="true" title={{Close}}>
+                <i class="material-icons">close</i>
             </button>
             <button type="button" class="close expand-more" aria-hidden="true"><i class="material-icons">expand_less</i>
             </button>
@@ -1320,7 +1323,7 @@
 
     <div id="info-modal-top" class="slide-left fade-then-dragging">
         <div class="modal-header">
-            <button type="button" class="close" aria-hidden="true">×</button>
+            <button type="button" class="close" aria-hidden="true" title={{Close}}>×</button>
             <h3 class="modal-title">Liste</h3>
         </div>
         <div id="info-modal-top-body-wrapper">
@@ -1335,8 +1338,9 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" title={{Close}}>
+                    <span aria-hidden="true">&times;</span>
+                </button>
                 <h4 class="modal-title" id="about-modalLabel">{{About}}</h4>
             </div>
             <div class="modal-body">
@@ -1354,8 +1358,8 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" title={{Close}}>
+                    <span aria-hidden="true">&times;</span></button>
                 <h3 class="modal-title" id="click-modalLabel"></h3>
             </div>
             <div class="modal-body">
@@ -1369,12 +1373,13 @@
 </div>
 
 <!-- Login Modal -->
-<div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="click-modalLabel">
+<div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="click-modalLabel" style="z-index: 100000;">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" title={{Close}}>
+                    <span aria-hidden="true">&times;</span>
+                </button>
                 <h3 class="modal-title" id="login-modalLabel"></h3>
             </div>
             <div class="modal-body" id="login-modal-body">
@@ -1394,7 +1399,7 @@
 
             <div id="info-modal" class="slide-right">
                 <div class="modal-header">
-                    <button type="button" class="close" aria-hidden="true">×</button>
+                    <button type="button" class="close" aria-hidden="true" title={{Close}}>×</button>
                     <h2 class="modal-title"></h2>
                 </div>
                 <div id="info-modal-body-wrapper">
@@ -1405,7 +1410,7 @@
             <div id="module-container" class="slide-right" style="margin-top: 60px;">
                 <div class="modal-header">
                     <label style="margin-bottom: 0px; margin-top: 4px;" class="js-module-title"></label>
-                    <button type="button" class="close" aria-hidden="true">×</button>
+                    <button type="button" class="close" aria-hidden="true" title={{Close}}>×</button>
                     <h2 class="modal-title"></h2>
                 </div>
                 <div id="module-container-wrapper">

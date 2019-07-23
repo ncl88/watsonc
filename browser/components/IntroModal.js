@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 
 import DataSourceSelector from './DataSourceSelector';
 import ChemicalSelector from './ChemicalSelector';
-import { setCategories } from '../redux/actions'
+import { setCategories } from '../redux/actions';
 
 import StateSnapshotsDashboard from './../../../../browser/modules/stateSnapshots/components/StateSnapshotsDashboard';
 
@@ -22,7 +22,7 @@ class IntroModal extends React.Component {
         this.state = {
             mode: MODE_INDEX,
             layers: this.props.layers,
-            initialCategories: props.categories
+            initialCategories: props.categories,
         };
     }
 
@@ -116,8 +116,22 @@ class IntroModal extends React.Component {
 
                 {this.state.mode === MODE_SELECT ? (<div className="container" style={{paddingTop: `20px`}}>
                     <div className="row-fluid">
+                        <div className="col-md-12" style={{textAlign: `right`}}>
+                        {this.props.authenticated === false ? (<a id="session" href="#" data-toggle="modal" data-target="#login-modal" className="active">
+                            <i className="material-icons gc2-session-unlock">lock_open</i>
+                            <span className="module-title">{__(`Sign in in order to access user projects`)}</span>
+                        </a>) : false}
+                        </div>
+                    </div>
+                    <div className="row-fluid">
                         <div className="col-md-12">
-                            <StateSnapshotsDashboard readOnly={true} showStateSnapshotTypes={false} playOnly={true} {...this.props} onStateSnapshotApply={this.props.onClose}/>
+                            <StateSnapshotsDashboard
+                                readOnly={true}
+                                initialAuthenticated={this.props.authenticated}
+                                showStateSnapshotTypes={false}
+                                playOnly={true}
+                                {...this.props}
+                                onStateSnapshotApply={this.props.onClose}/>
                         </div>
                     </div>
                 </div>) : false}
@@ -145,10 +159,11 @@ IntroModal.propTypes = {
     layers: PropTypes.array.isRequired,
     categories: PropTypes.object.isRequired,
     onApply: PropTypes.func.isRequired,
-    onClose: PropTypes.func.isRequired
+    onClose: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => ({
+    authenticated: state.global.authenticated,
     selectedLayers: state.global.selectedLayers,
     selectedChemical: state.global.selectedChemical
 });
