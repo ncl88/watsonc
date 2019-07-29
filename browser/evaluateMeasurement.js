@@ -105,8 +105,8 @@ const evaluate = (json, limits, chem, specificIntake = false) => {
         maxColor = maxMeasurement === 0 ? white : "#00aaff";
         latestColor = "#00aaff";
     } else {
-        maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= chemicalLimits[0] ? green : maxMeasurement > chemicalLimits[0] && maxMeasurement <= chemicalLimits[1] ? yellow : red;
-        latestColor = latestMeasurement <= chemicalLimits[0] ? green : latestMeasurement > chemicalLimits[0] && latestMeasurement <= chemicalLimits[1] ? yellow : red;
+        maxColor = maxMeasurement === 0 ? "#ffffff" : maxMeasurement <= parseFloat(chemicalLimits[0]) ? green : maxMeasurement > parseFloat(chemicalLimits[0]) && maxMeasurement <= parseFloat(chemicalLimits[1]) ? yellow : red;
+        latestColor = latestMeasurement <= parseFloat(chemicalLimits[0]) ? green : latestMeasurement > parseFloat(chemicalLimits[0]) && latestMeasurement <= parseFloat(chemicalLimits[1]) ? yellow : red;
     }
 
     return {

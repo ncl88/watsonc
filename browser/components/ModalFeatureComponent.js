@@ -90,13 +90,16 @@ class ModalFeatureComponent extends React.Component {
                     console.error(item);
                     throw new Error(`Unable to parse measurements data`);
                 }
-    
-                let measurementData = evaluateMeasurement(json, this.props.limits, item.key, item.intakeIndex);
-                let icon = measurementIcon.generate(measurementData.maxColor, measurementData.latestColor);
 
                 let intakeName = `#` + (parseInt(item.intakeIndex) + 1);
                 if (`intakes` in json && Array.isArray(json.intakes) && json.intakes[item.intakeIndex] !== null) {
                     intakeName = json.intakes[item.intakeIndex] + '';
+                }
+
+                let icon = false;
+                if (!item.custom) {
+                    let measurementData = evaluateMeasurement(json, this.props.limits, item.key, item.intakeIndex);
+                    icon = measurementIcon.generate(measurementData.maxColor, measurementData.latestColor);
                 }
 
                 control = (<ModalMeasurementComponent
@@ -157,6 +160,18 @@ class ModalFeatureComponent extends React.Component {
                     uncategorizedMeasurementControls.push(control);
                 }
             });
+
+            if (`precipitation` in this.props.feature.properties && this.props.feature.properties.precipitation) {
+                let control = createMeasurementControl({
+                    custom: true,
+                    title: __(`Precipitation`),
+                    key: `precipitation`,
+                    intakeIndex: 0
+                }, `precipitation`);
+                if (control) {
+                    uncategorizedMeasurementControls.push(control);
+                }
+            }
 
             if (uncategorizedMeasurementControls.length > 0) {
                 // Category has at least one displayed measurement

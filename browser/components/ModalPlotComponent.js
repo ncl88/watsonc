@@ -26,6 +26,8 @@ class ModalPlotComponent extends React.Component {
                             intakeName = json.intakes[parseInt(splitMeasurementId[2])];
                         }
 
+                        console.log(`### json`, json, item);
+
                         measurementDisplayTitle = (`${item.properties.boreholeno}, ${json.title} (${intakeName})`);
                         return false;
                     }

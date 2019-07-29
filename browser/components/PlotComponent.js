@@ -81,6 +81,7 @@ class MenuPanelPlotComponent extends React.Component {
             let minTime = false;
             let maxTime = false;
 
+            let layoutSettings = false;
             this.props.plotMeta.measurements.map((measurementLocationRaw, index) => {
                 if (measurementLocationRaw in this.props.plotMeta.measurementsCachedData &&
                     this.props.plotMeta.measurementsCachedData[measurementLocationRaw]) {
@@ -93,78 +94,102 @@ class MenuPanelPlotComponent extends React.Component {
                     let feature = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].data;
                     let createdAt = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].created_at;
 
+                    let customFormat = false;
                     let measurementData = JSON.parse(feature.properties[key]);
                     if (Array.isArray(measurementData.measurements) === false) {
-                        measurementData.measurements = JSON.parse(measurementData.measurements);
-                        measurementData.attributes = (measurementData.attributes ? JSON.parse(measurementData.attributes) : false);
-                    }
-
-                    let localMinTime = measurementData.timeOfMeasurement[intakeIndex][0];
-                    if (minTime === false) {
-                        minTime = localMinTime;
-                    } else {
-                        if (moment(localMinTime).isBefore(minTime)) {
-                            minTime = localMinTime;
+                        if (`daily` in measurementData && `weekly` in measurementData && `monthly` in measurementData) {
+                            customFormat = true;
+                        } else {
+                            measurementData.measurements = JSON.parse(measurementData.measurements);
+                            measurementData.attributes = (measurementData.attributes ? JSON.parse(measurementData.attributes) : false);
                         }
                     }
 
-                    let localMaxTime = measurementData.timeOfMeasurement[intakeIndex][measurementData.timeOfMeasurement[intakeIndex].length - 1];
-                    if (maxTime === false) {
-                        maxTime = localMaxTime;
-                    } else {
-                        if (moment(localMaxTime).isAfter(maxTime)) {
-                            maxTime = localMaxTime;
-                        }
-                    }
+                    if (customFormat) {
+                        let measurementDataCopy = JSON.parse(JSON.stringify(measurementData));
 
-                    let textValues = [];
-                    if (measurementData.attributes && Array.isArray(measurementData.attributes[intakeIndex]) && measurementData.attributes[intakeIndex].length > 0) {
-                        let xValues = [], yValues = [];
+                        data.push(measurementDataCopy.daily.data[0]);
+                        data.push(measurementDataCopy.weekly.data[0]);
+                        data.push(measurementDataCopy.monthly.data[0]);
 
-                        measurementData.attributes[intakeIndex].map((item, index) => {
-                            if (item === LIMIT_CHAR) {
-                                xValues.push(measurementData.timeOfMeasurement[intakeIndex][index]);
-                                yValues.push(measurementData.measurements[intakeIndex][index]);
-                                textValues.push(measurementData.measurements[intakeIndex][index] + ' ' + LIMIT_CHAR);
-                            } else {
-                                textValues.push(measurementData.measurements[intakeIndex][index]);
+                        layoutSettings = measurementDataCopy.monthly.layout.yaxis2;
+                        let range = [0, 0];
+                        for (let key in measurementDataCopy) {
+                            if (measurementDataCopy[key].layout.yaxis2.range) {
+                                if (measurementDataCopy[key].layout.yaxis2.range[0] < range[0]) range[0] = measurementDataCopy[key].layout.yaxis2.range[0];
+                                if (measurementDataCopy[key].layout.yaxis2.range[1] > range[1]) range[1] = measurementDataCopy[key].layout.yaxis2.range[1];
                             }
-                        });
+                        }
 
-                        if (xValues.length > 0) {
-                            data.push({
-                                x: xValues,
-                                y: yValues,
-                                type: 'scattergl',
-                                mode: 'markers',
-                                hoverinfo: 'none',
-                                showlegend: false,
-                                marker: {
-                                    color: 'rgba(17, 157, 255, 0)',
-                                    size: 20,
-                                    line: {
-                                        color: 'rgb(231, 0, 0)',
-                                        width: 3
-                                    }
-                                },
+                        layoutSettings.range = range;
+                    } else {
+                        let localMinTime = measurementData.timeOfMeasurement[intakeIndex][0];
+                        if (minTime === false) {
+                            minTime = localMinTime;
+                        } else {
+                            if (moment(localMinTime).isBefore(minTime)) {
+                                minTime = localMinTime;
+                            }
+                        }
+
+                        let localMaxTime = measurementData.timeOfMeasurement[intakeIndex][measurementData.timeOfMeasurement[intakeIndex].length - 1];
+                        if (maxTime === false) {
+                            maxTime = localMaxTime;
+                        } else {
+                            if (moment(localMaxTime).isAfter(maxTime)) {
+                                maxTime = localMaxTime;
+                            }
+                        }
+
+                        let textValues = [];
+                        if (measurementData.attributes && Array.isArray(measurementData.attributes[intakeIndex]) && measurementData.attributes[intakeIndex].length > 0) {
+                            let xValues = [], yValues = [];
+
+                            measurementData.attributes[intakeIndex].map((item, index) => {
+                                if (item === LIMIT_CHAR) {
+                                    xValues.push(measurementData.timeOfMeasurement[intakeIndex][index]);
+                                    yValues.push(measurementData.measurements[intakeIndex][index]);
+                                    textValues.push(measurementData.measurements[intakeIndex][index] + ' ' + LIMIT_CHAR);
+                                } else {
+                                    textValues.push(measurementData.measurements[intakeIndex][index]);
+                                }
                             });
+
+                            if (xValues.length > 0) {
+                                data.push({
+                                    x: xValues,
+                                    y: yValues,
+                                    type: 'scattergl',
+                                    mode: 'markers',
+                                    hoverinfo: 'none',
+                                    showlegend: false,
+                                    marker: {
+                                        color: 'rgba(17, 157, 255, 0)',
+                                        size: 20,
+                                        line: {
+                                            color: 'rgb(231, 0, 0)',
+                                            width: 3
+                                        }
+                                    },
+                                });
+                            }
                         }
+
+                        let plotData = {
+                            name: (`DGU ${feature.properties.boreholeno} (${measurementData.intakes ? measurementData.intakes[intakeIndex] : (intakeIndex + 1)}) - ${measurementData.title} (${measurementData.unit}${createdAt ? `, ` + __(`updated at`) + ` ` + moment(createdAt).format(`D MMM YYYY`) : ``})`),
+                            x: measurementData.timeOfMeasurement[intakeIndex],
+                            y: measurementData.measurements[intakeIndex],
+                            type: 'scattergl',
+                            mode: 'lines+markers',
+                            hoverinfo: 'text',
+                            marker: {
+                                color: colors[index]
+                            }
+                        };
+
+                        if (textValues.length > 0) plotData.hovertext = textValues;
+                        data.push(plotData);
                     }
-
-                    let plotData = {
-                        name: (`DGU ${feature.properties.boreholeno} (${measurementData.intakes ? measurementData.intakes[intakeIndex] : (intakeIndex + 1)}) - ${measurementData.title} (${measurementData.unit}${createdAt ? `, ` + __(`updated at`) + ` ` + moment(createdAt).format(`D MMM YYYY`) : ``})`),
-                        x: measurementData.timeOfMeasurement[intakeIndex],
-                        y: measurementData.measurements[intakeIndex],
-                        type: 'scattergl',
-                        mode: 'lines+markers',
-                        hoverinfo: 'text',
-                        marker: {
-                            color: colors[index]
-                        }
-                    };
-
-                    if (textValues.length > 0) plotData.hovertext = textValues;
-                    data.push(plotData);
                 } else {
                     console.error(`Plot does not contain measurement ${measurementLocationRaw}`);
                 }
@@ -194,10 +219,15 @@ class MenuPanelPlotComponent extends React.Component {
                 autosize: true
             };
 
+            if (layoutSettings) {
+                layout.yaxis2 = layoutSettings;
+            }
+
             plot = (<Plot
                 data={data}
                 useResizeHandler={true}
                 layout={layout}
+                onLegendDoubleClick={() => false}
                 style={{width: "100%", height: `${this.props.height - 60}px`}}/>);
         }
 
