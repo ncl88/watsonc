@@ -16,11 +16,15 @@ class ModalPlotComponent extends React.Component {
             let measurementDisplayTitle = measurement;
             let splitMeasurementId = measurement.split(':');
 
-            let customGraph = -1;
+            let customGraph = -1, key, intakeIndex;
             if (splitMeasurementId.length === 3) {
                 customGraph = false;
+                key = splitMeasurementId[1];
+                intakeIndex = splitMeasurementId[2];
             } else if (splitMeasurementId.length === 4) {
                 customGraph = true;
+                key = splitMeasurementId[1] + ':' + splitMeasurementId[2];
+                intakeIndex = splitMeasurementId[3];
             } else {
                 throw new Error(`Invalid measurement key (${measurement})`);
             }
@@ -52,7 +56,7 @@ class ModalPlotComponent extends React.Component {
                 });
             }
 
-            const onDelete = () => { this.props.onDeleteMeasurement(this.props.plot.id, gid, splitMeasurementId[1], splitMeasurementId[2]); };
+            const onDelete = () => { this.props.onDeleteMeasurement(this.props.plot.id, gid, key, intakeIndex); };
 
             removeButtons.push(<div key={`remove_measurement_` + index + `_` + splitMeasurementId[1] + `_` + splitMeasurementId[2]}>
                 <button
