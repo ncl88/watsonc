@@ -81,7 +81,7 @@ class MenuPanelPlotComponent extends React.Component {
             let minTime = false;
             let maxTime = false;
 
-            let layoutSettings = false;
+            let yAxis2LayoutSettings = false;
             this.props.plotMeta.measurements.map((measurementLocationRaw, index) => {
                 if (measurementLocationRaw in this.props.plotMeta.measurementsCachedData &&
                     this.props.plotMeta.measurementsCachedData[measurementLocationRaw]) {
@@ -120,10 +120,11 @@ class MenuPanelPlotComponent extends React.Component {
                                 if (measurementDataCopy[key].layout.yaxis2.range[1] > range[1]) range[1] = measurementDataCopy[key].layout.yaxis2.range[1];
                             }
 
-                            layoutSettings = measurementDataCopy[key].layout.yaxis2;
+                            yAxis2LayoutSettings = measurementDataCopy[key].layout.yaxis2;
                         }
 
-                        layoutSettings.range = range;
+                        yAxis2LayoutSettings.range = range;
+                        yAxis2LayoutSettings.showgrid = false;
                     } else {
                         let localMinTime = measurementData.timeOfMeasurement[intakeIndex][0];
                         if (minTime === false) {
@@ -201,7 +202,7 @@ class MenuPanelPlotComponent extends React.Component {
                 displayModeBar: false,
                 margin: {
                     l: 30,
-                    r: 5,
+                    r: (yAxis2LayoutSettings ? 30 : 5),
                     b: 30,
                     t: 5,
                     pad: 4
@@ -221,8 +222,8 @@ class MenuPanelPlotComponent extends React.Component {
                 autosize: true
             };
 
-            if (layoutSettings) {
-                layout.yaxis2 = layoutSettings;
+            if (yAxis2LayoutSettings) {
+                layout.yaxis2 = yAxis2LayoutSettings;
             }
 
             plot = (<Plot
