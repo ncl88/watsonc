@@ -86,46 +86,14 @@ class MenuPanelPlotComponent extends React.Component {
                 if (measurementLocationRaw in this.props.plotMeta.measurementsCachedData &&
                     this.props.plotMeta.measurementsCachedData[measurementLocationRaw]) {
                     let measurementLocation = measurementLocationRaw.split(':');
-                    if (measurementLocation.length !== 3) throw new Error(`Invalid key and intake notation: ${measurementLocationRaw}`);
-
-                    let key = measurementLocation[1];
-                    let intakeIndex = parseInt(measurementLocation[2]);
 
                     let feature = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].data;
-                    let createdAt = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].created_at;
-
-                    let customFormat = false;
-                    let measurementData = JSON.parse(feature.properties[key]);
-                    if (Array.isArray(measurementData.measurements) === false) {
-                        if (`data` in measurementData
-                            && (`daily` in measurementData.data || `weekly` in measurementData.data || `monthly` in measurementData.data)) {
-                            customFormat = true;
-                        } else {
-                            measurementData.measurements = JSON.parse(measurementData.measurements);
-                            measurementData.attributes = (measurementData.attributes ? JSON.parse(measurementData.attributes) : false);
-                        }
-                    }
-
-                    if (customFormat) {
-                        let measurementDataCopy = JSON.parse(JSON.stringify(measurementData.data));
-
-                        if (measurementDataCopy.daily) data.push(measurementDataCopy.daily.data[0]);
-                        if (measurementDataCopy.weekly) data.push(measurementDataCopy.weekly.data[0]);
-                        if (measurementDataCopy.monthly) data.push(measurementDataCopy.monthly.data[0]);
-
-                        let range = [0, 0];
-                        for (let key in measurementDataCopy) {
-                            if (measurementDataCopy[key].layout.yaxis2.range) {
-                                if (measurementDataCopy[key].layout.yaxis2.range[0] < range[0]) range[0] = measurementDataCopy[key].layout.yaxis2.range[0];
-                                if (measurementDataCopy[key].layout.yaxis2.range[1] > range[1]) range[1] = measurementDataCopy[key].layout.yaxis2.range[1];
-                            }
-
-                            yAxis2LayoutSettings = measurementDataCopy[key].layout.yaxis2;
-                        }
-
-                        yAxis2LayoutSettings.range = range;
-                        yAxis2LayoutSettings.showgrid = false;
-                    } else {
+                    if (measurementLocation.length === 3) {
+                        let key = measurementLocation[1];
+                        let intakeIndex = parseInt(measurementLocation[2]);
+                        let createdAt = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].created_at;
+    
+                        let measurementData = JSON.parse(feature.properties[key]);    
                         let localMinTime = measurementData.timeOfMeasurement[intakeIndex][0];
                         if (minTime === false) {
                             minTime = localMinTime;
@@ -192,6 +160,32 @@ class MenuPanelPlotComponent extends React.Component {
 
                         if (textValues.length > 0) plotData.hovertext = textValues;
                         data.push(plotData);
+                    } else if (measurementLocation.length === 4) {
+                        let key = measurementLocation[1];
+                        let customSpecificator = measurementLocation[2];
+
+                        if ([`daily`, `weekly`, `monthly`].indexOf(customSpecificator) === -1) {
+                            throw new Error(`The custom specificator (${customSpecificator}) is invalid`);
+                        }
+    
+                        let measurementData = JSON.parse(feature.properties[key]);
+                        let measurementDataCopy = JSON.parse(JSON.stringify(measurementData.data));
+                        data.push(measurementDataCopy[customSpecificator].data[0]);
+
+                        let range = [0, 0];
+                        for (let key in measurementDataCopy) {
+                            if (measurementDataCopy[key].layout.yaxis2.range) {
+                                if (measurementDataCopy[key].layout.yaxis2.range[0] < range[0]) range[0] = measurementDataCopy[key].layout.yaxis2.range[0];
+                                if (measurementDataCopy[key].layout.yaxis2.range[1] > range[1]) range[1] = measurementDataCopy[key].layout.yaxis2.range[1];
+                            }
+
+                            yAxis2LayoutSettings = measurementDataCopy[key].layout.yaxis2;
+                        }
+
+                        yAxis2LayoutSettings.range = range;
+                        yAxis2LayoutSettings.showgrid = false;
+                    } else {
+                        throw new Error(`Invalid key and intake notation: ${measurementLocationRaw}`);
                     }
                 } else {
                     console.error(`Plot does not contain measurement ${measurementLocationRaw}`);

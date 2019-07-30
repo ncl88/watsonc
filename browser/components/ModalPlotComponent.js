@@ -15,19 +15,39 @@ class ModalPlotComponent extends React.Component {
         this.props.plot.measurements.map((measurement, index) => {
             let measurementDisplayTitle = measurement;
             let splitMeasurementId = measurement.split(':');
-            let gid = parseInt(splitMeasurementId[0]);
 
+            let customGraph = -1;
+            if (splitMeasurementId.length === 3) {
+                customGraph = false;
+            } else if (splitMeasurementId.length === 4) {
+                customGraph = true;
+            } else {
+                throw new Error(`Invalid measurement key (${measurement})`);
+            }
+
+            let gid = parseInt(splitMeasurementId[0]);
             if (this.props.dataSource && this.props.dataSource.length > 0) {
                 this.props.dataSource.map(item => {
                     if (item.properties.gid === gid) {
-                        let json = JSON.parse(item.properties[splitMeasurementId[1]]);
-                        let intakeName = `#` + (parseInt(splitMeasurementId[2]) + 1);
-                        if (`intakes` in json && Array.isArray(json.intakes) && json.intakes[parseInt(splitMeasurementId[2])] !== null) {
-                            intakeName = json.intakes[parseInt(splitMeasurementId[2])];
-                        }
+                        if (customGraph) {
+                            let json = JSON.parse(item.properties[splitMeasurementId[1]]).data[splitMeasurementId[2]];
+                            let intakeName = `#` + (parseInt(splitMeasurementId[3]) + 1);
+                            if (`intakes` in json && Array.isArray(json.intakes) && json.intakes[parseInt(splitMeasurementId[3])] !== null) {
+                                intakeName = json.intakes[parseInt(splitMeasurementId[3])];
+                            }
 
-                        measurementDisplayTitle = (`${item.properties.boreholeno}, ${json.title} (${intakeName})`);
-                        return false;
+                            measurementDisplayTitle = (`${item.properties.boreholeno}, ${json.data[0].name} (${intakeName})`);
+                            return false;
+                        } else {
+                            let json = JSON.parse(item.properties[splitMeasurementId[1]]);
+                            let intakeName = `#` + (parseInt(splitMeasurementId[2]) + 1);
+                            if (`intakes` in json && Array.isArray(json.intakes) && json.intakes[parseInt(splitMeasurementId[2])] !== null) {
+                                intakeName = json.intakes[parseInt(splitMeasurementId[2])];
+                            }
+
+                            measurementDisplayTitle = (`${item.properties.boreholeno}, ${json.title} (${intakeName})`);
+                            return false;
+                        }
                     }
                 });
             }

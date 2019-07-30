@@ -60,15 +60,18 @@ class ModalFeatureComponent extends React.Component {
                         }
                     }
                 } else if (typeof data === `object` && data !== null && `title` in data && `data` in data) {
-                    // Custom graphs ("data" exists)
-                    plottedProperties.push({
-                        custom: true,
-                        key: data.key,
-                        intakeIndex: 0,
-                        boreholeno: this.props.feature.properties.boreholeno ? this.props.feature.properties.boreholeno : ``,
-                        title: data.title,
-                        data: data.data
-                    });
+                    for (let key in data.data) {
+                        for (let i = 0; i < data.data[key].data.length; i++) {
+                            plottedProperties.push({
+                                custom: true,
+                                key: data.key + ':' + key,
+                                intakeIndex: i,
+                                boreholeno: this.props.feature.properties.boreholeno ? this.props.feature.properties.boreholeno : ``,
+                                title: data.data[key].data[i].name,
+                                data: data.data[key]
+                            });
+                        }
+                    }
                 }
             } catch (e) {
             }
@@ -96,11 +99,16 @@ class ModalFeatureComponent extends React.Component {
             let control = false;
             if (display) {
                 let json;
-                try {
-                    json = JSON.parse(this.props.feature.properties[item.key]);
-                } catch (e) {
-                    console.error(item);
-                    throw new Error(`Unable to parse measurements data`);
+                // Checking if the item is the custom one
+                if (item.key.indexOf(':') > -1) {
+                    json = item;
+                } else {
+                    try {
+                        json = JSON.parse(this.props.feature.properties[item.key]);
+                    } catch (e) {
+                        console.error(item);
+                        throw new Error(`Unable to parse measurements data`);
+                    }
                 }
 
                 let intakeName = `#` + (parseInt(item.intakeIndex) + 1);
