@@ -28,11 +28,14 @@ class ModalFeatureComponent extends React.Component {
     }
 
     render() {
+        // Detect measurements from feature properties
         let plottedProperties = [];
         for (let key in this.props.feature.properties) {
             try {
                 let data = JSON.parse(this.props.feature.properties[key]);
-                if (typeof data === `object` && data !== null && `boreholeno` in data && `unit` in data && `title` in data && `measurements` in data && `timeOfMeasurement` in data) {
+                if (typeof data === `object` && data !== null && `boreholeno` in data && `unit` in data && `title` in data
+                    && `measurements` in data && `timeOfMeasurement` in data) {
+                    // Regular properties ("measurements" and "timeOfMeasurement" exist)
                     let isPlottableProperty = true;
                     if (Array.isArray(data.measurements) === false) {
                         data.measurements = JSON.parse(data.measurements);
@@ -46,7 +49,6 @@ class ModalFeatureComponent extends React.Component {
                         }
                     });
 
-                    //if (isPlottableProperty && [`minofbottom`, `maksoftop`].indexOf(key) === -1) {
                     if (isPlottableProperty) {
                         for (let i = 0; i < data.measurements.length; i++) {
                             plottedProperties.push({
@@ -57,6 +59,16 @@ class ModalFeatureComponent extends React.Component {
                             });
                         }
                     }
+                } else if (typeof data === `object` && data !== null && `title` in data && `data` in data) {
+                    // Custom graphs ("data" exists)
+                    plottedProperties.push({
+                        custom: true,
+                        key: data.key,
+                        intakeIndex: 0,
+                        boreholeno: this.props.feature.properties.boreholeno ? this.props.feature.properties.boreholeno : ``,
+                        title: data.title,
+                        data: data.data
+                    });
                 }
             } catch (e) {
             }
@@ -160,18 +172,6 @@ class ModalFeatureComponent extends React.Component {
                     uncategorizedMeasurementControls.push(control);
                 }
             });
-
-            if (`precipitation` in this.props.feature.properties && this.props.feature.properties.precipitation) {
-                let control = createMeasurementControl({
-                    custom: true,
-                    title: __(`Precipitation`),
-                    key: `precipitation`,
-                    intakeIndex: 0
-                }, `precipitation`);
-                if (control) {
-                    uncategorizedMeasurementControls.push(control);
-                }
-            }
 
             if (uncategorizedMeasurementControls.length > 0) {
                 // Category has at least one displayed measurement

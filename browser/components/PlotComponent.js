@@ -97,7 +97,8 @@ class MenuPanelPlotComponent extends React.Component {
                     let customFormat = false;
                     let measurementData = JSON.parse(feature.properties[key]);
                     if (Array.isArray(measurementData.measurements) === false) {
-                        if (`daily` in measurementData && `weekly` in measurementData && `monthly` in measurementData) {
+                        if (`data` in measurementData
+                            && (`daily` in measurementData.data || `weekly` in measurementData.data || `monthly` in measurementData.data)) {
                             customFormat = true;
                         } else {
                             measurementData.measurements = JSON.parse(measurementData.measurements);
@@ -106,19 +107,20 @@ class MenuPanelPlotComponent extends React.Component {
                     }
 
                     if (customFormat) {
-                        let measurementDataCopy = JSON.parse(JSON.stringify(measurementData));
+                        let measurementDataCopy = JSON.parse(JSON.stringify(measurementData.data));
 
-                        data.push(measurementDataCopy.daily.data[0]);
-                        data.push(measurementDataCopy.weekly.data[0]);
-                        data.push(measurementDataCopy.monthly.data[0]);
+                        if (measurementDataCopy.daily) data.push(measurementDataCopy.daily.data[0]);
+                        if (measurementDataCopy.weekly) data.push(measurementDataCopy.weekly.data[0]);
+                        if (measurementDataCopy.monthly) data.push(measurementDataCopy.monthly.data[0]);
 
-                        layoutSettings = measurementDataCopy.monthly.layout.yaxis2;
                         let range = [0, 0];
                         for (let key in measurementDataCopy) {
                             if (measurementDataCopy[key].layout.yaxis2.range) {
                                 if (measurementDataCopy[key].layout.yaxis2.range[0] < range[0]) range[0] = measurementDataCopy[key].layout.yaxis2.range[0];
                                 if (measurementDataCopy[key].layout.yaxis2.range[1] > range[1]) range[1] = measurementDataCopy[key].layout.yaxis2.range[1];
                             }
+
+                            layoutSettings = measurementDataCopy[key].layout.yaxis2;
                         }
 
                         layoutSettings.range = range;
