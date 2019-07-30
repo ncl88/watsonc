@@ -4,7 +4,7 @@ import axios from 'axios';
 import moment from 'moment';
 import Plot from 'react-plotly.js';
 
-import {LIMIT_CHAR} from '../constants';
+import {LIMIT_CHAR, VIEW_MATRIX, VIEW_ROW} from '../constants';
 import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
 import SortableHandleComponent from './SortableHandleComponent';
 
@@ -217,7 +217,8 @@ class MenuPanelPlotComponent extends React.Component {
                 },
                 showlegend: true,
                 legend: {
-                    orientation: "h"
+                    orientation: "h",
+                    y: (this.props.viewMode === VIEW_MATRIX ? -0.1 : -0.2)
                 },
                 autosize: true
             };
@@ -228,7 +229,6 @@ class MenuPanelPlotComponent extends React.Component {
 
             plot = (<Plot
                 data={data}
-                useResizeHandler={true}
                 layout={layout}
                 onLegendDoubleClick={() => false}
                 style={{width: "100%", height: `${this.props.height - 60}px`}}/>);

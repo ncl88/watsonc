@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import reduxStore from './../redux/store';
 
 import ReactTooltip from 'react-tooltip';
-import {SELECT_CHEMICAL_DIALOG_PREFIX, TEXT_FIELD_DIALOG_PREFIX} from './../constants';
+import {SELECT_CHEMICAL_DIALOG_PREFIX, TEXT_FIELD_DIALOG_PREFIX, VIEW_MATRIX, VIEW_ROW} from './../constants';
 import PlotManager from './../PlotManager';
 import ProfileManager from './../ProfileManager';
 import TextFieldModal from './TextFieldModal';
@@ -15,9 +15,6 @@ import { isNumber } from 'util';
 import arrayMove from 'array-move';
 
 const uuidv1 = require('uuid/v1');
-
-const VIEW_MATRIX = 0;
-const VIEW_ROW = 1;
 
 const DASHBOARD_ITEM_PLOT = 0;
 const DASHBOARD_ITEM_PROFILE = 1;
@@ -671,10 +668,6 @@ class DashboardComponent extends React.Component {
 
     render() {
         let plotsControls = (<p style={{textAlign: `center`, paddingTop: `20px`}}>{__(`No timeseries were created or set as active yet`)}</p>);
-        let containerClass = `list-group-item col-sm-12 col-md-12 col-lg-6`;
-        if (this.state.view === VIEW_ROW) {
-            containerClass = `list-group-item col-sm-12 col-md-12 col-lg-12`;
-        }
 
         // Actualize elements location
         if (currentDisplay === DISPLAY_MIN) {
@@ -694,7 +687,7 @@ class DashboardComponent extends React.Component {
                 if (this.state.activePlots.indexOf(plot.id) > -1) {
                     localPlotsControls.push(<SortablePlotComponent
                         key={`sortable_${index}`}
-                        containerClass={containerClass}
+                        viewMode={this.state.view}
                         height={listItemHeightPx}
                         index={index}
                         handleDelete={this.handleDeletePlot}
@@ -705,7 +698,7 @@ class DashboardComponent extends React.Component {
                 if (this.state.activeProfiles.indexOf(profile.key) > -1) {
                     localPlotsControls.push(<SortableProfileComponent
                         key={`sortable_${index}`}
-                        containerClass={containerClass}
+                        viewMode={this.state.view}
                         height={listItemHeightPx}
                         index={index}
                         handleChangeDatatype={this.handleChangeDatatypeProfile}
