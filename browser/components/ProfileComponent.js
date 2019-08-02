@@ -13,14 +13,9 @@ class ProfileComponent extends React.Component {
     }
 
     render() {
-        let dataCopy = JSON.parse(JSON.stringify(this.props.plotMeta.value.data.data));
+        let dataCopy = JSON.parse(JSON.stringify(this.props.plotMeta.value.data.data).replace(/%28/g, '(').replace(/%29/g, ')'));
         dataCopy.map((item, index) => {
             if (!dataCopy[index].mode) dataCopy[index].mode = 'lines';
-            if (dataCopy[index].fillcolor && dataCopy[index].fillcolor.indexOf('%') > -1) dataCopy[index].fillcolor = decodeURIComponent(dataCopy[index].fillcolor);
-
-            if (item.line && item.line.color && item.line.color.indexOf('%') > -1) {    
-                dataCopy[index].line.color = decodeURIComponent(item.line.color);
-            }
         });
 
         let plot = (<p className="text-muted">{__(`At least one y axis has to be provided`)}</p>);
