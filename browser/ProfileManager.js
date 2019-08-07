@@ -55,7 +55,7 @@ class ProfileManager {
                 }
             }).catch(error => {
                 console.log(`Error occured during plot generation`, error);
-                reject(`Error occured during plot generation`);
+                reject(error);
             });
         });
     }

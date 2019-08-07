@@ -152,7 +152,9 @@ class DashboardComponent extends React.Component {
 
             this.props.onProfilesChange(profilesCopy);
         }).catch(error => {
-            console.error(`Error occured while creating profile (${error})`)
+            console.error(`Error occured while creating profile (${error})`);
+            alert(`Error occured while creating profile (${error})`);
+            if (callback) callback();
         });
     }
 

@@ -84,6 +84,7 @@ router.post('/api/extension/watsonc/intersection', function (req, res) {
                 Profile_depth: parseInt(req.body.profileDepth)
             };
 
+            let errorOccured = false;
             const pythonProcess = spawn(moduleConfig.pythonCommand, [moduleConfig.intersectionsScriptPath, JSON.stringify(inputJSON)]);
             pythonProcess.stdout.on('data', (data) => {
                 let parsedData = data.toString();
@@ -95,24 +96,27 @@ router.post('/api/extension/watsonc/intersection', function (req, res) {
                     error = e.toString();
                 }
 
-                if (error === false) {
-                    res.send({
-                        result: parsedData,
-                        boreholeNames
-                    });
-                } else {
-                    console.error('Error occured:', parsedData);
+                if (errorOccured === false) {
+                    if (error === false) {
+                        res.send({
+                            result: parsedData,
+                            boreholeNames
+                        });
+                    } else {
+                        console.error('Error occured:', parsedData);
 
-                    res.status(400);
-                    res.send({
-                        status: `error`,
-                        message: error,
-                        result: parsedData
-                    });
+                        res.status(400);
+                        res.send({
+                            status: `error`,
+                            message: error,
+                            result: parsedData
+                        });
+                    }
                 }
             });
     
             pythonProcess.stderr.on('data', (data) => {
+                errorOccured = true;
                 res.status(400);
                 res.send({
                     status: `error`,
@@ -151,6 +155,7 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
     });
 
     let result = '';
+    let errorOccured = false;
     const pythonProcess = spawn(moduleConfig.pythonCommand, [moduleConfig.profileScriptPath, '"' + JSON.stringify(inputJSON).replace(/"/g, '\'') + '"'], {
         cwd: require('path').dirname(moduleConfig.profileScriptPath),
         shell: true
@@ -171,22 +176,22 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
             error = e.toString();
         }
 
-        if (error === false) {
-            res.send(parsedData);
-        } else {
-            res.status(400);
-            res.send({
-                status: `error`,
-                message: error,
-                result: parsedData
-            });
+        if (errorOccured === false) {
+            if (error === false) {
+                res.send(parsedData);
+            } else {
+                res.status(400);
+                res.send({
+                    status: `error`,
+                    message: error,
+                    result: parsedData
+                });
+            }
         }
     });
 
     pythonProcess.stderr.on('data', (data) => {
-
-        console.log(`### error 2`, data.toString());
-
+        errorOccured = true;
         res.status(400);
         res.send({
             status: `error`,
