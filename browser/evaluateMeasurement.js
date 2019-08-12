@@ -16,7 +16,7 @@ const evaluate = (json, limits, chem, specificIntake = false) => {
     let latestValuesForIntakes = [];
 
     const generateLatestMeasurement = (intake) => {
-        let length = json.timeOfMeasurement[intake].length - 1;
+        let length = json.timeOfMeasurement[intake].length;
 
         latestMeasurementIntakes[intake] = false;
         for (let i = length; i--; i >= 0) {
@@ -27,10 +27,8 @@ const evaluate = (json, limits, chem, specificIntake = false) => {
 
             if (detectionLimitReached) {
                 currentValue = moment(json.timeOfMeasurement[intake][i], "YYYY-MM-DDTHH:mm:ssZZ");
-
                 latestMeasurement = json.measurements[intake][i];
                 latestValuesForIntakes.push(latestMeasurement);
-
                 if (currentValue.isAfter(latestValue)) {
                     latestValue = currentValue;
                     latestPosition = {
@@ -69,12 +67,9 @@ const evaluate = (json, limits, chem, specificIntake = false) => {
 
             if (detectionLimitReached) {
                 currentValue = json.measurements[intake][u];
-                if (!(latestPosition.intake === intake && latestPosition.measurement === u) && currentValue > maxMeasurement) {
-                    maxMeasurement = currentValue;
-                }
-
-                if (currentValue > maxMeasurementIntakes[intake]) {
+                if (currentValue > maxMeasurementIntakes[intake] || maxMeasurementIntakes[intake] === false) {
                     maxMeasurementIntakes[intake] = currentValue;
+                    maxMeasurement = currentValue;
                 }
             }
         }
