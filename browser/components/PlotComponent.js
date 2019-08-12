@@ -4,9 +4,11 @@ import axios from 'axios';
 import moment from 'moment';
 import Plot from 'react-plotly.js';
 
-import {LIMIT_CHAR, VIEW_MATRIX, VIEW_ROW} from '../constants';
+import {LIMIT_CHAR} from '../constants';
 import LoadingOverlay from './../../../../browser/modules/shared/LoadingOverlay';
 import SortableHandleComponent from './SortableHandleComponent';
+
+const utils = require('./../utils');
 
 /**
  * Creates single plot with multiple measurements displayed on it
@@ -39,7 +41,7 @@ class MenuPanelPlotComponent extends React.Component {
                 }
 
                 data.push({
-                    name: (`DGU ${feature.properties.boreholeno} - ${measurementData.title} (${measurementData.unit})`),
+                    name: (`${feature.properties.boreholeno} - ${measurementData.title} (${measurementData.unit})`),
                     x: measurementData.timeOfMeasurement[intakeIndex],
                     y: measurementData.measurements[intakeIndex],
                 });
@@ -146,8 +148,9 @@ class MenuPanelPlotComponent extends React.Component {
                             }
                         }
 
+                        let title = utils.getMeasurementTitle(feature);
                         let plotData = {
-                            name: (`DGU ${feature.properties.boreholeno} (${measurementData.intakes ? measurementData.intakes[intakeIndex] : (intakeIndex + 1)}) - ${measurementData.title} (${measurementData.unit}${createdAt ? `, ` + __(`updated at`) + ` ` + moment(createdAt).format(`D MMM YYYY`) : ``})`),
+                            name: (`${title} (${measurementData.intakes ? measurementData.intakes[intakeIndex] : (intakeIndex + 1)}) - ${measurementData.title} (${measurementData.unit})`),
                             x: measurementData.timeOfMeasurement[intakeIndex],
                             y: measurementData.measurements[intakeIndex],
                             type: 'scattergl',
@@ -212,7 +215,7 @@ class MenuPanelPlotComponent extends React.Component {
                 showlegend: true,
                 legend: {
                     orientation: "h",
-                    y: (this.props.viewMode === VIEW_MATRIX ? -0.1 : -0.2)
+                    y: -0.2
                 },
                 autosize: true
             };

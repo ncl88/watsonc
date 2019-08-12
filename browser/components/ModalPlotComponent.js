@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { DropTarget } from 'react-dnd';
 
+const utils = require('./../utils');
+
 /**
  * Plot component
  */
@@ -33,9 +35,6 @@ class ModalPlotComponent extends React.Component {
             if (this.props.dataSource && this.props.dataSource.length > 0) {
                 this.props.dataSource.map(item => {
                     if (item.properties.gid === gid) {
-
-
-                        console.log(`###`, item);
                         if (customGraph) {
                             let json = JSON.parse(item.properties[splitMeasurementId[1]]).data[splitMeasurementId[2]];
                             let intakeName = `#` + (parseInt(splitMeasurementId[3]) + 1);
@@ -52,7 +51,8 @@ class ModalPlotComponent extends React.Component {
                                 intakeName = json.intakes[parseInt(splitMeasurementId[2])];
                             }
 
-                            measurementDisplayTitle = (`${item.properties.boreholeno}, ${json.title} (${intakeName})`);
+                            let title = utils.getMeasurementTitle(item);
+                            measurementDisplayTitle = (`${title}, ${json.title} (${intakeName})`);
                             return false;
                         }
                     }

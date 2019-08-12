@@ -27,8 +27,28 @@ const getChemicalName = (chemicalId, categories) => {
     }
 
     return chemicalName;
-}
+};
+
+/**
+ * Detects the measurement title
+ * 
+ * @param {Object} measurement Measurement object
+ * 
+ * @returns {String}
+ */
+const getMeasurementTitle = (measurement) => {
+    let title = measurement.properties.boreholeno;
+    if (`watlevmsl` in measurement.properties && measurement.properties.loctypeid && measurement.properties.loctypeid > 0) {
+        let parsedData = JSON.parse(measurement.properties.watlevmsl);
+        if (parsedData.boreholeno) {
+            title = parsedData.boreholeno;
+        }
+    }
+
+    return title;
+};
 
 module.exports = {
-    getChemicalName
+    getChemicalName,
+    getMeasurementTitle
 }

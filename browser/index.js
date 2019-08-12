@@ -16,6 +16,8 @@ import { setAuthenticated } from './redux/actions';
 
 const symbolizer = require('./symbolizer');
 
+const utils = require('./utils');
+
 const evaluateMeasurement = require('./evaluateMeasurement');
 
 const MODULE_NAME = `watsonc`;
@@ -779,11 +781,12 @@ module.exports = module.exports = {
 
             let titles = [];
             features.map(item => {
+                let title =  utils.getMeasurementTitle(item);
                 if (titleAsLink) {
                     let link = `http://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${encodeURIComponent(item.properties.boreholeno)}`;
-                    titles.push(`<a href="${link}" target="_blank" title="${item.properties.boreholeno} @ data.geus.dk">${item.properties.boreholeno}</a>`);
+                    titles.push(`<a href="${link}" target="_blank" title="${title} @ data.geus.dk">${title}</a>`);
                 } else {
-                    titles.push(`${item.properties.boreholeno}`);
+                    titles.push(`${title}`);
                 }
             });
 
