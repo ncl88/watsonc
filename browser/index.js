@@ -966,7 +966,7 @@ module.exports = module.exports = {
                         ${__(`Latest`)}: ${measurementData.latestMeasurementIntakes[i] === false ? __(`n.d.`) : measurementData.latestMeasurementIntakes[i]}<br>`);
                     }
 
-                    layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">DGU nr. ${json.boreholeno}</a></p>
+                    layer.bindTooltip(`<p><a target="_blank" href="https://data.geus.dk/JupiterWWW/borerapport.jsp?dgunr=${json.boreholeno}">${json.boreholeno}</a></p>
                     <b style="color: rgb(16, 174, 140)">${names[lastSelectedChemical]} (${json.unit})</b><br>${html.join('<br>')}`);
 
                     zIndexOffset = 10000;

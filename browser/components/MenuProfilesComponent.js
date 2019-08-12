@@ -456,6 +456,16 @@ class MenuProfilesComponent extends React.Component {
 
                                     $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal({backdrop: `static`});
                                 }}><i className="fas fa-edit" title={__(`Edit`)}></i></button>
+                                <button
+                                    type="button"
+                                    disabled={this.state.localSelectedChemical === false}
+                                    className="btn btn-xs btn-primary"
+                                    title={__(`Delete`)}
+                                    onClick={(event) => {
+                                        this.setState({localSelectedChemical: false});
+                                    }}>
+                                    <i className="fas fa-eraser" title={__(`Delete`)}></i>
+                                </button>
                             </p>
                         </div>
                     </div>
@@ -485,7 +495,7 @@ class MenuProfilesComponent extends React.Component {
                             <a
                                 href="javascript:void(0)"
                                 className="btn"
-                                disabled={this.state.step !== STEP_READY_TO_LOAD || this.state.localSelectedChemical === false}
+                                disabled={this.state.step !== STEP_READY_TO_LOAD}
                                 onClick={() => {
                                     this.search();
                                 }}>{__(`Continue`)}</a>
@@ -507,7 +517,6 @@ class MenuProfilesComponent extends React.Component {
                     {this.state.layers && this.state.layers.length > 0 ? (<div className="row">
                         <div className="col-md-12">
                             <TitleFieldComponent
-                                disabled={this.state.selectedLayers.length === 0}
                                 onAdd={(newTitle) => { this.saveProfile(newTitle) }}
                                 type="browserOwned"
                                 showIcon={false}

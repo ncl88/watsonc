@@ -33,6 +33,9 @@ class ModalPlotComponent extends React.Component {
             if (this.props.dataSource && this.props.dataSource.length > 0) {
                 this.props.dataSource.map(item => {
                     if (item.properties.gid === gid) {
+
+
+                        console.log(`###`, item);
                         if (customGraph) {
                             let json = JSON.parse(item.properties[splitMeasurementId[1]]).data[splitMeasurementId[2]];
                             let intakeName = `#` + (parseInt(splitMeasurementId[3]) + 1);

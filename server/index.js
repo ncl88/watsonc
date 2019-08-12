@@ -139,20 +139,23 @@ router.post('/api/extension/watsonc/profile', function (req, res) {
     let zone = utmZone.getZone(req.body.profile.geometry.coordinates[0][1], req.body.profile.geometry.coordinates[0][0]);
     let crss = {"EPSG:25832": "+proj=utm +zone=" + zone + " +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs "};
     let reprojectedProfile = reproject.reproject(req.body.profile, 'EPSG:4326', 'EPSG:25832', crss);
-    
+
     let inputJSON = {
         coordinates: reprojectedProfile.geometry.coordinates,
         DGU_nr: req.body.boreholeNames,
         Profile_depth: parseInt(req.body.depth),
-        Compound: req.body.compound
     };
 
-    inputJSON.layers = [];
-    inputJSON.overlap = [];
-    req.body.layers.map(item => {
-        inputJSON.layers.push(item.layerconfig);
-        inputJSON.overlap.push(item.intersectionSegments);
-    });
+    if (req.body.compound) inputJSON.Compound = req.body.compound;
+
+    if (req.body.layers && req.body.layers.length > 0) {
+        inputJSON.layers = [];
+        inputJSON.overlap = [];
+        req.body.layers.map(item => {
+            inputJSON.layers.push(item.layerconfig);
+            inputJSON.overlap.push(item.intersectionSegments);
+        });
+    }
 
     let result = '';
     let errorOccured = false;
