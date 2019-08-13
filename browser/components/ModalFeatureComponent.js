@@ -206,7 +206,18 @@ class ModalFeatureComponent extends React.Component {
             plotsText = __(`Found time series`);
         }
 
-        let plotsControls = (<p>{__(`No time series were created yet`)}</p>);
+        let plotsControls = (<div>
+            <p>{__(`No timeseries were created yet`)}</p>
+            <div style={{
+                textAlign: `center`,
+                position: `absolute`,
+                top: `50%`,
+                color: `gray`
+            }}>
+                <p>{__(`Create a new table and then drag your desired data series into the box - and you're off`)}</p>
+            </div>
+        </div>);
+
         if (this.state.plots && this.state.plots.length > 0) {
             plotsControls = [];
             this.state.plots.map((plot) => {
@@ -246,7 +257,13 @@ class ModalFeatureComponent extends React.Component {
                             }}/>
                         </div>
                         <div className="form-group">
-                            <TitleFieldComponent id="new-plot-control" onAdd={(title) => { this.props.onPlotAdd(title) }} type="userOwned" customStyle={{ width: `100%` }}/>
+                            <TitleFieldComponent
+                                id="new-plot-control"
+                                saveIcon={(<i className="material-icons">add</i>)}
+                                inputPlaceholder={__(`Create new`)}
+                                onAdd={(title) => { this.props.onPlotAdd(title) }}
+                                type="userOwned"
+                                customStyle={{ width: `100%` }}/>
                         </div>
                     </div>
                 </div>
