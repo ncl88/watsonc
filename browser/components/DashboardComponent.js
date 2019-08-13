@@ -819,11 +819,13 @@ class DashboardComponent extends React.Component {
                                     type="button"
                                     disabled={this.state.view === VIEW_MATRIX}
                                     onClick={() => { this.setState({view: VIEW_MATRIX}); }}
+                                    style={this.state.view === VIEW_MATRIX ? {color: `black`} : {}}
                                     className="btn btn-sm btn-primary btn-default">{__(`Matrix view`)}</button>
                                 <button
                                     type="button"
                                     disabled={this.state.view === VIEW_ROW}
                                     onClick={() => { this.setState({view: VIEW_ROW}); }}
+                                    style={this.state.view === VIEW_ROW ? {color: `black`} : {}}
                                     className="btn btn-sm btn-primary btn-default">{__(`Row view`)}</button>
                             </div>
                         </div>
