@@ -66,12 +66,14 @@ class DashboardComponent extends React.Component {
         this.handleShowPlot = this.handleShowPlot.bind(this);
         this.handleHidePlot = this.handleHidePlot.bind(this);
         this.handleCreatePlot = this.handleCreatePlot.bind(this);
+        this.handleRemovePlot = this.handleRemovePlot.bind(this);
         this.handleDeletePlot = this.handleDeletePlot.bind(this);
         this.handleHighlightPlot = this.handleHighlightPlot.bind(this);
 
         this.handleShowProfile = this.handleShowProfile.bind(this);
         this.handleHideProfile = this.handleHideProfile.bind(this);
         this.handleCreateProfile = this.handleCreateProfile.bind(this);
+        this.handleRemoveProfile = this.handleRemoveProfile.bind(this);
         this.handleDeleteProfile = this.handleDeleteProfile.bind(this);
         this.handleProfileClick = this.handleProfileClick.bind(this);
         this.handleChangeDatatypeProfile = this.handleChangeDatatypeProfile.bind(this);
@@ -384,6 +386,26 @@ class DashboardComponent extends React.Component {
         });
     }
 
+    handleRemoveProfile(profileKey) {
+        if (!profileKey) throw new Error(`Empty profile key`);
+
+        let activeProfilesCopy = JSON.parse(JSON.stringify(this.state.activeProfiles));
+        if (activeProfilesCopy.indexOf(profileKey) > -1) activeProfilesCopy.splice(activeProfilesCopy.indexOf(profileKey), 1);
+
+        this.setState({ activeProfiles: activeProfilesCopy });
+        this.props.onActiveProfilesChange(activeProfilesCopy);
+    }
+
+    handleRemovePlot(id) {
+        if (!id) throw new Error(`Empty plot identifier`);
+
+        let activePlotsCopy = JSON.parse(JSON.stringify(this.state.activePlots));
+        if (activePlotsCopy.indexOf(id) > -1) activePlotsCopy.splice(activePlotsCopy.indexOf(id), 1);
+
+        this.setState({ activePlots: activePlotsCopy });
+        this.props.onActivePlotsChange(activePlotsCopy);
+    }
+
     handleDeletePlot(id, name) {
         if (!id) throw new Error(`Empty plot identifier`);
 
@@ -417,6 +439,7 @@ class DashboardComponent extends React.Component {
                     plots: plotsCopy,
                     dashboardItems: dashboardItemsCopy
                 });
+
                 this.props.onPlotsChange(plotsCopy);
             }).catch(error => {
                 console.error(`Error occured while creating plot (${error})`)
@@ -692,7 +715,7 @@ class DashboardComponent extends React.Component {
                         viewMode={this.state.view}
                         height={listItemHeightPx}
                         index={index}
-                        handleDelete={this.handleDeletePlot}
+                        handleDelete={this.handleRemovePlot}
                         meta={plot}/>);
                 }
             } else if (item.type === DASHBOARD_ITEM_PROFILE) {
@@ -704,7 +727,7 @@ class DashboardComponent extends React.Component {
                         height={listItemHeightPx}
                         index={index}
                         handleChangeDatatype={this.handleChangeDatatypeProfile}
-                        handleDelete={this.handleDeleteProfile}
+                        handleDelete={this.handleRemoveProfile}
                         handleClick={this.handleProfileClick}
                         meta={profile}/>);
                 }

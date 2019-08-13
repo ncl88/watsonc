@@ -250,10 +250,10 @@ class MenuPanelPlotComponent extends React.Component {
                      <a
                         className="btn"
                         href="javascript:void(0)"
-                        title={__(`Delete`) + ` ` + this.props.plotMeta.title}
+                        title={__(`Remove`) + ` ` + this.props.plotMeta.title}
                         onClick={() => { this.props.onDelete(this.props.plotMeta.id)}}
                         style={{padding: `0px`, marginLeft: `20px`}}>
-                        <i className="fa fa-remove"></i> {__(`Delete`)}</a> 
+                        <i className="fa fa-remove"></i> {__(`Remove`)}</a> 
                 </div>
             </div>
             <div style={{height: `${this.props.height - 50}px`, border: `1px solid lightgray`}}>{plot}</div>

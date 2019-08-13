@@ -45,10 +45,10 @@ class ProfileComponent extends React.Component {
                     </a> <SortableHandleComponent title={this.props.plotMeta.value.title}/> <a
                         className="btn"
                         href="javascript:void(0)"
-                        title={__(`Delete`) + ` ` + this.props.plotMeta.value.title}
+                        title={__(`Remove`) + ` ` + this.props.plotMeta.value.title}
                         onClick={() => { this.props.onDelete(this.props.plotMeta.key)}}
                         style={{padding: `0px`, marginLeft: `20px`}}>
-                        <i className="fa fa-remove"></i> {__(`Delete`)}
+                        <i className="fa fa-remove"></i> {__(`Remove`)}
                     </a>
                 </div>
             </div>
