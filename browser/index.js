@@ -130,9 +130,19 @@ module.exports = module.exports = {
         });
 
         $('#watsonc-plots-dialog-form').click(function () {
-            $('#watsonc-plots-dialog-form').css('z-index', '100000');
-            $('#watsonc-features-dialog').css('z-index', '100');
-            $('#search-ribbon').css('z-index', '-1');
+            $('#watsonc-plots-dialog-form').css('z-index', '1000');
+
+            if ($('#watsonc-features-dialog').css('z-index') === '1000') {
+                $('#watsonc-features-dialog').css('z-index', '100');
+            } else {
+                $('#watsonc-features-dialog').css('z-index', '10');
+            }
+
+            if ($('#search-ribbon').css('z-index') === '1000') {
+                $('#search-ribbon').css('z-index', '100');
+            } else {
+                $('#search-ribbon').css('z-index', '10');
+            }
         });
 
         $('#watsonc-features-dialog').click(function () {
@@ -140,7 +150,19 @@ module.exports = module.exports = {
         });
 
         $('#search-ribbon').click(function () {
-            $('#search-ribbon').css('z-index', '10');
+            if ($('#watsonc-plots-dialog-form').css('z-index') === '1000') {
+                $('#watsonc-plots-dialog-form').css('z-index', '100');
+            } else {
+                $('#watsonc-plots-dialog-form').css('z-index', '10');
+            }
+
+            if ($('#watsonc-features-dialog').css('z-index') === '1000') {
+                $('#watsonc-features-dialog').css('z-index', '100');
+            } else {
+                $('#watsonc-features-dialog').css('z-index', '10');
+            }
+
+            $('#search-ribbon').css('z-index', '1000');
         });
 
         var lc = L.control.locate({
@@ -600,9 +622,19 @@ module.exports = module.exports = {
     },
 
     bringFeaturesDialogToFront() {
-        $('#watsonc-plots-dialog-form').css('z-index', '100');
-        $('#watsonc-features-dialog').css('z-index', '100000');
-        $('#search-ribbon').css('z-index', '-1');
+        if ($('#watsonc-plots-dialog-form').css('z-index') === '1000') {
+            $('#watsonc-plots-dialog-form').css('z-index', '100');
+        } else {
+            $('#watsonc-plots-dialog-form').css('z-index', '10');
+        }
+
+        $('#watsonc-features-dialog').css('z-index', '1000');
+
+        if ($('#search-ribbon').css('z-index') === '1000') {
+            $('#search-ribbon').css('z-index', '100');
+        } else {
+            $('#search-ribbon').css('z-index', '10');
+        }
     },
 
     initializeSearchBar() {
