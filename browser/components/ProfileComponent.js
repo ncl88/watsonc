@@ -20,12 +20,21 @@ class ProfileComponent extends React.Component {
 
         let plot = (<p className="text-muted">{__(`At least one y axis has to be provided`)}</p>);
         if (this.props.plotMeta) {
+            let layoutCopy = JSON.parse(JSON.stringify(this.props.plotMeta.value.data.layout));
+            layoutCopy.margin = {
+                l: 50,
+                r: 5,
+                b: 45,
+                t: 5,
+                pad: 1
+            };
+
             plot = (<Plot
                 data={dataCopy}
                 useResizeHandler={true}
                 onClick={this.props.onClick}
                 config={{modeBarButtonsToRemove: ['autoScale2d']}}
-                layout={this.props.plotMeta.value.data.layout}
+                layout={layoutCopy}
                 style={{width: "100%", height: `${this.props.height - 60}px`}}/>);
         }
 
