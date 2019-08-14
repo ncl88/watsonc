@@ -34,8 +34,11 @@ class ModalComponent extends React.Component {
 
         return (<div style={{ height: `inherit` }}>
             {tabs}
-            <div>
-                <ModalFeatureComponent key={`item_${this.state.activeTabIndex}`} feature={this.props.features[this.state.activeTabIndex]} {...this.props}/>
+            <div style={{ height: (tabs === false ? `inherit` : `calc(100% - 39px)`)}}>
+                <ModalFeatureComponent
+                    key={`item_${this.state.activeTabIndex}`}
+                    feature={this.props.features[this.state.activeTabIndex]}
+                    {...this.props}/>
             </div>
         </div>);
     }
