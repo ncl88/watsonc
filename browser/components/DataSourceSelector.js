@@ -15,7 +15,7 @@ class DataSourceSelector extends React.Component {
     render() {
         const generateLayerRecord = (key, item) => {
             let selected = (this.props.selectedLayers.indexOf(item.originalLayerKey + (item.additionalKey ? `#${item.additionalKey}` : ``)) !== -1);
-            return (<div key={key}>
+            return (<div key={key} style={{paddingBottom: `8px`}}>
                 <div className="checkbox">
                     <label>
                         <input
