@@ -89,12 +89,14 @@ class ChemicalSelector extends React.Component {
                     }
 
                     if (chemicalsMarkup.length > 0) {
-                        chemicalGroupsForLayer.push(<div key={`chemical_group_key_${key}`}>
-                            <div>
-                                <h5>{key}</h5>
-                            </div>
-                            <div>{chemicalsMarkup}</div>
-                        </div>);
+                        if (key !== `Vandstand` || key === `Vandstand` && this.props.excludeWaterLevel === false) {
+                            chemicalGroupsForLayer.push(<div key={`chemical_group_key_${key}`}>
+                                <div>
+                                    <h5>{key}</h5>
+                                </div>
+                                <div>{chemicalsMarkup}</div>
+                            </div>);
+                        }
                     }
                 }
             }
@@ -111,7 +113,7 @@ class ChemicalSelector extends React.Component {
         let runId = uuidv4();
 
         let layerGroupsList = [];
-        if (this.props.selectedLayers.length > 0) {
+        if (this.props.selectedLayers.length > 0 && this.props.excludeWaterLevel === false) {
             let waterGroup = this.generateWaterGroup(runId);
             layerGroupsList.push(waterGroup);
         }
@@ -131,6 +133,7 @@ class ChemicalSelector extends React.Component {
 }
 
 ChemicalSelector.defaultProps = {
+    excludeWaterLevel: false,
     useLocalSelectedChemical: false,
     localSelectedChemical: false
 };
