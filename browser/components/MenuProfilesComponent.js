@@ -546,7 +546,7 @@ class MenuProfilesComponent extends React.Component {
                                     <button
                                         type="button"
                                         className="btn btn-raised btn-block btn-primary btn-sm"
-                                        onClick={() => { this.saveProfile(); }}>{__(`Continue`)}</button>
+                                        onClick={() => { this.saveProfile(); }}>{__(`Save and exit`)}</button>
                                 </div>
                             </div>
                         </div>) : false}
