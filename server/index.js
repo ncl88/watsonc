@@ -19,9 +19,17 @@ moment.locale("da_DK");
 
 router.post('/api/extension/watsonc/download-plot', function (req, res) {
     if (req.body && req.body.title && req.body.data && Array.isArray(req.body.data)) {
+        let worksheetNames = {};
         var workbook = new Excel.Workbook();
         req.body.data.map((item) => {
-            var sheet = workbook.addWorksheet(item.name);
+            if (item.name in worksheetNames) {
+                worksheetNames[item.name] = worksheetNames[item.name] + 1;
+            } else {
+                worksheetNames[item.name] = 1;
+            }
+
+            let worksheetName = item.name + ` (#${worksheetNames[item.name]})`;
+            var sheet = workbook.addWorksheet(worksheetName);
             item.x.map((xItem, index) => {
                 let yItem = item.y[index];
                 if (index === 0) {
