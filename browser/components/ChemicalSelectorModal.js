@@ -29,6 +29,7 @@ class ChemicalSelectorModal extends React.Component {
             <div className="modal-body">
                 <div className="container">
                     <ChemicalSelector
+                        emptyOptionTitle={this.props.emptyOptionTitle}
                         excludeWaterLevel={true}
                         useLocalSelectedChemical={this.props.useLocalSelectedChemical}
                         localSelectedChemical={this.props.localSelectedChemical}

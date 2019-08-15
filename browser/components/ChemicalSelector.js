@@ -113,6 +113,27 @@ class ChemicalSelector extends React.Component {
         let runId = uuidv4();
 
         let layerGroupsList = [];
+
+        if (this.props.emptyOptionTitle) {
+            layerGroupsList.push(<div key={`chemical_group_empty`}>
+            <div>
+                <div>
+                    <div style={{ display: `inline-block`}}>
+                        <label>
+                            <input
+                                name={`chem_modal_${runId}_empty`}
+                                type="radio"
+                                checked={false}
+                                onChange={() => {
+                                    this.props.localSelectChemical(false);
+                                }}/> <span className="js-chemical-name">{this.props.emptyOptionTitle}</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>);
+        }
+
         if (this.props.selectedLayers.length > 0 && this.props.excludeWaterLevel === false) {
             let waterGroup = this.generateWaterGroup(runId);
             layerGroupsList.push(waterGroup);
