@@ -28,23 +28,37 @@ class MenuPanelPlotComponent extends React.Component {
             if (measurementLocationRaw in this.props.plotMeta.measurementsCachedData &&
                 this.props.plotMeta.measurementsCachedData[measurementLocationRaw]) {
                 let measurementLocation = measurementLocationRaw.split(':');
-                if (measurementLocation.length !== 3) throw new Error(`Invalid key and intake notation: ${measurementLocationRaw}`);
+                if (measurementLocation.length === 3) {
+                    let key = measurementLocation[1];
+                    let intakeIndex = parseInt(measurementLocation[2]);
+    
+                    let feature = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].data;
+                    let measurementData = JSON.parse(feature.properties[key]);
+                    if (Array.isArray(measurementData.measurements) === false) {
+                        measurementData.measurements = JSON.parse(measurementData.measurements);
+                    }
+    
+                    data.push({
+                        name: (`${feature.properties.boreholeno} - ${measurementData.title} (${measurementData.unit})`),
+                        x: measurementData.timeOfMeasurement[intakeIndex],
+                        y: measurementData.measurements[intakeIndex],
+                    });
+                } else if (measurementLocation.length === 4) {
+                    let key = measurementLocation[1];
+                    let customSpecificator = measurementLocation[2];
 
-                let key = measurementLocation[1];
-                let intakeIndex = parseInt(measurementLocation[2]);
+                    if ([`daily`, `weekly`, `monthly`].indexOf(customSpecificator) === -1) {
+                        throw new Error(`The custom specificator (${customSpecificator}) is invalid`);
+                    }
 
-                let feature = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].data;
-
-                let measurementData = JSON.parse(feature.properties[key]);
-                if (Array.isArray(measurementData.measurements) === false) {
-                    measurementData.measurements = JSON.parse(measurementData.measurements);
+                    let feature = this.props.plotMeta.measurementsCachedData[measurementLocationRaw].data;
+                    let measurementData = JSON.parse(feature.properties[key]);
+                    let measurementDataCopy = JSON.parse(JSON.stringify(measurementData.data));
+                    data.push(measurementDataCopy[customSpecificator].data[0]);
+                } else {
+                    throw new Error(`Invalid key and intake notation: ${measurementLocationRaw}`);
                 }
 
-                data.push({
-                    name: (`${feature.properties.boreholeno} - ${measurementData.title} (${measurementData.unit})`),
-                    x: measurementData.timeOfMeasurement[intakeIndex],
-                    y: measurementData.measurements[intakeIndex],
-                });
             } else {
                 console.error(`Plot does not contain measurement ${measurementLocationRaw}`);
             }
