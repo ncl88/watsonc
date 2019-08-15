@@ -215,8 +215,8 @@ module.exports = module.exports = {
                     jquery("#snackbar-watsonc").snackbar("hide");
                 }, 200);
 
-                // If user just zoomed in the proper zoom, enable current state layers
-                if (previousZoom === 14 || (previousZoom === -1 && cloud.get().getZoom() === 15)) {
+                if ((previousZoom === 14 || (previousZoom === -1 && cloud.get().getZoom() === 15))
+                    || ((previousZoom < 15 || previousZoom === -1) && cloud.get().getZoom() >= 15)) {
                     if (reduxStore.getState().global && reduxStore.getState().global.selectedLayers) {
                         _self.onApplyLayersAndChemical({
                             layers: reduxStore.getState().global.selectedLayers,
