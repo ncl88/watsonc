@@ -93,10 +93,43 @@ class DashboardComponent extends React.Component {
             }, 500);
         });
 
+        this.props.backboneEvents.get().on(`session:authChange`, (authenticated) => {
+            if (authenticated) {
+                _self.refreshProfilesList();
+            } else {
+                let newDashboardItems = [];
+                _self.state.dashboardItems.map(item => {
+                    if (item.type === DASHBOARD_ITEM_PLOT) {
+                        newDashboardItems.push(JSON.parse(JSON.stringify(item)));
+                    }
+                });
+    
+                _self.setState({
+                    profiles: [],
+                    activeProfiles: [],
+                    dashboardItems: newDashboardItems
+                });
+            }
+        });
+
+        this.refreshProfilesList();
+    }
+
+    componentDidMount() {
+        this.nextDisplayType();
+    }
+
+    refreshProfilesList() {
         this.profileManager.getAll().then(profiles => {
-            let dashboardItemsCopy = JSON.parse(JSON.stringify(this.state.dashboardItems));
+            let newDashboardItems = [];
+            this.state.dashboardItems.map(item => {
+                if (item.type === DASHBOARD_ITEM_PLOT) {
+                    newDashboardItems.push(JSON.parse(JSON.stringify(item)));
+                }
+            });
+
             profiles.map(item => {
-                dashboardItemsCopy.push({
+                newDashboardItems.push({
                     type: DASHBOARD_ITEM_PROFILE,
                     item
                 });
@@ -104,13 +137,11 @@ class DashboardComponent extends React.Component {
 
             this.setState({
                 profiles,
-                dashboardItems: dashboardItemsCopy
+                dashboardItems: newDashboardItems
             });
-        });
-    }
 
-    componentDidMount() {
-        this.nextDisplayType();
+            this.props.onProfilesChange(profiles);
+        });
     }
 
     dehydratePlots(plots) { return this.plotManager.dehydratePlots(plots); }
@@ -706,6 +737,7 @@ class DashboardComponent extends React.Component {
         let listItemHeightPx = Math.round(($(document).height() * 0.9 - modalHeaderHeight - 10) / 2);
 
         let localPlotsControls = [];
+
         this.state.dashboardItems.map((item, index) => {
             if (item.type === DASHBOARD_ITEM_PLOT) {
                 let plot = item.item;

@@ -516,6 +516,7 @@ module.exports = module.exports = {
                         ReactDOM.render(<Provider store={reduxStore}>
                             <MenuProfilesComponent
                                 cloud={cloud}
+                                backboneEvents={backboneEvents}
                                 categories={categoriesOverall ? categoriesOverall : []}
                                 initialProfiles={dashboardComponentInstance.getProfiles()}
                                 initialActiveProfiles={dashboardComponentInstance.getActiveProfiles()}
@@ -552,6 +553,7 @@ module.exports = module.exports = {
                 plotManager.hydratePlots(initialPlots).then(hydratedInitialPlots => {
                     try {
                         dashboardComponentInstance = ReactDOM.render(<DashboardComponent
+                            backboneEvents={backboneEvents}
                             initialPlots={hydratedInitialPlots}
                             initialProfiles={initialProfiles}
                             onOpenBorehole={this.openBorehole.bind(this)}

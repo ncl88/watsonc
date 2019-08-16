@@ -7,22 +7,20 @@ import axios from 'axios';
 class ProfileManager {
     constructor() {
         let hostname = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
-        this.apiUrl = hostname + `/api/key-value/` + window.vidiConfig.appDatabase;
+        //this.apiUrl = hostname + `/api/key-value/` + window.vidiConfig.appDatabase;
+        this.apiUrl = hostname + `/api/extension/watsonc/${window.vidiConfig.appDatabase}/profiles`;
     }
 
     getAll() {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: `${this.apiUrl}?like=watsonc_profile_%`,
+                url: this.apiUrl,
                 method: 'GET',
                 dataType: 'json'
             }).then(response => {
                 let parsedData = [];
-                response.data.map(item => {
-                    parsedData.push({
-                        key: item.key,
-                        value: JSON.parse(item.value)
-                    });
+                response.map(item => {
+                    parsedData.push(JSON.parse(item.value));
                 });
 
                 resolve(parsedData);
@@ -37,13 +35,9 @@ class ProfileManager {
         return new Promise((resolve, reject) => {
             axios.post(`/api/extension/watsonc/profile`, savedProfile).then(response => {
                 if (response.data) {            
-                    savedProfile.data = response.data;
-    
-                    const key = `watsonc_profile_` + uuidv1();
-                    axios.post(`${this.apiUrl}/${key}`, savedProfile).then(response => {
-                        let data = response.data.data;
-                        data.value = JSON.parse(data.value);
-
+                    savedProfile.data = response.data;    
+                    axios.post(`${this.apiUrl}`, savedProfile).then(response => {
+                        let data = JSON.parse(response.data.data.value);
                         resolve(data);
                     }).catch(error => {
                         console.error(error);

@@ -36,6 +36,9 @@ class MenuProfilesComponent extends React.Component {
     constructor(props) {
         super(props);
 
+
+
+
         this.state = {
             apiUrl: (props.apiUrl ? props.apiUrl : DEFAULT_API_URL),
             loading: false,
@@ -45,6 +48,7 @@ class MenuProfilesComponent extends React.Component {
             boreholeNames: [],
             layers: [],
             selectedLayers: [],
+            authenticated: props.authenticated ? props.authenticated : false,
             profiles: (props.initialProfiles ? props.initialProfiles : []),
             activeProfiles: (props.initialActiveProfiles ? props.initialActiveProfiles : []),
             profile: false,
@@ -71,6 +75,13 @@ class MenuProfilesComponent extends React.Component {
     }
 
     componentDidMount() {
+        let _self = this;
+        this.props.backboneEvents.get().on(`session:authChange`, (authenticated) => {
+            if (_self.state.authenticated !== authenticated) {
+                _self.setState({ authenticated });
+            }
+        });
+
         this.displayActiveProfiles();
     }
 
@@ -129,10 +140,10 @@ class MenuProfilesComponent extends React.Component {
         });
     }
 
-    handleProfileDelete(profile) {
-        if (confirm(__(`Delete`) + ' ' + profile.value.title + '?')) {
+    handleProfileDelete(item) {
+        if (confirm(__(`Delete`) + ' ' + item.profile.title + '?')) {
             this.setState({loading: true});
-            this.props.onProfileDelete(profile.key, () => {
+            this.props.onProfileDelete(item.key, () => {
                 this.setState({loading: false});
             });
         }
@@ -246,13 +257,12 @@ class MenuProfilesComponent extends React.Component {
         if (embedDrawControl) embedDrawControl.disable();
     }
 
-    displayProfile(profile) {
-        this.clearDrawnLayers();
+    displayProfile(data) {
+        this.clearDrawnLayers();        
+        let profile = data.profile.profile;
 
         // Get utm zone
-        let profileLine = profile.value.profile;
-
-        var zone = utmZone.getZone(profileLine.geometry.coordinates[0][1], profileLine.geometry.coordinates[0][0]);
+        var zone = utmZone.getZone(profile.geometry.coordinates[0][1], profile.geometry.coordinates[0][0]);
         var crss = {
             "proj": "+proj=utm +zone=" + zone + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
             "unproj": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
@@ -260,8 +270,8 @@ class MenuProfilesComponent extends React.Component {
 
         let reader = new jsts.io.GeoJSONReader();
         let writer = new jsts.io.GeoJSONWriter();
-        let geom = reader.read(reproject.reproject(profileLine, "unproj", "proj", crss));
-        let buffer4326 = reproject.reproject(writer.write(geom.geometry.buffer(profile.value.buffer)), "proj", "unproj", crss);
+        let geom = reader.read(reproject.reproject(profile, "unproj", "proj", crss));
+        let buffer4326 = reproject.reproject(writer.write(geom.geometry.buffer(data.profile.buffer)), "proj", "unproj", crss);
 
         L.geoJson(buffer4326, {
             "color": "#ff7800",
@@ -271,9 +281,9 @@ class MenuProfilesComponent extends React.Component {
             "dashArray": '5,3'
         }).addTo(displayedItems);
 
-        var profileLayer = new L.geoJSON(profileLine);
+        var profileLayer = new L.geoJSON(profile);
 
-        profileLayer.bindTooltip(profile.value.title, {
+        profileLayer.bindTooltip(data.profile.title, {
             className: 'watsonc-profile-tooltip',
             permanent: true,
             offset: [0, 0]
@@ -282,11 +292,11 @@ class MenuProfilesComponent extends React.Component {
         profileLayer.addTo(displayedItems);
     }
 
-    handleProfileToggle(checked, profile) {
+    handleProfileToggle(checked, profileKey) {
         if (checked) {
-            this.props.onProfileShow(profile.key);
+            this.props.onProfileShow(profileKey);
         } else {
-            this.props.onProfileHide(profile.key);
+            this.props.onProfileHide(profileKey);
         }
     }
 
@@ -337,7 +347,6 @@ class MenuProfilesComponent extends React.Component {
 
         let plotRows = [];
         this.state.profiles.map((item, index) => {
-            let data = item.value;
             plotRows.push(<tr key={`existing_profile_${index}`}>
                 <td>
                     <div>
@@ -348,17 +357,17 @@ class MenuProfilesComponent extends React.Component {
                                         type="checkbox"
                                         name="enabled_profile"
                                         checked={this.state.activeProfiles.indexOf(item.key) > -1}
-                                        onChange={(event) => { this.handleProfileToggle(event.target.checked, item); }}/>
+                                        onChange={(event) => { this.handleProfileToggle(event.target.checked, item.key); }}/>
                                 </label>
                             </div>
                         </div>
                         <div style={{float: `left`, paddingLeft: `8px`, paddingTop: `2px`}}>
-                            {data.title}
+                            {item.profile.title}
                         </div>
                     </div>
                 </td>
                 <td style={{textAlign: `center`}}>
-                    {data.compound ? utils.getChemicalName(data.compound, this.props.categories) : __(`Not selected`)}
+                    {item.profile.compound ? utils.getChemicalName(item.profile.compound, this.props.categories) : __(`Not selected`)}
                 </td>
                 <td style={{textAlign: `right`}}>
                     <button
@@ -398,188 +407,197 @@ class MenuProfilesComponent extends React.Component {
             chemicalName = utils.getChemicalName(this.state.localSelectedChemical, this.props.categories);
         }
 
-        return (<div id="profile-drawing-buffer" style={{position: `relative`}}>
-            {overlay}
-            <div style={{borderBottom: `1px solid lightgray`}}>
-                <div style={{fontSize: `20px`, padding: `14px`}}>
-                    <a href="javascript:void(0)" onClick={() => { this.setState({showDrawingForm: !this.state.showDrawingForm})}}>{__(`Create new profile`)} 
-                        {this.state.showDrawingForm ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
-                    </a>
-                </div>
-                {this.state.showDrawingForm ? (<div className="container">
-                    <div className="row">
-                        <div className="col-md-12">
-                            <TitleFieldComponent
-                                onAdd={(newTitle) => { this.setState({newTitle, step: STEP_NOT_READY}) }}
-                                type="browserOwned"
-                                showIcon={false}
-                                inputPlaceholder={this.state.newTitle}
-                                disabled={this.state.step !== STEP_ENTER_NAME}
-                                saveButtonText={__(`Continue`)}
-                                customStyle={{width: `100%`}}/>
-                        </div>
+        if (this.state.authenticated) {
+            return (<div id="profile-drawing-buffer" style={{position: `relative`}}>
+                {overlay}
+                <div style={{borderBottom: `1px solid lightgray`}}>
+                    <div style={{fontSize: `20px`, padding: `14px`}}>
+                        <a href="javascript:void(0)" onClick={() => { this.setState({showDrawingForm: !this.state.showDrawingForm})}}>{__(`Create new profile`)} 
+                            {this.state.showDrawingForm ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
+                        </a>
                     </div>
-
-                    {this.state.step !== STEP_ENTER_NAME ? (<div>
+                    {this.state.showDrawingForm ? (<div className="container">
                         <div className="row">
                             <div className="col-md-12">
-                                <p><strong>{__(`Select datatype`)}:</strong> {chemicalName} <button
-                                    type="button"
-                                    disabled={this.state.step !== STEP_NOT_READY}
-                                    className="btn btn-primary btn-sm"
-                                    onClick={() => {
-                                        const selectChemicalModalPlaceholderId = `${SELECT_CHEMICAL_DIALOG_PREFIX}-placeholder`;
-
-                                        if ($(`#${selectChemicalModalPlaceholderId}`).children().length > 0) {
-                                            ReactDOM.unmountComponentAtNode(document.getElementById(selectChemicalModalPlaceholderId));
-                                        }
-
-                                        try {
-                                            ReactDOM.render(<div>
-                                                <Provider store={reduxStore}>
-                                                    <ChemicalSelectorModal
-                                                        emptyOptionTitle={__(`Show without data type`)}
-                                                        useLocalSelectedChemical={true}
-                                                        localSelectedChemical={this.state.selectedChemical}
-                                                        onClickControl={(selectorValue) => {
-                                                            this.setState({localSelectedChemical: selectorValue})
-                                                            $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal('hide');
-                                                        }}/>
-                                                </Provider>
-                                            </div>, document.getElementById(selectChemicalModalPlaceholderId));
-                                        } catch (e) {
-                                            console.error(e);
-                                        }
-
-                                        $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal({backdrop: `static`});
-                                    }}><i className="fas fa-edit" title={__(`Edit`)}></i></button>
-                                    <button
-                                        type="button"
-                                        disabled={this.state.localSelectedChemical === false}
-                                        className="btn btn-xs btn-primary"
-                                        title={__(`Delete`)}
-                                        onClick={(event) => {
-                                            this.setState({localSelectedChemical: false});
-                                        }}>
-                                        <i className="fas fa-eraser" title={__(`Delete`)}></i>
-                                    </button>
-                                </p>
+                                <TitleFieldComponent
+                                    onAdd={(newTitle) => { this.setState({newTitle, step: STEP_NOT_READY}) }}
+                                    type="browserOwned"
+                                    showIcon={false}
+                                    inputPlaceholder={this.state.newTitle}
+                                    disabled={this.state.step !== STEP_ENTER_NAME}
+                                    saveButtonText={__(`Continue`)}
+                                    customStyle={{width: `100%`}}/>
                             </div>
                         </div>
 
-                        <div className="row">
-                            <div className="col-md-4" style={{paddingTop: `12px`}}>
-                                <p><strong>{__(`Adjust buffer`)}</strong></p>
-                            </div>
-                            <div className="col-md-5" style={{paddingTop: `14px`}}>
-                                <Slider
-                                    disabled={this.state.step !== STEP_NOT_READY}
-                                    value={this.state.buffer ? parseInt(this.state.buffer) : 0}
-                                    min={0}
-                                    max={500}
-                                    onChange={(value) => { this.setState({buffer: value}); }}/>
-                            </div>
-                            <div className="col-md-3">
-                                <input
-                                    disabled={this.state.step !== STEP_NOT_READY}
-                                    type="number"
-                                    className="form-control"
-                                    onChange={(event) => { this.setState({buffer: event.target.value}); }}
-                                    value={this.state.buffer}/>
-                            </div>
-                        </div>
-
-                        <div className="row">
-                            <div className="col-md-4" style={{paddingTop: `12px`}}>
-                                <p><strong>{__(`Adjust profile bottom`)}</strong></p>
-                            </div>
-                            <div className="col-md-8">
-                                <input
-                                    disabled={this.state.step !== STEP_NOT_READY}
-                                    type="number"
-                                    className="form-control"
-                                    onChange={(event) => { this.setState({profileBottom: event.target.value}); }}
-                                    value={this.state.profileBottom}/>
-                            </div>
-                        </div>
-
-                        <div className="row">
-                            <div className="col-md-6" style={{textAlign: `center`}}>
-                                {this.state.step === STEP_READY_TO_LOAD || this.state.step === STEP_BEING_DRAWN ? (<a
-                                    href="javascript:void(0)"
-                                    className="btn btn-primary"
-                                    onClick={() => {
-                                        this.setState({
-                                            step: STEP_NOT_READY,
-                                            bufferedProfile: false
-                                        }, () => {
-                                            this.stopDrawing();
-                                        });
-                                }}><i className="material-icons">block</i> {__(`Cancel`)}</a>) : (<a
-                                    href="javascript:void(0)"
-                                    className="btn btn-primary"
-                                    onClick={() => {
-                                        this.setState({step: STEP_BEING_DRAWN}, () => {
-                                            this.startDrawing();
-                                        });
-                                }}><i className="material-icons">linear_scale</i> {__(`Draw profile`)}</a>)}
-                            </div>
-                            <div className="col-md-6" style={{textAlign: `center`}}>
-                                <a
-                                    href="javascript:void(0)"
-                                    className="btn"
-                                    disabled={this.state.step !== STEP_READY_TO_LOAD}
-                                    onClick={() => {
-                                        this.search();
-                                    }}>{__(`Continue`)}</a>
-                            </div>
-                        </div>
-
-                        {this.state.step === STEP_CHOOSE_LAYERS ? (<div>
+                        {this.state.step !== STEP_ENTER_NAME ? (<div>
                             <div className="row">
                                 <div className="col-md-12">
-                                    {availableLayers}
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-md-12">
-                                    <button
+                                    <p><strong>{__(`Select datatype`)}:</strong> {chemicalName} <button
                                         type="button"
-                                        className="btn btn-raised btn-block btn-primary btn-sm"
-                                        onClick={() => { this.saveProfile(); }}>{__(`Save and exit`)}</button>
+                                        disabled={this.state.step !== STEP_NOT_READY}
+                                        className="btn btn-primary btn-sm"
+                                        onClick={() => {
+                                            const selectChemicalModalPlaceholderId = `${SELECT_CHEMICAL_DIALOG_PREFIX}-placeholder`;
+
+                                            if ($(`#${selectChemicalModalPlaceholderId}`).children().length > 0) {
+                                                ReactDOM.unmountComponentAtNode(document.getElementById(selectChemicalModalPlaceholderId));
+                                            }
+
+                                            try {
+                                                ReactDOM.render(<div>
+                                                    <Provider store={reduxStore}>
+                                                        <ChemicalSelectorModal
+                                                            emptyOptionTitle={__(`Show without data type`)}
+                                                            useLocalSelectedChemical={true}
+                                                            localSelectedChemical={this.state.selectedChemical}
+                                                            onClickControl={(selectorValue) => {
+                                                                this.setState({localSelectedChemical: selectorValue})
+                                                                $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal('hide');
+                                                            }}/>
+                                                    </Provider>
+                                                </div>, document.getElementById(selectChemicalModalPlaceholderId));
+                                            } catch (e) {
+                                                console.error(e);
+                                            }
+
+                                            $('#' + SELECT_CHEMICAL_DIALOG_PREFIX).modal({backdrop: `static`});
+                                        }}><i className="fas fa-edit" title={__(`Edit`)}></i></button>
+                                        <button
+                                            type="button"
+                                            disabled={this.state.localSelectedChemical === false}
+                                            className="btn btn-xs btn-primary"
+                                            title={__(`Delete`)}
+                                            onClick={(event) => {
+                                                this.setState({localSelectedChemical: false});
+                                            }}>
+                                            <i className="fas fa-eraser" title={__(`Delete`)}></i>
+                                        </button>
+                                    </p>
                                 </div>
                             </div>
+
+                            <div className="row">
+                                <div className="col-md-4" style={{paddingTop: `12px`}}>
+                                    <p><strong>{__(`Adjust buffer`)}</strong></p>
+                                </div>
+                                <div className="col-md-5" style={{paddingTop: `14px`}}>
+                                    <Slider
+                                        disabled={this.state.step !== STEP_NOT_READY}
+                                        value={this.state.buffer ? parseInt(this.state.buffer) : 0}
+                                        min={0}
+                                        max={500}
+                                        onChange={(value) => { this.setState({buffer: value}); }}/>
+                                </div>
+                                <div className="col-md-3">
+                                    <input
+                                        disabled={this.state.step !== STEP_NOT_READY}
+                                        type="number"
+                                        className="form-control"
+                                        onChange={(event) => { this.setState({buffer: event.target.value}); }}
+                                        value={this.state.buffer}/>
+                                </div>
+                            </div>
+
+                            <div className="row">
+                                <div className="col-md-4" style={{paddingTop: `12px`}}>
+                                    <p><strong>{__(`Adjust profile bottom`)}</strong></p>
+                                </div>
+                                <div className="col-md-8">
+                                    <input
+                                        disabled={this.state.step !== STEP_NOT_READY}
+                                        type="number"
+                                        className="form-control"
+                                        onChange={(event) => { this.setState({profileBottom: event.target.value}); }}
+                                        value={this.state.profileBottom}/>
+                                </div>
+                            </div>
+
+                            <div className="row">
+                                <div className="col-md-6" style={{textAlign: `center`}}>
+                                    {this.state.step === STEP_READY_TO_LOAD || this.state.step === STEP_BEING_DRAWN ? (<a
+                                        href="javascript:void(0)"
+                                        className="btn btn-primary"
+                                        onClick={() => {
+                                            this.setState({
+                                                step: STEP_NOT_READY,
+                                                bufferedProfile: false
+                                            }, () => {
+                                                this.stopDrawing();
+                                            });
+                                    }}><i className="material-icons">block</i> {__(`Cancel`)}</a>) : (<a
+                                        href="javascript:void(0)"
+                                        className="btn btn-primary"
+                                        onClick={() => {
+                                            this.setState({step: STEP_BEING_DRAWN}, () => {
+                                                this.startDrawing();
+                                            });
+                                    }}><i className="material-icons">linear_scale</i> {__(`Draw profile`)}</a>)}
+                                </div>
+                                <div className="col-md-6" style={{textAlign: `center`}}>
+                                    <a
+                                        href="javascript:void(0)"
+                                        className="btn"
+                                        disabled={this.state.step !== STEP_READY_TO_LOAD}
+                                        onClick={() => {
+                                            this.search();
+                                        }}>{__(`Continue`)}</a>
+                                </div>
+                            </div>
+
+                            {this.state.step === STEP_CHOOSE_LAYERS ? (<div>
+                                <div className="row">
+                                    <div className="col-md-12">
+                                        {availableLayers}
+                                    </div>
+                                </div>
+                                <div className="row">
+                                    <div className="col-md-12">
+                                        <button
+                                            type="button"
+                                            className="btn btn-raised btn-block btn-primary btn-sm"
+                                            onClick={() => { this.saveProfile(); }}>{__(`Save and exit`)}</button>
+                                    </div>
+                                </div>
+                            </div>) : false}
                         </div>) : false}
                     </div>) : false}
-                </div>) : false}
-            </div>
-
-            <div style={{borderBottom: `1px solid lightgray`}}>
-                <div style={{fontSize: `20px`, padding: `14px`}}>
-                    <a href="javascript:void(0)" onClick={() => { this.setState({showExistingProfiles: !this.state.showExistingProfiles})}}>{__(`Select previously created profile`)} ({this.state.profiles.length})
-                        {this.state.showExistingProfiles ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
-                    </a>
                 </div>
-                {this.state.showExistingProfiles ? (<div className="container">
-                    <div className="row">
-                        <div className="col-md-12">
-                            {existingProfilesControls}
-                        </div>
+
+                <div style={{borderBottom: `1px solid lightgray`}}>
+                    <div style={{fontSize: `20px`, padding: `14px`}}>
+                        <a href="javascript:void(0)" onClick={() => { this.setState({showExistingProfiles: !this.state.showExistingProfiles})}}>{__(`Select previously created profile`)} ({this.state.profiles.length})
+                            {this.state.showExistingProfiles ? (<i className="material-icons">keyboard_arrow_down</i>) : (<i className="material-icons">keyboard_arrow_right</i>)}
+                        </a>
                     </div>
-                </div>) : false}
-            </div>
-        </div>);
+                    {this.state.showExistingProfiles ? (<div className="container">
+                        <div className="row">
+                            <div className="col-md-12">
+                                {existingProfilesControls}
+                            </div>
+                        </div>
+                    </div>) : false}
+                </div>
+            </div>);
+        } else {
+            return (<div id="profile-drawing-buffer" style={{position: `relative`}}>
+                <div style={{textAlign: `center`}}>
+                    <p>{__(`Please sign in to access Profiles module`)}</p>
+                </div>
+            </div>);
+        }
     }
 }
 
 MenuProfilesComponent.propTypes = {
     cloud: PropTypes.any.isRequired,
+    backboneEvents: PropTypes.any.isRequired,
 };
 
 
 const mapStateToProps = state => ({
     selectedChemical: state.global.selectedChemical,
-
+    authenticated: state.global.authenticated,
 });
 
 const mapDispatchToProps = dispatch => ({
