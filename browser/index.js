@@ -190,7 +190,6 @@ module.exports = module.exports = {
         backboneEvents.get().on(`startLoading:layers`, layerKey => {
             if (cloud.get().getZoom() < 15 && layerKey === "v:chemicals.boreholes_time_series_with_chemicals") {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
-                switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
 
                 setTimeout(()=>{
                     let applicationWideControls = $(`*[data-gc2-id="chemicals.boreholes_time_series_with_chemicals"]`);
@@ -202,7 +201,6 @@ module.exports = module.exports = {
         cloud.get().on(`moveend`, () => {
             if (cloud.get().getZoom() < 15) {
                 switchLayer.init("v:chemicals.boreholes_time_series_with_chemicals", false, true, false);
-                switchLayer.init("v:sensor.sensordata_with_correction", false, true, false);
 
                 jquery.snackbar({
                     id: "snackbar-watsonc",
@@ -438,7 +436,7 @@ module.exports = module.exports = {
                 });
 
                 // Activating specific layers if they have not been activated before
-                [LAYER_NAMES[1], LAYER_NAMES[3]].map(layerNameToEnable => {
+                [LAYER_NAMES[1]].map(layerNameToEnable => {
                     if (activeLayers.indexOf(layerNameToEnable) === -1) {
                         switchLayer.init(layerNameToEnable, true, true, false);
                     }
@@ -693,28 +691,28 @@ module.exports = module.exports = {
         [LAYER_NAMES[0], LAYER_NAMES[2]].map(layerNameToEnable => {
             switchLayer.init(layerNameToEnable, false);
         });
-
-        if (cloud.get().getZoom() >= 15) {
-            let filteredLayers = [];
-            enabledLoctypeIds = [];
-            parameters.layers.map(layerName => {
+        
+        let filteredLayers = [];
+        enabledLoctypeIds = [];
+        parameters.layers.map(layerName => {
+            if (layerName === LAYER_NAMES[0] && cloud.get().getZoom() >= 15 || layerName.indexOf(LAYER_NAMES[2]) === 0) {
                 if (layerName.indexOf(`#`) > -1) {
                     if (filteredLayers.indexOf(layerName.split(`#`)[0]) === -1) filteredLayers.push(layerName.split(`#`)[0]);
                     enabledLoctypeIds.push(layerName.split(`#`)[1]);
                 } else {
                     if (filteredLayers.indexOf(layerName) === -1) filteredLayers.push(layerName);
                 }
-            });
-
-            backboneEvents.get().trigger(`${MODULE_NAME}:enabledLoctypeIdsChange`);
-            if (parameters.chemical) {
-                _self.enableChemical(parameters.chemical, filteredLayers);
-            } else {
-                lastSelectedChemical = parameters.chemical;
-                filteredLayers.map(layerName => {
-                    layerTree.reloadLayer(layerName);
-                });
             }
+        });
+
+        backboneEvents.get().trigger(`${MODULE_NAME}:enabledLoctypeIdsChange`);
+        if (parameters.chemical) {
+            _self.enableChemical(parameters.chemical, filteredLayers);
+        } else {
+            lastSelectedChemical = parameters.chemical;
+            filteredLayers.map(layerName => {
+                layerTree.reloadLayer(layerName);
+            });
         }
     },
 
