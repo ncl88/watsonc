@@ -134,9 +134,12 @@ def getStationingPoints(inputLine, modelPoly):
 
                         if segmentStartInside == True:
                             if segmentEndInside == True:
+                                if i == 1 and i == (len(pkter) - 1): ## ny del
+                                    intersectionSegments.append((round(0),round(intersection.length)))
                                 if i == 1:
                                     insideSum += intersection.length
-                                if i == (len(pkter) - 1):
+                                if i != 1 and i == (len(pkter) - 1):
+                                    #intersectionSegments.append((round(absoluteSum - insideSum), round(absoluteSum + intersection.length)))
                                     intersectionSegments.append((round(absoluteSum - insideSum), round(absoluteSum + intersection.length)))
                                     insideSum = 0
                                 if i != 1 and i != (len(pkter) - 1):
@@ -146,7 +149,9 @@ def getStationingPoints(inputLine, modelPoly):
                                 insideSum = 0
                         elif segmentStartInside == False:
                             if segmentEndInside == True:
-                                if i == (len(pkter) - 1):
+                                if i == 1 and i == (len(pkter) - 1): ## ny del
+                                    intersectionSegments.append((round(tmpProfileSegment1.length),round(tmpProfileSegment2.length)))
+                                elif i != 1 and i == (len(pkter) - 1):
                                     intersectionSegments.append((round(absoluteSum - insideSum), round(absoluteSum + intersection.length)))
                                     insideSum = 0
                                 else:
